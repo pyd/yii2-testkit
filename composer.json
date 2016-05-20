@@ -1,0 +1,20 @@
+{
+    "name": "pyd/yii2-testkit",
+    "license": "MIT",
+    "type": "yii2-extension",
+    "description": "Yii2 testing lib",
+    "authors": [
+        {
+            "name": "Pierre-Yves DELETTRE",
+            "email": "pierre.yves@delettre.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"pyd\\testkit\\": "src/"}
+    },
+    "require": {
+        "php": ">=5.4.0",
+        "facebook/webdriver": "dev-master",
+        "ninsuo/php-shared-memory": "dev-master"
+    }
+}
