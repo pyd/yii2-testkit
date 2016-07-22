@@ -1,20 +1,28 @@
 {
     "name": "pyd/yii2-testkit",
     "license": "MIT",
-    "type": "yii2-extension",
-    "description": "Yii2 testing lib",
+    "type": "library",
+    "description": "Yii2 testing tools",
     "authors": [
         {
             "name": "Pierre-Yves DELETTRE",
-            "email": "pierre.yves@delettre.com"
+            "email": "pierre-yves@delettre.me"
         }
     ],
     "autoload": {
         "psr-4": {"pyd\\testkit\\": "src/"}
     },
+    "autoload-dev": {
+        "psr-4": { "pyd\\testkit\\tests\\": "tests/" }
+    },
     "require": {
         "php": ">=5.4.0",
         "facebook/webdriver": "dev-master",
-        "ninsuo/php-shared-memory": "dev-master"
+        "ninsuo/php-shared-memory": "dev-master",
+        "floriansemm/official-library-php-email-parser": "dev-master",
+        "chartjes/php-browsermob-proxy": "dev-master"
+    },
+    "require-dev": {
+        "yiisoft/yii2": "dev-master"
     }
 }
