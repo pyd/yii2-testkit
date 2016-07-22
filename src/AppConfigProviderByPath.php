@@ -8,7 +8,7 @@ use yii\base\InvalidConfigException;
  * and server variable to initialize.
  *
  * ```php
- * $configProvider = new AppConfigProviderByPath(['allTestsConfig' => $config]);
+ * $configProvider = new AppConfigProviderByPath(['globalConfig' => $config]);
  * $testCaseDirPath = '/path/to/testcase/parent/directory';
  * $bootstrapFiles = $configProvider->getBootstrapFiles($testCaseDirPath);
  * $serverVars = $configProvider->getServerVars($testCaseDirPath);
@@ -86,12 +86,12 @@ class AppConfigProviderByPath extends \yii\base\Object
     /**
      * @var array global - for all tests - configuration
      */
-    protected $allTestsConfig;
+    protected $globalConfig;
 
     public function init()
     {
-        if (null === $this->allTestsConfig) {
-            throw new InvalidConfigException(get_class($this) . '::$allTestsConfig must be initialized.', 10);
+        if (null === $this->globalConfig) {
+            throw new InvalidConfigException(get_class($this) . '::$globalConfig must be initialized.', 10);
         }
     }
 
@@ -143,7 +143,7 @@ class AppConfigProviderByPath extends \yii\base\Object
     }
 
     /**
-     * Set config for all tests @see $allTestsConfig
+     * Set config for all tests @see $globalConfig
      *
      * Config checks:
      * - it must be an array or a string;
@@ -161,9 +161,9 @@ class AppConfigProviderByPath extends \yii\base\Object
      *
      *
      * @param string|array $config
-     * @see $allTestsConfig
+     * @see $globalConfig
      */
-    protected function setAllTestsConfig($config)
+    protected function setglobalConfig($config)
     {
         $config = $this->getConfigAsArray($config);
 
@@ -211,14 +211,14 @@ class AppConfigProviderByPath extends \yii\base\Object
             }
         }
 
-        $this->allTestsConfig = $config;
+        $this->globalConfig = $config;
     }
 
     private $lastTestCaseDirPath;
     private $lastConfigByPath;
 
     /**
-     * Extract and merge configs - from @see $allTestsConfig - that match the
+     * Extract and merge configs - from @see $globalConfig - that match the
      * $testCaseDirPath argument.
      *
      * @param string $testCaseDirPath path to the parent directory of the
@@ -239,7 +239,7 @@ class AppConfigProviderByPath extends \yii\base\Object
 
 
             foreach ($matchingConfigPaths as $matchingConfigPath) {
-                $configByPath = \yii\helpers\ArrayHelper::merge($configByPath, $this->allTestsConfig[$matchingConfigPath]);
+                $configByPath = \yii\helpers\ArrayHelper::merge($configByPath, $this->globalConfig[$matchingConfigPath]);
             }
 
             $this->lastTestCaseDirPath = $testCaseDirPath;
@@ -250,7 +250,7 @@ class AppConfigProviderByPath extends \yii\base\Object
     }
 
     /**
-     * Return config paths, i.e. keys of the @see $allTestsConfig, that are
+     * Return config paths, i.e. keys of the @see $globalConfig, that are
      * ancestors of the $path argument or equal to it.
      *
      * @param string $testCaseDirPath path to the parent directory of the
@@ -260,7 +260,7 @@ class AppConfigProviderByPath extends \yii\base\Object
     protected function getMatchingConfigPaths($testCaseDirPath)
     {
         $matchingConfigPaths = [];
-        foreach (array_keys($this->allTestsConfig) as $configPath) {
+        foreach (array_keys($this->globalConfig) as $configPath) {
             if (false !== strpos($testCaseDirPath, rtrim($configPath, '/'))) {
                 $matchingConfigPaths[] = $configPath;
             }
