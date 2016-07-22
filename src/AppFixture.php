@@ -10,7 +10,7 @@ namespace pyd\testkit;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class AppManager extends \yii\base\Object
+class AppFixture extends \yii\base\Object
 {
     /**
      * @var string
@@ -29,11 +29,21 @@ class AppManager extends \yii\base\Object
         }
     }
 
-    public function create()
+    /**
+     * Create Yii application instance @see $appClassname.
+     *
+     * If bootstrap files to load and/or $_SERVER variables to initialized are
+     * returned by the @see $configProvider, it will be done before the Yii app
+     * creation.
+     *
+     * @param string $testCaseDirPath path to the parent directory of the
+     * currently executed test case
+     */
+    public function create($testCaseDirPath)
     {
-        $this->setServerVariables($this->configProvider->getServerVariables());
-        $this->loadBootstrapFiles($this->configProvider->getBootstrapFiles());
-        $this->createYiiApp($this->configProvider->getAppConfig());
+        $this->loadBootstrapFiles($this->configProvider->getBootstrapFiles($testCaseDirPath));
+        $this->setServerVariables($this->configProvider->getServerVariables($testCaseDirPath));
+        $this->createYiiApp($this->configProvider->getAppConfig($testCaseDirPath));
     }
 
     public function clear()
@@ -43,11 +53,21 @@ class AppManager extends \yii\base\Object
     }
 
     /**
+     * Check if Yii application was created.
+     *
+     * @return boolean
+     */
+    public function appCreated()
+    {
+        return null !== \Yii::$app;
+    }
+
+    /**
      * Initialize $_SERVER variables.
      *
      * @param array $variables ['name' => $value', 'othername' => $otherValue,...]
      */
-    protected function setServerVariables(array $variables)
+    public function setServerVariables(array $variables)
     {
         foreach ($variables as $key => $value) {
             $_SERVER[$key] = $value;
@@ -59,7 +79,7 @@ class AppManager extends \yii\base\Object
      *
      * @param array $bootstrapFiles ['/path/to/bootstrapFileOne.php', '/path/to/bootstrapFileTwo.php', ...]
      */
-    protected function loadBootstrapFiles(array $bootstrapFiles)
+    public function loadBootstrapFiles(array $bootstrapFiles)
     {
         foreach ($bootstrapFiles as $bootstrapFile) {
             require_once $bootstrapFile;
@@ -68,10 +88,10 @@ class AppManager extends \yii\base\Object
 
     /**
      * Create Yii app.
-     * 
+     *
      * @param array $appConfig
      */
-    protected function createYiiApp(array $appConfig)
+    public function createYiiApp(array $appConfig)
     {
         if (empty($appConfig['class'])) $appConfig['class'] = $this->appClassName;
         \Yii::createObject($appConfig);
