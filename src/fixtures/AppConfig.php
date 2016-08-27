@@ -1,26 +1,23 @@
 <?php
 namespace pyd\testkit\fixtures;
 
-use pyd\testkit\EventsDispatcher;
 use yii\base\InvalidConfigException;
 
 /**
- * Provide Yii app config, bootstrap files to load and server variable to initialize.
+ * Provide configuration for Yii app creation.
  *
- * The @see $globalConfig property must be initialized at creation with an
- * array or the path to a file returning an array.
+ * Configuration can contain  bootstrap files to load and $_SERVER variables to
+ * initialize before Yii app creation.
  *
+ * The config passed to the constructor must contain a 'globalConfig' key which
+ * value is a an array of configurations or the path to a file returning an array.
+ * @see setGlobalConfig() for it's content.
  * ```php
- * // Each key is a path to a directory of the testing tree and it's value is
- * // an array of configuration data.
- * // A Configuration data array can contain 3 kinds of keys:
- * // - the @see BOOTSTRAP_FILES_KEY key which value is an array of bootstrap files
- * //       ['/path/to/bootstrap/file_1.php', '/path/to/bootstrap/file_2.php', ...];
- * // - the @see SERVER_VARS_KEY key which value is an array of server variables to initialize
- * //       ['SERVER_NAME' => 'http://domain.com', 'SCRIPT_NAME' => 'http://domain.com/index-test.php', ...];
- * // - @see APP_KEY key which value is an array of config files and or config arrays
- * //       ['/path/to/yii/app/config/file_1.php', $configArray ], ...];
+ * $appConfig = new AppConfig(['globalConfig' => $globalConfig]);
+ * ```
  *
+ * Example of $globalConfig:
+ * ```php
  * $globalConfig = [
  *
  *      // config for all test cases of the /var/www/myApp/tests directory
@@ -71,10 +68,16 @@ use yii\base\InvalidConfigException;
  * ];
  * ```
  *
- * The @see $testCaseDirPath property is initialized by the @see onSetUpBeforeClass
- * method.
- * Note that this class must be registered as an observer of the 'setUpBeforeClass'
- * before the @see \pyd\testkit\fixtures\App class.
+ * The @see generateConfigByPath() will generate the configuration for a specific
+ * test case. It is called by the @see onSetUpBeforeClass() method. This class
+ * must therefor be registered as an observer of the 'setUpBeforeClass' event.
+ *
+ * Once generated you can get configuration data to create a Yii app.
+ * ```php
+ * $appConfig->getBootstrapFiles();
+ * $appConfig->getServerVars();
+ * $appConfig->getAppConfig();
+ * ```
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -97,43 +100,25 @@ class AppConfig extends \yii\base\Object
      */
     protected $globalConfig;
     /**
-     * @var string path to the parent directory of the currently executed test
-     * case
+     * @var array config generated for a specific test case, based on the path
+     * to it's parent directory
+     * @see generateConfigForTestCase
+     */
+    protected $configByPath;
+    /**
+     * @var string path to the directory of the currently executed test case
      */
     protected $testCaseDirPath;
 
-    /**
-     * Initialization.
-     *
-     * Verify that the @see $globalConfig was intialized.
-     *
-     * @throws InvalidConfigException
-     */
     public function init()
     {
         if (null === $this->globalConfig) {
-            throw new InvalidConfigException(get_class($this) . '::$globalConfig must be initialized.', 10);
+            throw new InvalidConfigException(get_class($this) . '::$globalConfig should be initialized.', 10);
         }
     }
 
     /**
-     * Handle setUpBeforeClass event.
-     *
-     * Initialize @see $testCaseDirPath.
-     *
-     * @param string $testCaseClassName class name of the currently executed
-     * test case
-     */
-    public function onSetUpBeforeClass($testCaseClassName)
-    {
-        $rc = new \ReflectionClass($testCaseClassName);
-        $this->testCaseDirPath = dirname($rc->getFileName());
-        $this->_configByPath = null;
-    }
-
-
-    /**
-     * Return bootstrap files to load according to the $path.
+     * Return bootstrap files to load.
      *
      * @return array [
      *      '/path/to/bootstrap/file/one.php',
@@ -143,12 +128,11 @@ class AppConfig extends \yii\base\Object
      */
     public function getBootstrapFiles()
     {
-        $configByPath = $this->getConfigByPath();
-        return isset($configByPath[self::BOOTSTRAP_FILES_KEY]) ? $configByPath[self::BOOTSTRAP_FILES_KEY] : [];
+        return isset($this->configByPath[self::BOOTSTRAP_FILES_KEY]) ? $this->configByPath[self::BOOTSTRAP_FILES_KEY] : [];
     }
 
     /**
-     * Return server variables to be initialized according to the $path.
+     * Return server variables to initialize.
      *
      * @return array [
      *      'serverVarName' => $serverVarNameValue,
@@ -158,30 +142,52 @@ class AppConfig extends \yii\base\Object
      */
     public function getServerVars()
     {
-        $config = $this->getConfigByPath();
-        return isset($config[self::SERVER_VARS_KEY]) ? $config[self::SERVER_VARS_KEY] : [];
+        return isset($this->configByPath[self::SERVER_VARS_KEY]) ? $this->configByPath[self::SERVER_VARS_KEY] : [];
     }
 
    /**
-    * Return the configuration used to create the Yii app according to the $path.
+    * Return the configuration used to create the Yii app.
     *
-    * @param string $path
-    * @return array
-    * @throws \yii\base\InvalidParamException configuration is empty for this
-    * path
+    * Note that the content of the returned array is not verified. It may be
+    * empty.
+    *
+    * @return array the Yii app configuration
     */
     public function getAppConfig()
     {
-        $config = $this->getConfigByPath();
-        if (isset($config[self::APP_KEY]) && !empty($config[self::APP_KEY])) {
-            return $config[self::APP_KEY];
-        }
-        throw new \yii\base\InvalidParamException("yii app configuration is empty for the path '$path'.");
+        return isset($this->configByPath[self::APP_KEY]) ? $this->configByPath[self::APP_KEY] : [];;
     }
 
-    public function getTestCaseDirPath()
+    /**
+     * Handler of the 'setUpBeforeClass' event.
+     *
+     * @see generateConfigByPath()
+     *
+     * @param string $testCaseClassName class name of the currently executed test
+     * case
+     */
+    public function onSetUpBeforeClass($testCaseClassName)
     {
-        return $this->testCaseDirPath;
+        $rc = new \ReflectionClass($testCaseClassName);
+        $this->testCaseDirPath = dirname($rc->getFileName());
+        $this->generateConfigByPath();
+    }
+
+    /**
+     * Generate a configuration to create a Yii app for the currently executed
+     * test case.
+     *
+     * @see $testCaseDirPath
+     */
+    protected function generateConfigByPath()
+    {
+        $globalConfigMatchingPaths = $this->searchGlobalConfigMatchingPaths();
+        sort($globalConfigMatchingPaths);
+        $configByPath = [];
+        foreach ($globalConfigMatchingPaths as $globalConfigPath) {
+            $configByPath = \yii\helpers\ArrayHelper::merge($configByPath, $this->globalConfig[$globalConfigPath]);
+        }
+        $this->configByPath = $configByPath;
     }
 
     /**
@@ -257,40 +263,13 @@ class AppConfig extends \yii\base\Object
         }
         $this->globalConfig = $config;
     }
-    private $_configByPath;
-
-    /**
-     * Get the config - bootstrap files, server variables and Yii app config -
-     * that matches the $path argument.
-     *
-     * This method will search for all paths in the @see $globalConfig that are
-     * parents of the $path argument and merge their configs.
-     *
-     * @see searchGlobalConfigMatchingPaths
-     *
-     * @param string $path the path to the directory of the tested case
-     *
-     * @return array
-     */
-    protected function getConfigByPath()
-    {
-        if (null === $this->_configByPath) {
-            $globalConfigMatchingPaths = $this->searchGlobalConfigMatchingPaths();
-            sort($globalConfigMatchingPaths);
-            $configByPath = [];
-            foreach ($globalConfigMatchingPaths as $globalConfigPath) {
-                $configByPath = \yii\helpers\ArrayHelper::merge($configByPath, $this->globalConfig[$globalConfigPath]);
-            }
-            $this->_configByPath = $configByPath;
-        }
-        return $this->_configByPath;
-    }
 
     /**
      * Search in the @see $globalConfig root keys for paths that are equal or
      * ancestors of the @see $testCaseDirPath.
      *
-     * If $path is '/var/www/myApp/frontend' the returned array will contain:
+     * If $path to the directory of the test case is '/var/www/myApp/frontend',
+     * then the returned array will contain:
      * - '/var/www/myApp/tests';
      * - '/var/www/myApp/tests/frontend'
      *
@@ -298,6 +277,9 @@ class AppConfig extends \yii\base\Object
      */
     protected function searchGlobalConfigMatchingPaths()
     {
+        if (null === $this->testCaseDirPath) {
+            throw new \yii\base\InvalidCallException("Property \$testCaseDirPath should have been initialized.");
+        }
         $matchingPaths = [];
         foreach ($this->globalConfig as $path => $value) {
             if (false !== strpos($this->testCaseDirPath, rtrim($path, '/'))) {
@@ -321,7 +303,6 @@ class AppConfig extends \yii\base\Object
     {
         if (is_string($config) && is_file($config)) $config = include $config;
         if (is_array($config)) return $config;
-        throw new InvalidConfigException("Config must be an array or the path to a file returning an array.", 20);
+        throw new InvalidConfigException("Config must be an array or the path to a file returning an array. $config", 20);
     }
-
 }
