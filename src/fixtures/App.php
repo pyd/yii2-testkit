@@ -5,52 +5,41 @@ use yii\base\InvalidParamException;
 use yii\base\InvalidConfigException;
 
 /**
- * Manage Yii app creation and deletion at the test case level.
+ * Make Yii app instance available in each test case.
  *
- * Yii app configuration is provided by @see $configProvider.
- * If configuration contains bootstrap files to load and|or $_SERVER variables
- * to initialize, this will be done before the Yii app instantiation.
+ * A Yii app instance is created by the @see onSetUpBeforeClass() handler i.e.
+ * when a test case starts or before a test method is executed in isolation.
+ * It is destroyed by the @see onTearDownAfterClass() handler i.e. when a test
+ * case ends or after a test method executed in isolation.
+ *
+ * At least one Yii app instance is created for each test case i.e. it cannot be
+ * shared between different test cases.
+ *
+ * When a test method is executed in isolation, it will use it's own Yii app
+ * instance - created by the @see onSetUpBeforeClass() handler.
+ *
+ * When the @see pyd\testkit\base\TestCase::$shareYiiApp is set to false, each
+ * test method - not executed in isolation - will use it's own Yii app instance.
+ * When the @see pyd\testkit\base\TestCase::$shareYiiApp is set to true, each
+ * test method - not executed in isolation - will use the same Yii app instance
+ * unless this instance is deleted by the tester.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class App extends \yii\base\Object
+class App extends base\App
 {
     /**
-     * @var string class name of the Yii app instance to be created
-     * @todo with the web app some msg are displayed as html, with the console
-     * app a 'user' component must be defined - it's not by default.
-     */
-    protected $appClassName = '\yii\web\Application';
-    /**
-     * @var \pyd\testkit\fixtures\AppConfig
-     */
-    protected $configProvider;
-    /**
-     * @var boolean
+     * @var boolean Yii app instance does not have to be renewed for each test
+     * method in the currently processed test case.
      * @see \pyd\testkit\base\TestCase::$shareYiiApp
      */
     protected $testCaseShareYiiApp;
 
-    public function init()
-    {
-        if (null === $this->configProvider) {
-            throw new InvalidConfigException('Property $configProvider should be initialized.');
-        }
-    }
-
     /**
-     * @return \pyd\testkit\fixtures\AppConfig
-     * @see $configProvider
-     */
-    public function getConfigProvider()
-    {
-        return $this->configProvider;
-    }
-
-    /**
-     * Handler for the 'setUpBeforeClass' event.
+     * Handle the 'setUpBeforeClass' event.
      *
-     * Yii app is created.
+     * A Yii app instance is created when a test case starts or before a test
+     * method executed in isolation.
      *
      * @param string $testCaseClassName class name of the currently executed
      * test case
@@ -62,10 +51,14 @@ class App extends \yii\base\Object
     }
 
     /**
-     * Handler for the 'tearDown' event.
+     * Handler the 'tearDown' event.
      *
-     * If test method is in isolation, just wait for it's deletion in the
-     * onTearDownAfterClass() method.
+     * If the test method was executed in isolation, the Yii app will be
+     * destroyed by the @see onTearDownAfterClass() handler.
+     *
+     * If the test method was not executed in isolation:
+     * - the Yii app instance is destroyed if it is not shared;
+     * - a Yii app instance is created if it does not already exist;
      */
     public function onTearDown(\pyd\testkit\base\TestCase $testCase)
     {
@@ -80,75 +73,13 @@ class App extends \yii\base\Object
     }
 
     /**
-     * Handler for the 'tearDownAfterClass' event.
+     * Handle the 'tearDownAfterClass' event.
      *
-     * Yii app is destroyed.
+     * The Yii app instance is destroyed at the end of a test case or after
+     * a test method executed in isolation.
      */
-    public function onTearDownAfterClass()
+    public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
     {
         $this->destroy();
-    }
-
-    /**
-     * Set $_SERVER variables, load bootstrap files and create Yii app.
-     */
-    public function create()
-    {
-        $this->setServerVars($this->configProvider->getServerVars());
-        $this->loadBootstrapFiles($this->configProvider->getBootstrapFiles());
-        $this->createYiiApp($this->configProvider->getAppConfig());
-    }
-
-    /**
-     * Delete Yii application instance.
-     */
-    public function destroy()
-    {
-        \Yii::$app = null;
-    }
-
-    /**
-     * Initialize $_SERVER variables.
-     *
-     * @param array $serverVars ['name' => $value', 'othername' => $otherValue,...]
-     */
-    protected function setServerVars(array $serverVars)
-    {
-        foreach ($serverVars as $key => $value) {
-            $_SERVER[$key] = $value;
-        }
-    }
-
-    /**
-     * Load bootstrap files.
-     *
-     * @param array $bootstrapFiles ['/path/to/bootstrapFileOne.php', '/path/to/bootstrapFileTwo.php', ...]
-     */
-    protected function loadBootstrapFiles(array $bootstrapFiles)
-    {
-        foreach ($bootstrapFiles as $bootstrapFile) {
-            require_once $bootstrapFile;
-        }
-    }
-
-    /**
-     * Create Yii app.
-     *
-     * @param array $appConfig
-     */
-    protected function createYiiApp(array $appConfig)
-    {
-        if (empty($appConfig['class'])) $appConfig['class'] = $this->appClassName;
-        \Yii::createObject($appConfig);
-    }
-
-    /**
-     * Setter for @see $configProvider.
-     *
-     * @param array $config
-     */
-    protected function setConfigProvider(array $config)
-    {
-        $this->configProvider = \Yii::createObject($config);
     }
 }
