@@ -5,11 +5,14 @@ use yii\base\InvalidParamException;
 use yii\base\InvalidConfigException;
 
 /**
- * Manage Yii app as a testing fixture.
+ * Create and destroy a Yii application instance used as a testing fixture.
+ * Also handle application environment i.e. $_SERVER variables initialization
+ * and bootstrap file(s) loading.
  *
- * @see pyd\testkit\fixtures\AppConfig for Yii app configuration.
- * AppConfig class can also provide a list of bootstrap files to be loaded
- * and|or $_SERVER variables to be initialized before the Yii app creation.
+ * Yii application config, $_SERVER variables to initialize an bootstrap file(s)
+ * to load are provided by the @see $configProvider
+ *
+ * @see pyd\testkit\fixtures\AppConfig
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -48,50 +51,6 @@ class App extends \yii\base\Object
     }
 
     /**
-     * Handler for the 'setUpBeforeClass' event.
-     *
-     * A Yii app instance is created when a test case starts or before a test
-     * method in isolation.
-     *
-     * @param string $testCaseClassName class name of the currently executed
-     * test case
-     */
-    public function onSetUpBeforeClass($testCaseClassName)
-    {
-        $this->testCaseShareYiiApp = $testCaseClassName::$shareYiiApp;
-        $this->create();
-    }
-
-    /**
-     * Handler for the 'tearDown' event.
-     *
-     * If the test method was executed in isolation, the Yii app will be
-     * destroyed in the @see onTearDownAfterClass() handler.
-     */
-    public function onTearDown(\pyd\testkit\base\TestCase $testCase)
-    {
-        if (!$testCase->isInIsolation()) {
-            if (null !== \Yii::$app && !$this->testCaseShareYiiApp) {
-                $this->destroy();
-            }
-            if (null === \Yii::$app) {
-                $this->create();
-            }
-        }
-    }
-
-    /**
-     * Handler for the 'tearDownAfterClass' event.
-     *
-     * The Yii app instance is destroyed at the end of a test case or after
-     * a test method in isolation.
-     */
-    public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
-    {
-        $this->destroy();
-    }
-
-    /**
      * Set $_SERVER variables, load bootstrap files and create Yii app.
      */
     public function create()
@@ -102,7 +61,7 @@ class App extends \yii\base\Object
     }
 
     /**
-     * Delete Yii application instance.
+     * Destroy Yii application instance.
      */
     public function destroy()
     {
