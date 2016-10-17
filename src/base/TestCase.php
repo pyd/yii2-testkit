@@ -64,7 +64,8 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_SETUPBEFORECLASS, get_called_class());
+        $testCaseStart = !self::$fixturesManager->getIsInIsolation();
+        self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_SETUPBEFORECLASS, get_called_class(), $testCaseStart);
     }
 
     public function setUp()
@@ -79,7 +80,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
     public static function tearDownAfterClass()
     {
-        $testCaseEnd = self::$fixturesManager->getInitialPID() === getmypid();
+        $testCaseEnd = !self::$fixturesManager->getIsInIsolation();
         self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_TEARDOWNAFTERCLASS, get_called_class(), $testCaseEnd);
     }
 }
