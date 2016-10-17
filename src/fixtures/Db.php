@@ -104,7 +104,7 @@ class Db extends base\Db
 
         if ($this->testCaseRequireDb) {
 
-            $loadedDbTableClassNames = $this->fixturesManager->getSharedData()->getLoadedDbTables();
+            $loadedDbTableClassNames = $testCaseStart ? [] : $this->fixturesManager->getSharedData()->getLoadedDbTables();
             // this will initialize @see $dbTableInstances even if there's no DbTable table to load
             $this->createDbTableInstances($dbTablesToLoad, $loadedDbTableClassNames);
         }
