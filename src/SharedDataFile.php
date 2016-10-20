@@ -4,7 +4,9 @@ namespace pyd\testkit;
 use yii\base\UnknownPropertyException;
 
 /**
- * This object properties store data to be shared beetween PHP processes.
+ * Share data between php processes using a file.
+ * 
+ * @see \Fuz\Component\SharedMemory\SharedMemory
  *
  * @property boolean $testCaseStarted the TestCase::setUpBeforeClass has been
  * executed for the currently processed test case
@@ -36,13 +38,11 @@ class SharedDataFile
 
     public function getLoadedDbTables()
     {
-Log::add(__METHOD__);
         return $this->adapter->get('loadedDbTables', []);
     }
 
     public function setLoadedDbTables(array $loadedDbTableClassNames)
     {
-Log::add(__METHOD__);
         $this->adapter->set('loadedDbTables', $loadedDbTableClassNames);
     }
 
