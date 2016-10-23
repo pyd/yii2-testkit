@@ -1,10 +1,8 @@
 <?php
 namespace pyd\testkit\fixtures;
 
-use pyd\testkit\EventsDispatcher;
-
 /**
- * Fixtures manager.
+ * @brief ...
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -13,169 +11,55 @@ class Manager extends \yii\base\Object
     /**
      * @var \pyd\testkit\fixtures\App
      */
-    protected $fixtureApp;
+    protected $app;
     /**
      * @var \pyd\testkit\fixtures\Db
      */
-    protected $fixtureDb;
-    /**
-     * @var \pyd\testkit\EventsDispatcher
-     */
-    protected $eventsDispatcher;
-    /**
-     * @var \pyd\testkit\SharedDataFile
-     */
-    protected $sharedData;
-    /**
-     * @var boolean this instance is executed in a separate process created
-     * to run an isolated test method.
-     */
-    protected $isInIsolation;
+    protected $db;
 
     public function init()
     {
-        foreach (['fixtureApp', 'fixtureDb', 'eventsDispatcher', 'sharedData'] as $property)
-        {
-            if (null === $this->$property) {
-                throw new \yii\base\InvalidConfigException(get_class($this) . "::$property should be initialized.");
+        $properties = ['app', 'db'];
+        foreach ($properties as $property) {
+            if (null === $this->$property){
+                throw new \yii\base\InvalidConfigException("Property " . get_class() . "::$property must be initialized.");
             }
         }
-
-        $this->isInIsolation = $this->sharedData->testCaseIsStarted();
-
-        $this->registerObservers();
-    }
-
-    public function getIsInIsolation()
-    {
-        return $this->isInIsolation;
     }
 
     /**
+     * @see $app
      * @return \pyd\testkit\fixtures\App
-     * @see $fixturesApp
      */
-    public function getFixtureApp()
+    public function getApp()
     {
-        return $this->fixtureApp;
-
+        return $this->app;
     }
 
     /**
+     * @see \pyd\testkit\fixtures\Db
      * @return \pyd\testkit\fixtures\Db
-     * @see $fixtureDb
      */
-    public function getFixtureDb()
+    public function getDb()
     {
-        return $this->fixtureDb;
+        return $this->db;
     }
 
     /**
-     * @return \pyd\testkit\EventsDispatcher
-     * @see $eventsDispatcher
-     */
-    public function getEventsDispatcher()
-    {
-        return $this->eventsDispatcher;
-    }
-
-    public function onSetUpBeforeClass($testCaseClassName, $testCaseStart)
-    {
-        if ($testCaseStart) {
-            $this->sharedData->recordTestCaseStarted();
-        }
-    }
-
-    public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
-    {
-        if ($testCaseEnd) {
-            $this->sharedData->destroy();
-        }
-    }
-
-
-    /**
-     * @param \pyd\testkit\SharedData $sharedData
-     */
-    protected function setSharedData($sharedData)
-    {
-        $className = $sharedData['class'];
-        $this->sharedData = new $className($sharedData['storageFile']);
-    }
-    /**
-     * @return \pyd\testkit\SharedDataFile
-     */
-    public function getSharedData()
-    {
-        return $this->sharedData;
-    }
-
-    /**
-     * Setter for @see $fixtureApp
-     *
+     * @see \pyd\testkit\fixtures\App
      * @param array $config
      */
-    protected function setFixtureApp(array $config)
+    protected function setApp(array $config)
     {
-        $this->fixtureApp = \Yii::createObject($config);
+        $this->app = \Yii::createObject($config);
     }
 
     /**
-     * Setter for @see $fixtureDb
-     *
+     * @see \pyd\testkit\fixtures\Db
      * @param array $config
      */
-    protected function setFixtureDb(array $config)
+    protected function setDb(array $config)
     {
-        $this->fixtureDb = \Yii::createObject($config);
-    }
-
-    /**
-     * Setter for @see $eventsDispatcher
-     *
-     * @param array $config
-     */
-    protected function setEventsDispatcher(array $config)
-    {
-        $config['fixturesManager'] = $this;
-        $this->eventsDispatcher = \Yii::createObject($config);
-    }
-
-    /**
-     * Set events observers.
-     *
-     * Order matters.
-     */
-    protected function registerObservers()
-    {
-        $this->eventsDispatcher->registerObservers(
-            EventsDispatcher::EVENT_SETUPBEFORECLASS,
-            [
-                $this,
-                $this->fixtureApp->getConfigProvider(),
-                $this->fixtureApp,
-                $this->fixtureDb
-            ]);
-
-        $this->eventsDispatcher->registerObservers(
-            EventsDispatcher::EVENT_SETUP,
-            [
-                $this->fixtureDb,
-            ]);
-
-        $this->eventsDispatcher->registerObservers(
-            EventsDispatcher::EVENT_TEARDOWN,
-            [
-                $this->fixtureDb,
-                $this->fixtureApp
-            ]);
-
-        $this->eventsDispatcher->registerObservers(
-            EventsDispatcher::EVENT_TEARDOWNAFTERCLASS,
-            [
-                $this->fixtureDb,
-                $this->fixtureApp,
-                $this
-            ]);
+        $this->db = \Yii::createObject($config);
     }
 }

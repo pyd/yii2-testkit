@@ -5,7 +5,7 @@ use yii\base\UnknownPropertyException;
 
 /**
  * Share data between php processes using a file.
- * 
+ *
  * @see \Fuz\Component\SharedMemory\SharedMemory
  *
  * @property boolean $testCaseStarted the TestCase::setUpBeforeClass has been
@@ -13,18 +13,12 @@ use yii\base\UnknownPropertyException;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class SharedDataFile
+class FileSharedData extends \yii\base\Object
 {
     /**
      * @var \Fuz\Component\SharedMemory\SharedMemory
      */
     protected $adapter;
-
-    public function __construct($storageFile)
-    {
-        $storage = new \Fuz\Component\SharedMemory\Storage\StorageFile($storageFile);
-        $this->adapter = new \Fuz\Component\SharedMemory\SharedMemory($storage);
-    }
 
     public function testCaseIsStarted()
     {
@@ -49,5 +43,11 @@ class SharedDataFile
     public function destroy()
     {
         $this->adapter->destroyStorage();
+    }
+
+    protected function setAdapter(array $config)
+    {
+        $storage = new \Fuz\Component\SharedMemory\Storage\StorageFile($config['storageFile']);
+        $this->adapter = new \Fuz\Component\SharedMemory\SharedMemory($storage);
     }
 }

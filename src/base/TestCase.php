@@ -1,7 +1,7 @@
 <?php
 namespace pyd\testkit\base;
 
-use pyd\testkit\EventsDispatcher;
+use pyd\testkit\Events;
 
 /**
  * Test case base class.
@@ -33,54 +33,55 @@ class TestCase extends \PHPUnit_Framework_TestCase
     public static $shareDbFixture = false;
 
     /**
-     * @var \pyd\testkit\fixtures\Manager
+     * @var \pyd\testkit\Manager
      */
-    private static $fixturesManager;
+    private static $testkit;
 
     /**
-     * @param \pyd\testkit\fixtures\Manager $fixturesManager
+     * @param \pyd\testkit\Manager $testkit
      */
-    public static function setFixturesManager(\pyd\testkit\fixtures\Manager $fixturesManager)
+    public static function setTestkit(\pyd\testkit\Manager $testkit)
     {
-        self::$fixturesManager = $fixturesManager;
+        self::$testkit = $testkit;
     }
 
     /**
-     * Return config to create \pyd\testkit\fixtures\DbTable instances whose
-     * tables must be populated with fixture data.
+     * @return \pyd\testkit\Manager
+     */
+    public static function getTestkit()
+    {
+        return self::$testkit;
+    }
+
+    /**
+     * @return array config to create @see \pyd\testkit\fixtures\DbTable
+     * instances and populate their db tables with test data
      */
     public static function dbTablesToLoad()
     {
         return [];
     }
 
-    /**
-     * @return \pyd\testkit\fixtures\Manager
-     */
-    public static function getFixturesManager()
-    {
-        return self::$fixturesManager;
-    }
 
     public static function setUpBeforeClass()
     {
-        $testCaseStart = !self::$fixturesManager->getIsInIsolation();
-        self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_SETUPBEFORECLASS, get_called_class(), $testCaseStart);
+        $testCaseStart = !self::$testkit->getIsInIsolation();
+        self::$testkit->getEvents()->trigger(Events::SETUPBEFORECLASS, get_called_class(), $testCaseStart);
     }
 
     public function setUp()
     {
-        self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_SETUP, $this);
+        self::$testkit->getEvents()->trigger(Events::SETUP, $this);
     }
 
     public function tearDown()
     {
-        self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_TEARDOWN, $this);
+        self::$testkit->getEvents()->trigger(Events::TEARDOWN, $this);
     }
 
     public static function tearDownAfterClass()
     {
-        $testCaseEnd = !self::$fixturesManager->getIsInIsolation();
-        self::$fixturesManager->getEventsDispatcher()->dispatch(EventsDispatcher::EVENT_TEARDOWNAFTERCLASS, get_called_class(), $testCaseEnd);
+        $testCaseEnd = !self::$testkit->getIsInIsolation();
+        self::$testkit->getEvents()->trigger(Events::TEARDOWNAFTERCLASS, get_called_class(), $testCaseEnd);
     }
 }

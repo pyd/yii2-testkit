@@ -1,6 +1,7 @@
 <?php
 namespace pyd\testkit\fixtures;
 
+use pyd\testkit\Manager as Testkit;
 use pyd\testkit\base\TestCase;
 
 /**
@@ -11,9 +12,9 @@ use pyd\testkit\base\TestCase;
 class Db extends base\Db
 {
     /**
-     * @var pyd\testkit\fixtures\manager
+     * @var pyd\testkit\Manager
      */
-    protected $fixturesManager;
+    protected $testkit;
     /**
      * @var bool if set to false, each test method will be executed with db
      * loaded with fresh data. If set to true db is loaded once with fresh
@@ -93,18 +94,18 @@ class Db extends base\Db
      * @param boolean $testCaseStart the 'setUpBeforeClass' event occurs when
      * a new test case is executed vs it occurs before execution of a test method
      * in isolation
-     * @param \pyd\testkit\fixtures\Manager $fixturesManager
+     * @param \pyd\testkit\Manager $testkit
      */
-    public function onSetUpBeforeClass($testCaseClassName, $testCaseStart, Manager $fixturesManager)
+    public function onSetUpBeforeClass($testCaseClassName, $testCaseStart, Testkit $testkit)
     {
-        $this->fixturesManager = $fixturesManager;
+        $this->testkit = $testkit;
         $this->testCaseShareDbFixture = $testCaseClassName::$shareDbFixture;
         $dbTablesToLoad = $testCaseClassName::dbTablesToLoad();
         $this->testCaseRequireDb = !empty($dbTablesToLoad);
 
         if ($this->testCaseRequireDb) {
 
-            $loadedDbTableClassNames = $testCaseStart ? [] : $this->fixturesManager->getSharedData()->getLoadedDbTables();
+            $loadedDbTableClassNames = $testCaseStart ? [] : $this->testkit->getSharedData()->getLoadedDbTables();
             // this will initialize @see $dbTableInstances even if there's no DbTable table to load
             $this->createDbTableInstances($dbTablesToLoad, $loadedDbTableClassNames);
         }
@@ -172,7 +173,7 @@ class Db extends base\Db
                 $loadedDbTableClassNames[] = get_class($dbTable);
             }
         }
-        $this->fixturesManager->getSharedData()->setLoadedDbTables($loadedDbTableClassNames);
+        $this->testkit->getSharedData()->setLoadedDbTables($loadedDbTableClassNames);
     }
 
     /**
@@ -180,7 +181,7 @@ class Db extends base\Db
      */
     protected function refreshInstancesLoadState()
     {
-        $loadedDbTableClassNames = $this->fixturesManager->getSharedData()->getLoadedDbTables();
+        $loadedDbTableClassNames = $this->testkit->getSharedData()->getLoadedDbTables();
         foreach ($this->dbTableInstances as $dbTable) {
             if (in_array(get_class($dbTable), $loadedDbTableClassNames)) {
                 $dbTable->isLoaded = true;
