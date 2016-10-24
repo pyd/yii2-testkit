@@ -18,7 +18,6 @@ class TestCase extends \PHPUnit_Framework_TestCase
      * is automatically created.
      */
     public static $shareYiiApp = false;
-
     /**
      * @var boolean if set to false, each db table, @see dbTablesToLoad(), is
      * loaded before each test method of the test case.
@@ -31,7 +30,10 @@ class TestCase extends \PHPUnit_Framework_TestCase
      * reloaded.
      */
     public static $shareDbFixture = false;
-
+    /**
+     * @var \pyd\testkit\fixtures\Manager
+     */
+    protected $fixtures;
     /**
      * @var \pyd\testkit\Manager
      */
@@ -72,6 +74,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         self::$testkit->getEvents()->trigger(Events::SETUP, $this);
+        $this->fixtures = self::$testkit->getFixtures();
     }
 
     public function tearDown()
