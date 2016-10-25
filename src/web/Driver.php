@@ -2,7 +2,7 @@
 namespace pyd\testkit\web;
 
 /**
- * Custom implementation of FB RemoteWebDriver class.
+ * Custom web driver.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */

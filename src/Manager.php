@@ -23,6 +23,10 @@ class Manager extends \yii\base\Object
      */
     protected $sharedData;
     /**
+     * @var \pyd\testkit\web\DriverManager
+     */
+    protected $webDriverManager = '\pyd\testkit\web\DriverManager';
+    /**
      * @var boolean this instance was created in a separate php process vs this
      * instance was created at the very begining of the tests execution. If the
      * latter, the 'setUpBeforeClass' and 'tearDownAfterClass' events occur
@@ -30,9 +34,6 @@ class Manager extends \yii\base\Object
      */
     protected $isInIsolation;
 
-    /**
-     *
-     */
     public function init()
     {
         $properties = ['fixtures', 'events', 'sharedData'];
@@ -70,6 +71,17 @@ class Manager extends \yii\base\Object
     }
 
     /**
+     * @return \pyd\testkit\web\DriverManager
+     */
+    public function getWebDriverManager()
+    {
+        if (!is_object($this->webDriverManager)) {
+            $this->webDriverManager = \Yii::createObject($this->webDriverManager);
+        }
+        return $this->webDriverManager;
+    }
+
+    /**
      * @see $isInIsolation
      * @return boolean
      */
@@ -78,6 +90,13 @@ class Manager extends \yii\base\Object
         return $this->isInIsolation;
     }
 
+    /**
+     * Handle 'setUpBeforeClass' event.
+     *
+     * @param string $testCaseClassName
+     * @param boolean $testCaseStart if true this event occurs at the beginning
+     * of the test case. if false it occurs before a test method in isolation.
+     */
     public function onSetUpBeforeClass($testCaseClassName, $testCaseStart)
     {
         if ($testCaseStart) {
@@ -85,13 +104,19 @@ class Manager extends \yii\base\Object
         }
     }
 
+    /**
+     * Handle 'tearDownAfterClass' event.
+     *
+     * @param string $testCaseClassName
+     * @param boolean $testCaseEnd if true this event occurs at the end
+     * of the test case. if false it occurs after a test method in isolation.
+     */
     public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
     {
         if ($testCaseEnd) {
             $this->sharedData->destroy();
         }
     }
-
 
     /**
      * @see $fixtures
@@ -119,6 +144,14 @@ class Manager extends \yii\base\Object
     protected function setSharedData(array $config)
     {
         $this->sharedData = \Yii::createObject($config);
+    }
+
+    /**
+     * @param string|array $config
+     */
+    protected function setWebDriverManager($config)
+    {
+        $this->webDriverManager = $config;
     }
 
     /**

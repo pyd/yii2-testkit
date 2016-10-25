@@ -4,11 +4,9 @@ namespace pyd\testkit;
 use yii\base\InvalidConfigException;
 
 /**
- * Receive tests events and inform registered observers.
+ * Manage events and their observers.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
- *
- * @todo clean event constants
  */
 class Events extends \yii\base\Object
 {
@@ -18,14 +16,9 @@ class Events extends \yii\base\Object
     const TEARDOWNAFTERCLASS = 'tearDownAfterClass';
 
     /**
-     * @var array list of event names supported by this class
+     * @var array list of valid event names
      */
-    public static $supportedEventNames = [
-        self::SETUPBEFORECLASS,
-        self::SETUP,
-        self::TEARDOWN,
-        self::TEARDOWNAFTERCLASS,
-    ];
+    public static $validNames = ['setUpBeforeClass', 'setUp', 'tearDown', 'tearDownAfterClass'];
 
     /**
      * @var array each key is an event name and it's value an array of objects
@@ -44,6 +37,9 @@ class Events extends \yii\base\Object
         }
     }
 
+    /**
+     * @return array
+     */
     public function getObservers()
     {
         return $this->observers;
@@ -61,12 +57,12 @@ class Events extends \yii\base\Object
      */
     public function registerObservers($event, array $observers)
     {
-        $this->exceptionOnUnsupportedEventName($event);
+        $this->checkEventNameIsValid($event);
 
         if (empty($this->observers[$event])) {
             $this->observers[$event] = $observers;
         } else {
-            \yii\helpers\ArrayHelper::merge($this->observers[$event], $observers);
+            $this->observers[$event] = array_merge ($this->observers[$event], $observers);
         }
     }
 
@@ -75,19 +71,15 @@ class Events extends \yii\base\Object
     /**
      * Inform registered observers that an event occurs.
      *
+     * This method can take a variable number of arguments.
      *  ```php
-     * // This method can take a variable number of arguments.
-     * $eventsDispatcher->trigger(EventsDispatcher::SETUP, $arg1, $arg2, $arg3, ...);
-     * // The first one must be the name of the event to dispatch @see $supportedEventNames
-     * // Others will be passed as argument(s) to the observer method
-     * // $testkit->onSetUp($arg1, $arg2, $arg3, ..., $testkitInstance)
-     * // Note that the instance of \pyd\testkit\fixtures\Manager is added as last argument.
-     * // $appConfig->onSetUp($arg1, $arg2, $arg3, ..., $testkitInstance)
-     * // $App->onSetUp($arg1, $arg2, $arg3, ..., $testkitInstance)
+     * $testkit->getEvents()->trigger(Events::SETUP, $arg1, $arg2, $arg3, ...);
      * ```
+     * The first argument must be the name of the event.
+     * @see $validNames
      *
-     * @todo remove code and update doc on $testkitInstance added as last argument
-     * @todo maybe add a log when the event name has no observer registered
+     * Others arguments will be passed to the observer method with an extra
+     * \pyd\testkit\fixtures\Manager instance as last argument.
      *
      * @param string $event
      * @param mixed list of arguments to be passed to the observer method
@@ -97,7 +89,7 @@ class Events extends \yii\base\Object
     {
         $args = func_get_args();
         $eventName = array_shift($args);
-        $this->exceptionOnUnsupportedEventName($eventName);
+        $this->checkEventNameIsValid($eventName);
         array_push($args, $this->testkit);
 
         if (!empty($this->observers[$eventName])) {
@@ -117,17 +109,15 @@ class Events extends \yii\base\Object
     }
 
     /**
-     * Throw an InvalidParamException if the value of the $eventName argument is
-     * not a supported event name.
+     * Check if an event name is valid i.e. is listed in @see $validNames.
      *
-     * @see $supportedEventNames
-     * @param string $eventName name of the event to verify
-     * @throws \yii\base\InvalidParamException unsupported event name
+     * @param string $name event name
+     * @throws \yii\base\InvalidParamException invalid event name
      */
-    protected function exceptionOnUnsupportedEventName($eventName)
+    protected function checkEventNameIsValid($name)
     {
-        if (!in_array($eventName, self::$supportedEventNames)) {
-            throw new \yii\base\InvalidParamException("Unsupported event name '$eventName'.");
+        if (!in_array($name, self::$validNames)) {
+            throw new \yii\base\InvalidParamException("Invalid event name '$name'.");
         }
     }
 

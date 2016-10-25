@@ -9,10 +9,6 @@ namespace pyd\testkit\web;
 class TestCase extends \pyd\testkit\base\TestCase
 {
     /**
-     * @var string Selenium server listening url
-     */
-    public $seleniumUrl = 'http://localhost:4444/wd/hub';
-    /**
      * @var \pyd\testkit\web\Driver
      */
     protected $webDriver;
@@ -25,78 +21,44 @@ class TestCase extends \pyd\testkit\base\TestCase
      *
      * @var boolean use the same web driver instance for each test method
      */
-    protected $shareWebDriver = false;
+    public static $shareWebDriver = false;
     /**
      * If set to true, all cookies will be deleted between each test method @see tearDown.
      * Note that this is relevant only if @see $shareWebDriver is enabled.
      *
      * @var boolean delete all cookies between each test method
      */
-    protected $clearCookies = true;
+    public static $clearCookies = true;
 
     /**
-     * Create web driver instance.
+     * Define config for the web driver creation.
      *
-     * @return \pyd\testkit\web\Driver
+     * This is a basic config. Adapt it to your needs in your base web test case
+     * class.
+     *
+     * @see \RemoteWebDriver::create()
+     * @return array
      */
-    protected function createWebDriver()
+    public static function webDriverConfig()
     {
-        try {
-            $this->webDriver = Driver::create($this->seleniumUrl, $this->getDesiredCapabilities());
-        } catch (\WebDriverCurlException $e) {
-            throw new \yii\base\InvalidCallException("Cannot create webDriver: " . $e->getMessage());
-        }
+        $caps = \DesiredCapabilities::firefox();
+        return [
+            'url' => 'http://localhost:4444/wd/hub',
+            'desiredCapabilities' => $caps,
+            'connectionTimeout' => null,
+            'requestTimeout' => null
+        ];
     }
 
-    /**
-     * Selenium session features.
-     *
-     * This is a basic implementation.
-     * @link https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities
-     * @see \DesiredCapabilities
-     *
-     * @return \DesiredCapabilities
-     */
-    protected function getDesiredCapabilities()
+    public static function setUpBeforeClass()
     {
-        $caps = new \DesiredCapabilities();
-        $caps->setBrowserName(\WebDriverBrowserType::FIREFOX);
-        $caps->setPlatform(\WebDriverPlatform::LINUX);
-        $caps->setCapability('firefox_binary', '/opt/firefox-40.0.3/firefox-bin');
-//        $profile = new \FirefoxProfile();
-//         prof.setPreference("xpinstall.signatures.required", false);
-//        $profile->setPreference("xpinstall.signatures.required", false);
-//        $profile->setPreference("toolkit.telemetry.reportingpolicy.firstRun", false);
-//        $profile->setPreference(
-//          'browser.startup.homepage',
-//          'https://github.com/facebook/php-webdriver/'
-//        );
-//        $caps->setCapability(\FirefoxDriver::PROFILE, $profile);
-        return $caps;
+        self::getTestkit()->getWebDriverManager()->registerAsObserver(self::getTestkit()->getEvents());
+        parent::setUpBeforeClass();
     }
 
     public function setUp()
     {
         parent::setUp();
-        if (null === $this->webDriver) {
-            $this->createWebDriver();
-        }
-    }
-
-    public function tearDown()
-    {
-        if (!$this->shareWebDriver) {
-            $this->webDriver->quit();
-            $this->webDriver = null;
-        } else if ($this->clearCookies) {
-            $this->webDriver->cookies()->deleteAll();
-        }
-        parent::tearDown();
-    }
-
-    public static function tearDownAfterClass()
-    {
-        self::$webDriver->quit();
-        parent::tearDownAfterClass();
+        $this->webDriver = self::getTestkit()->getWebDriverManager()->getDriver();
     }
 }
