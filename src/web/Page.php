@@ -53,7 +53,7 @@ class Page extends \yii\base\Object
      */
     protected function execute($command, array $params = [])
     {
-
+        return $this->webDriver->execute($command, $params);
     }
 
     public function load(array $urlParams = [], $verifyDisplay = true)
@@ -87,5 +87,21 @@ class Page extends \yii\base\Object
             AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
             return false;
         }
+    }
+
+    /**
+     * Page is loaded.
+     *
+     * @param type $timeout
+     * @param type $interval
+     */
+    public function waitLoadComplete($timeout = 5, $interval = 500)
+    {
+        $this->webDriver->wait($timeout, $interval)->until(
+            function(){
+                return 'complete' === func_get_arg(0)->executeScript("return document.readyState;");
+            },
+            "After $timeout seconds waiting, document.readyState still not 'complete'."
+        );
     }
 }

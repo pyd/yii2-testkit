@@ -70,7 +70,7 @@ class Form extends \pyd\testkit\web\Element
     {
         $this->execute(\DriverCommand::SUBMIT_ELEMENT);
         if ($wait > 0) {
-            $page = new \pyd\testkit\functional\base\Page();
+            $page = new \pyd\testkit\web\Page($this->webDriver);
             $page->waitLoadComplete();
         }
     }
@@ -99,7 +99,7 @@ class Form extends \pyd\testkit\web\Element
 //        return $this;
 //    }
 
-    protected function addModelAttributesLocators(\yii\base\Model $model)
+    public function addModelAttributesLocators(\yii\base\Model $model)
     {
         $attributes = array_keys($model->getAttributes());
         foreach ($attributes as $attribute) {

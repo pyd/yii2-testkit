@@ -99,7 +99,11 @@ trait ElementFinder
     {
         $ids = [];
         $command = $this instanceof \pyd\testkit\web\Element ? \DriverCommand::FIND_CHILD_ELEMENTS : \DriverCommand::FIND_ELEMENTS;
-        $response = $this->execute($command, ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
+        try {
+            $response = $this->execute($command, ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
+        } catch (\Exception $e) {
+            throw $e;
+        }
         foreach ($response as $item) $ids[] = $item['ELEMENT'];
         return $ids;
     }
