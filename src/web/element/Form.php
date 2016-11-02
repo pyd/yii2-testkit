@@ -208,24 +208,23 @@ class Form extends \pyd\testkit\web\Element
      *
      * Append an element to the document body and wait untill it's not present.
      */
-//    public function submitAndWait($timeout = 5, $interval = 200)
-//    {
-//
-//        $this->execute(\DriverCommand::EXECUTE_SCRIPT, [
-//            'script' => 'var waitE = document.createElement("p");waitE.setAttribute("id", "submit-wait");document.body.appendChild(waitE);',
-//            'args' => []
-//        ]);
-//
-//        $this->execute(\DriverCommand::SUBMIT_ELEMENT);
-//
-//        $this->webDriver->wait($timeout, $interval)->until(
-//            function(){
-//                return null === func_get_arg(0)->executeScript('return document.getElementById("submit-wait");');
-//            },
-//            "$timeout seconds after submit, new page still not loaded."
-//        );
-//        return $this;
-//    }
+    public function submitAndWaitForNewPage($timeout = 5, $interval = 200)
+    {
+        // add 'flag' element
+        $this->execute(\DriverCommand::EXECUTE_SCRIPT, [
+            'script' => 'var waitE = document.createElement("p");waitE.setAttribute("id", "submit-wait");document.body.appendChild(waitE);',
+            'args' => []
+        ]);
+        // submit the form
+       $this->submit();
+       // wait until the flag element is not present anymore i.e. a new page is loaded
+        $this->webDriver->wait($timeout, $interval)->until(
+            function(){
+                return null === func_get_arg(0)->executeScript('return document.getElementById("submit-wait");');
+            },
+            "$timeout seconds after submit, new page still not loaded."
+        );
+    }
 
     /**
      * Add locators for the model attributes.
