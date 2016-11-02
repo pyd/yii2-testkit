@@ -248,4 +248,13 @@ class DbTable extends \yii\base\Object
     {
         return $this->dataFile;
     }
+
+    /**
+     * @return array
+     * @see $depends
+     */
+    public function getDepends()
+    {
+        return $this->depends;
+    }
 }

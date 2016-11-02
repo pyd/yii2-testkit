@@ -172,11 +172,12 @@ class Db extends \yii\base\Object
                 }
 
                 // and eventually it's dependenc(y|ies).
-                if (!empty($instance->depends)) {
+                $instanceDependencies = $instance->getDepends();
+                if (!empty($instanceDependencies)) {
                     // it's class name must be added to the dependencies stack
                     array_push($dependsStack, $className);
                     // it's dependenc(y|ies) must be processed before storing it as created
-                    $creator($instance->depends, $loadedDbTableClassNames, true);
+                    $creator($instanceDependencies, $loadedDbTableClassNames, true);
                 }
 
                 // Dbtable instance is created and it's dependencies have been
