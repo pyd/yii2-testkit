@@ -52,18 +52,21 @@ class Helper {
     /**
      * Wait for a present element to be hidden.
      *
+     * @deprecated Test class does not exist anymore. Move to Element class.
+     *
      * @param Element $element
      * @param integer $timeout (seconds( how long to wait for the element to be present
      * @param integer $interval (milliseconds) check condition every $interval ms
      */
     public static function waitElementHidden(Element $element, $timeout=5, $interval=1000)
     {
-        Test::$webDriver->wait($timeout, $interval)->until(
-                function ($driver) use ($element) {
-                    return $element->isDisplayed();
-                },
-                'Element ' . $this->byToString($element->getBy()) . ' still not present after ' . $timeout . ' sec wait.'
-        );
+        throw new \yii\base\Exception("Deprecated method " . __METHOD__);
+//        Test::$webDriver->wait($timeout, $interval)->until(
+//                function ($driver) use ($element) {
+//                    return $element->isDisplayed();
+//                },
+//                'Element ' . $this->byToString($element->getBy()) . ' still not present after ' . $timeout . ' sec wait.'
+//        );
     }
 
     /**
@@ -81,6 +84,7 @@ class Helper {
     {
         $names = [];
         foreach ($elements as $element) {
+            /* @var $element \pyd\testkit\web\element\Base */
             $name = $element->getAttribute('name');
             if ('' !== $name && null !== $name) {
                 $names[] = $name;
