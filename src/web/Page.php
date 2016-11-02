@@ -5,7 +5,7 @@ use yii\base\InvalidCallException;
 use pyd\testkit\AssertionMessage;
 
 /**
- * @brief ...
+ * A page object.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -17,9 +17,15 @@ class Page extends \yii\base\Object
      * @var \pyd\testkit\web\Driver
      */
     protected $webDriver;
-
-    public $route;
-
+    /**
+     * @var string route part of the url
+     */
+    public static $route;
+    /**
+     * @var string|array|\WebDriverBy locator of the reference element used
+     * to verify if the expected page is displayed
+     * @see isDisplayed()
+     */
     public $refElementLocator;
 
     public function __construct(Driver $webDriver, array $config = [])
@@ -47,8 +53,16 @@ class Page extends \yii\base\Object
     }
 
     /**
-     * @todo delete this is for building only
-     * @param type $command
+     * @see $route
+     * @return string
+     */
+    public function getRoute()
+    {
+        return static::$route;
+    }
+
+    /**
+     * @param string $command
      * @param array $params
      */
     protected function execute($command, array $params = [])
@@ -56,13 +70,23 @@ class Page extends \yii\base\Object
         return $this->webDriver->execute($command, $params);
     }
 
+    /**
+     * Laod the page.
+     *
+     * @param array $urlParams
+     * @param boolean $verifyDisplay
+     * @throws InvalidCallException
+     * @throws \Exception
+     */
     public function load(array $urlParams = [], $verifyDisplay = true)
     {
-        if (null === $this->route) {
+        if (null === static::$route) {
             throw new InvalidCallException("Property " . get_class($this) . "::\$route must be initialized to load the page.");
         }
 
-        $this->getRequest()->sendViaGet($this->route, $urlParams);
+        $this->getRequest()->sendViaGet(static::$route, $urlParams);
+
+        $this->waitLoadComplete();
 
         if ($verifyDisplay && !$this->isDisplayed()) {
             throw new \Exception('Page ' . get_class($this) . ' is not properly displayed.');
@@ -70,7 +94,7 @@ class Page extends \yii\base\Object
     }
 
     /**
-     * Verify that this page is being displayed in the browser.
+     * Verify that this page is displayed in the browser window.
      *
      * @return boolean
      * @throws InvalidCallException
@@ -90,12 +114,12 @@ class Page extends \yii\base\Object
     }
 
     /**
-     * Page is loaded.
+     * Wait until the document.readyState returns 'complete'.
      *
-     * @param type $timeout
-     * @param type $interval
+     * @param int $timeout in seconds
+     * @param int $interval in milliseconds
      */
-    public function waitLoadComplete($timeout = 5, $interval = 500)
+    public function waitReadyStateComplete($timeout = 5, $interval = 500)
     {
         $this->webDriver->wait($timeout, $interval)->until(
             function(){
