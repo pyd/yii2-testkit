@@ -9,43 +9,28 @@ namespace pyd\testkit\web;
 class Request extends \yii\base\Object
 {
     /**
-     * @var \pyd\testkit\web\Driver
+     * @var string route part of the request url
+     */
+    public $route;
+    /**
+     * @var \RemoteWebDriver
      */
     protected $webDriver;
-    /**
-     * @var string route of the page from where the post request will be sent
-     * @see sendViaPost()
-     */
-    protected $postBaseRoute = '/';
 
-    /**
-     * @param \pyd\testkit\web\Driver $webDriver
-     * @param array $config
-     */
-    public function __construct(Driver $webDriver, $config = array())
+    public function __construct(\RemoteWebDriver $webDriver, $config = array())
     {
         $this->webDriver = $webDriver;
         parent::__construct($config);
     }
 
     /**
-     * Setter for @see $postBaseRoute.
-     *
-     * @param string $route
-     */
-    public function setPostBaseRoute($route)
-    {
-        $this->postBaseRoute = $route;
-    }
-
-    /**
-     * Send an http request using the 'GET' method.
+     * Send an http request using the default 'GET' method.
      *
      * @param array $urlParams the url params ['paramName' => $paramValue, ...]
      */
-    public function sendViaGet($route, array $urlParams = [])
+    public function send(array $urlParams = [])
     {
-        $url = self::createUrl($route, $urlParams);
+        $url = $this->createUrl($this->route, $urlParams);
         $this->webDriver->execute(\DriverCommand::GET, ['url' => $url]);
     }
 
@@ -53,25 +38,26 @@ class Request extends \yii\base\Object
      * Send an http request using the 'POST' method.
      *
      * Selenium does not support sending POST request directly to the browser.
-     * This method use a common workaround:
+     * This method uses a common workaround:
      * - load a page in the browser;
-     * - send js to the browser in order to create a form in the page;
+     * - execute js within the page to create a form;
      * - submit the form;
      *
-     * @see $postBaseRoute
-     *
      * @param array $urlParams the url params ['paramName' => $paramValue, ...]
+     * @param string $initialPageRoute the route part of the url to the initial
+     * page i.e. the one where the form in created
      */
-    public function sendViaPost($route, array $urlParams = [])
+    public function sendPost(array $urlParams = [], $initialPageRoute = '/')
     {
-        // load base page in the browser
-        $this->sendViaGet($this->postBaseRoute);
+        // load the base page
+        $initialPageUrl = $this->createUrl($initialPageRoute, $urlParams);
+        $this->webDriver->execute(\DriverCommand::GET, ['url' => $initialPageUrl]);
 
-        // create js that will build a form in the base page and submit it
+        // create the form
         $csrfParam = \Yii::$app->getRequest()->csrfParam;
-        $formAction = self::createUrl($route, $urlParams);
+        $formAction = $this->createUrl($this->route, $urlParams);
         // create a form using the target url
-        // if page has a meta named 'csrf-token', add a csrf field to the form using the meta content
+        // if there's a meta named 'csrf-token', add it's content to a csrf input
         // add form and submit it
         $script = <<<END
 (function () {
@@ -92,18 +78,17 @@ class Request extends \yii\base\Object
     form.submit();
 })();
 END;
-        // send and execute js within the base page
         $this->webDriver->executeScript($script);
     }
 
     /**
-     * Create an url.
+     * Create an url using the Yii app url manager.
      *
      * @param string $route
      * @param array $urlParams
-     * @return string url
+     * @return string
      */
-    public static function createUrl($route, array $urlParams = [])
+    public function createUrl($route, array $urlParams = [])
     {
         array_unshift($urlParams, $route);
         return \Yii::$app->urlManager->createUrl($urlParams);

@@ -14,19 +14,19 @@ class Page extends \yii\base\Object
     use traits\ElementContainer;
 
     /**
+     * @var string route part of the url
+     */
+    public $route;
+    /**
      * @var \pyd\testkit\web\Driver
      */
     protected $webDriver;
-    /**
-     * @var string route part of the url
-     */
-    public static $route;
     /**
      * @var string|array|\WebDriverBy locator of the reference element used
      * to verify if the expected page is displayed
      * @see isDisplayed()
      */
-    public $refElementLocator;
+    protected $refElementLocator;
 
     public function __construct(Driver $webDriver, array $config = [])
     {
@@ -47,18 +47,9 @@ class Page extends \yii\base\Object
     public function getRequest()
     {
         if (null === $this->_request) {
-            $this->_request = new Request($this->webDriver);
+            $this->_request = new Request($this->webDriver, ['route' => $this->route]);
         }
         return $this->_request;
-    }
-
-    /**
-     * @see $route
-     * @return string
-     */
-    public function getRoute()
-    {
-        return static::$route;
     }
 
     /**
@@ -71,7 +62,7 @@ class Page extends \yii\base\Object
     }
 
     /**
-     * Laod the page.
+     * Load the page.
      *
      * @param array $urlParams
      * @param boolean $verifyDisplay
@@ -80,13 +71,13 @@ class Page extends \yii\base\Object
      */
     public function load(array $urlParams = [], $verifyDisplay = true)
     {
-        if (null === static::$route) {
+        if (null === $this->route) {
             throw new InvalidCallException("Property " . get_class($this) . "::\$route must be initialized to load the page.");
         }
 
-        $this->getRequest()->sendViaGet(static::$route, $urlParams);
+        $this->getRequest()->send($urlParams);
 
-        $this->waitLoadComplete();
+        $this->waitReadyStateComplete();
 
         if ($verifyDisplay && !$this->isDisplayed()) {
             throw new \Exception('Page ' . get_class($this) . ' is not properly displayed.');
@@ -127,5 +118,25 @@ class Page extends \yii\base\Object
             },
             "After $timeout seconds waiting, document.readyState still not 'complete'."
         );
+    }
+
+    /**
+     * Get page source.
+     *
+     * @return string
+     */
+    public function getSource()
+    {
+        return $this->webDriver->getPageSource();
+    }
+
+    /**
+     * Get page title.
+     *
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->webDriver->getTitle();
     }
 }
