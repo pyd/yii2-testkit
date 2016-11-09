@@ -241,8 +241,7 @@ class Form extends \pyd\testkit\web\Element
      */
     public function addModelAttributesLocators(\yii\base\Model $model)
     {
-        $attributes = array_keys($model->getAttributes());
-        foreach ($attributes as $attribute) {
+        foreach ($model->attributes() as $attribute) {
             $id = \yii\helpers\Html::getInputId($model, $attribute);
             $by = \WebDriverBy::id($id);
             if (!$this->hasLocator($attribute)) {
