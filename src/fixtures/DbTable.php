@@ -6,27 +6,23 @@ use yii\base\InvalidParamException;
 use yii\base\InvalidCallException;
 
 /**
- * This class will manage fixture for a table in db.
+ * Manage db table data.
  *
- * @todo $isLoaded property shouldn't be public but protected with a getter.
- * Try with:
- * - a protected static $loadedTableNames;
- * - a public refreshLoadState() method that search the instance table name in
- * the above property and set the $isLoaded property accordingly;
- * when the load() method is called, the tableName is added to the $loadedTableNames
- * property and removed by unload().
+ * It extends @see yii\test\Fixture to be compatible with
+ * @see yii\console\controllers\FixtureController
+ *
+ * Instances of this class are created  by:
+ * - @see pyd\testkit\fixtures\base\Db when in testing mode;
+ * - @see yii\console\controllers\FixtureController to populate a db;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class DbTable extends \yii\base\Object
+class DbTable extends \yii\test\Fixture
 {
     /**
-     * @var boolean table has been populated with fixture data
-     * @warning this property relies on the @see load() an @see unload() methods.
-     * If you populate or truncate a table manually this property won't reflect
-     * the table state.
+     * @var boolean table was populated with fixture data
      */
-    public $isLoaded;
+    protected $isLoaded;
     /**
      * @var array if the table managed by this instance depends on other tables,
      * their DbTable class names or configs can be defined here
@@ -65,7 +61,7 @@ class DbTable extends \yii\base\Object
      * @see pyd\testkit\fixtures\Db::createDbTableInstances() to understand
      * how DbTables instances are created
      */
-    protected $depends = [];
+    public $depends = [];
     /**
      * @var string name of the table. If not set, the name will be retrieved
      * from the model class @see init().
@@ -105,16 +101,6 @@ class DbTable extends \yii\base\Object
      * connection component @see init()
      */
     protected $db = 'db';
-
-    public function __construct($isLoaded, $config = array())
-    {
-        if (is_bool($isLoaded)) {
-            $this->isLoaded = $isLoaded;
-        } else {
-            throw new InvalidParamException("Argument \$isLoaded must be a boolean, '" . gettype($this->isLoaded). "' given.", 10);
-        }
-        parent::__construct($config);
-    }
 
     /**
      * Initialization.
@@ -156,6 +142,24 @@ class DbTable extends \yii\base\Object
     }
 
     /**
+     * @see $isLoaded
+     * @return boolean
+     */
+    public function getIsLoaded()
+    {
+        return $this->isLoaded;
+    }
+
+    /**
+     * @todo php7 use boolean type to $isLoaded param
+     * @param boolean $isLoaded
+     */
+    public function refreshLoadState($isLoaded)
+    {
+        $this->isLoaded = $isLoaded;
+    }
+
+    /**
      * Get data to be inserted into db table.
      *
      * This method can be used to process data before insert e.g. hash a clear
@@ -169,8 +173,7 @@ class DbTable extends \yii\base\Object
     }
 
     /**
-     * Populate the db table with initial data and store it's content in
-     * @see $tableData.
+     * Populate table and store rows in @see $tableData.
      */
     public function load()
     {
@@ -189,6 +192,13 @@ class DbTable extends \yii\base\Object
      */
     public function unload()
     {
+        // if the isLoaded property is null, it means that this intance
+        // was created by  the yii\console\controllers\FixtureController::load
+        // method which by default unload table before to load it. In this case,
+        // unload an 'unloaded' table should not throw an exception.
+        if (null!== $this->isLoaded && !$this->isLoaded) {
+            throw new InvalidCallException("Table '" . $this->tableName . "' is already unloaded.");
+        }
         $this->tableData = [];
         $this->db->createCommand()->delete($this->tableName)->execute();
         if (null !== $this->tableSchema->sequenceName) {
@@ -250,11 +260,15 @@ class DbTable extends \yii\base\Object
     }
 
     /**
-     * @return array
-     * @see $depends
+     *
+     * @param string $alias a key of the initial data array
+     * @return array data
      */
-    public function getDepends()
+    public function getData($alias = null)
     {
-        return $this->depends;
+        if (null === $alias) {
+            return $this->data;
+        }
+        return $this->data[$alias];
     }
 }

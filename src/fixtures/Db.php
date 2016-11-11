@@ -104,10 +104,7 @@ class Db extends base\Db
         $this->testCaseRequireDb = !empty($dbTablesToLoad);
 
         if ($this->testCaseRequireDb) {
-
-            $loadedDbTableClassNames = $testCaseStart ? [] : $this->testkit->getSharedData()->getLoadedDbTables();
-            // this will initialize @see $dbTableInstances even if there's no DbTable table to load
-            $this->createDbTableInstances($dbTablesToLoad, $loadedDbTableClassNames);
+            $this->createDbTableInstances($dbTablesToLoad);
         }
     }
 
@@ -142,7 +139,7 @@ class Db extends base\Db
             if (!$this->testCaseShareDbFixture || $testCaseInstance->isInIsolation()) {
                 $this->unload();
             }
-            $this->saveLoadState();
+            $this->saveInstancesLoadState();
         }
     }
 
@@ -162,14 +159,19 @@ class Db extends base\Db
         }
     }
 
+    public function isDbTableLoaded($className)
+    {
+        /** @todo implement isDbTableLoaded() */
+    }
+
     /**
      * Store 'loaded' DbTable class names in shared memory.
      */
-    protected function saveLoadState()
+    protected function saveInstancesLoadState()
     {
         $loadedDbTableClassNames = [];
         foreach ($this->dbTableInstances as $dbTable) {
-            if ($dbTable->isLoaded) {
+            if ($dbTable->getIsLoaded()) {
                 $loadedDbTableClassNames[] = get_class($dbTable);
             }
         }
@@ -183,11 +185,8 @@ class Db extends base\Db
     {
         $loadedDbTableClassNames = $this->testkit->getSharedData()->getLoadedDbTables();
         foreach ($this->dbTableInstances as $dbTable) {
-            if (in_array(get_class($dbTable), $loadedDbTableClassNames)) {
-                $dbTable->isLoaded = true;
-            } else {
-                $dbTable->isLoaded = false;
-            }
+            $isloaded = in_array(get_class($dbTable), $loadedDbTableClassNames);
+            $dbTable->refreshLoadState($isloaded);
         }
     }
 }

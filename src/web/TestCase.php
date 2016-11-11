@@ -33,8 +33,8 @@ class TestCase extends \pyd\testkit\base\TestCase
     /**
      * Define config for the web driver creation.
      *
-     * This is a basic config. Adapt it to your needs in your base web test case
-     * class.
+     * This is a basic config. You will have to adapt it to your needs, especially
+     * the browser desired capabilities, in a base web test case class.
      *
      * @see \RemoteWebDriver::create()
      * @return array

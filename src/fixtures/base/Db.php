@@ -29,13 +29,13 @@ class Db extends \yii\base\Object
     /**
      * Get a @see $dbTableInstances by it's name.
      *
-     * @param string $name the key of the DbTable instance @see $_dbtableInstances
+     * @param string $name DbTable class name or alias @see $_dbtableInstances
      * @return \pyd\testkit\fixtures\DbTable
      * @throws \yii\base\InvalidParamException
      */
     public function getDbTableInstance($name)
     {
-        // remove leading backslash if $name is a class name
+        // if $name is a class name
         $name = ltrim($name, '\\');
         if (array_key_exists($name, $this->dbTableInstances)) {
             return $this->dbTableInstances[$name];
@@ -44,7 +44,9 @@ class Db extends \yii\base\Object
     }
 
     /**
-     * Get all @see $dbTableInstances.
+     * Get DbTable instances.
+     *
+     * @see $dbTableInstances
      *
      * @return array of \pyd\testkit\fixtures\DbTable
      */
@@ -58,28 +60,27 @@ class Db extends \yii\base\Object
      * status is not 'loaded'.
      *
      * @see pyd\testkit\fixtures\DbTable::load()
-     * @see pyd\testkit\fixtures\DbTable::isLoaded
+     * @see pyd\testkit\fixtures\DbTable::getIsLoaded()
      */
     public function load()
     {
         foreach ($this->dbTableInstances as $dbTable) {
-            if (!$dbTable->isLoaded) {
+            if (!$dbTable->getIsLoaded()) {
                 $dbTable->load();
             }
         }
     }
 
     /**
-     * Reset each db table of @see $dbTableInstances if it's status is not
-     * 'loaded'.
+     * Unload all loaded db tables.
      *
+     * @see pyd\testkit\fixtures\DbTable::getIsLoaded()
      * @see pyd\testkit\fixtures\DbTable::unload()
-     * @see pyd\testkit\fixtures\DbTable::isLoaded
      */
     public function unload()
     {
         foreach (array_reverse($this->dbTableInstances) as $dbTable) {
-            if ($dbTable->isLoaded) {
+            if ($dbTable->getIsLoaded()) {
                 $dbTable->unload();
             }
         }
@@ -102,16 +103,15 @@ class Db extends \yii\base\Object
      * @function $creator
      *
      * @param array $dbTableConfigs DbTable configurations
-     * @param array $loadedDbTableClassNames class names of DbTable instances
      * whose db tables are loaded
      */
-    public function createDbTableInstances (array $dbTableConfigs, array $loadedDbTableClassNames = [])
+    public function createDbTableInstances (array $dbTableConfigs)
     {
         $created = [];
         $dependsStack = [];
 
         // recursive: create DbTable
-        $creator = function ($configs, $loadedDbTableClassNames, $creatingDependencies) use (&$created, &$dependsStack, &$creator) {
+        $creator = function ($configs, $creatingDependencies) use (&$created, &$dependsStack, &$creator) {
 
             foreach ($configs as $key => $config) {
 
@@ -165,19 +165,18 @@ class Db extends \yii\base\Object
                 }
 
                 // Ready to create the DbTable instance...
-                $tableIsLoaded = in_array($className, $loadedDbTableClassNames);
-                $instance = \Yii::createObject($config, [$tableIsLoaded]);
+                $instance = \Yii::createObject($config);
                 if (!$instance instanceof DbTable) {
                     throw new InvalidConfigException("Created object with class name $className is not an instance of DbTable.", 5);
                 }
 
                 // and eventually it's dependenc(y|ies).
-                $instanceDependencies = $instance->getDepends();
+                $instanceDependencies = $instance->depends;
                 if (!empty($instanceDependencies)) {
                     // it's class name must be added to the dependencies stack
                     array_push($dependsStack, $className);
                     // it's dependenc(y|ies) must be processed before storing it as created
-                    $creator($instanceDependencies, $loadedDbTableClassNames, true);
+                    $creator($instanceDependencies, true);
                 }
 
                 // Dbtable instance is created and it's dependencies have been
@@ -192,7 +191,7 @@ class Db extends \yii\base\Object
             }
         };
 
-        $creator($dbTableConfigs, $loadedDbTableClassNames, false);
+        $creator($dbTableConfigs, false);
 
         foreach ($created as $className => $data) {
             $this->dbTableInstances[$data['alias']] = $data['instance'];
