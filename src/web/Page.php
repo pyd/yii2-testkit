@@ -80,7 +80,7 @@ class Page extends \yii\base\Object
         $this->waitReadyStateComplete();
 
         if ($verifyDisplay && !$this->isDisplayed()) {
-            throw new \Exception('Page ' . get_class($this) . ' is not properly displayed.');
+            throw new PageIsNotDisplayedException('Page ' . get_class($this) . ' is not properly displayed.');
         }
     }
 
