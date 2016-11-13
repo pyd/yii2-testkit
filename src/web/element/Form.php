@@ -20,6 +20,7 @@ class Form extends \pyd\testkit\web\Element
     protected function initLocators() {
         $this->addLocator('submitButton', \WebDriverBy::cssSelector('*[type="submit"]'));
         $this->addLocator('csrf', \WebDriverBy::name(\Yii::$app->getRequest()->csrfParam));
+        $this->addLocator('helpBlockError', ['className', 'help-block-error']);
     }
 
     /**
@@ -250,6 +251,28 @@ class Form extends \pyd\testkit\web\Element
                 $alias = $model->formName() . '-' . $attribute;
             }
             $this->addLocator($alias, $by, false);
+        }
+    }
+
+    public function displayValidationErrors()
+    {
+        $elements = $this->findElements('helpBlockError');
+        $messages = [];
+        foreach ($elements as $element) {
+            $message = $element->getText();
+            if (!empty($message)) {
+                $messages[] = $message;
+            }
+        }
+        if ([] === $messages) {
+            AssertionMessage::set("No validation error message(s) displayed.");
+            return false;
+        } else  {
+            AssertionMessage::set("Validation error message(s) displayed");
+            foreach ($messages as $msg) {
+                AssertionMessage::add($msg, true);
+            }
+            return true;
         }
     }
 }
