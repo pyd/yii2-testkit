@@ -9,10 +9,8 @@ use pyd\testkit\AssertionMessage;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class Page extends \yii\base\Object
+class Page extends base\ElementContainer
 {
-    use traits\ElementContainer;
-
     /**
      * @var string route part of the url
      */
@@ -28,16 +26,16 @@ class Page extends \yii\base\Object
      */
     protected $refElementLocator;
 
-    public function __construct(Driver $webDriver, array $config = [])
-    {
-        $this->webDriver = $webDriver;
-        parent::__construct($config);
-    }
-
-    public function init()
-    {
-        $this->initLocators();
-    }
+//    public function __construct(Driver $webDriver, array $config = [])
+//    {
+//        $this->webDriver = $webDriver;
+//        parent::__construct($config);
+//    }
+//
+//    public function init()
+//    {
+//        $this->initLocators();
+//    }
 
     private $_request;
 
@@ -59,6 +57,25 @@ class Page extends \yii\base\Object
     protected function execute($command, array $params = [])
     {
         return $this->webDriver->execute($command, $params);
+    }
+
+    public function findId($location)
+    {
+        $by = $this->locationToWebDriverBy($location);
+        $response = $this->execute(\DriverCommand::FIND_ELEMENT, ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
+        return $response['ELEMENT'];
+    }
+
+    public function findIds($location)
+    {
+        $ids = [];
+        try {
+            $response = $this->execute(\DriverCommand::FIND_ELEMENTS, ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
+        } catch (\Exception $e) {
+            throw $e;
+        }
+        foreach ($response as $item) $ids[] = $item['ELEMENT'];
+        return $ids;
     }
 
     /**
@@ -92,15 +109,17 @@ class Page extends \yii\base\Object
      */
     public function isDisplayed()
     {
-        if (null === $this->refElementLocator) {
-            throw new InvalidCallException('You must define ' . get_class($this) . '::$refElementLocator.' );
-        }
-        if ($this->hasElement($this->refElementLocator)) {
-            AssertionMessage::set('Page ' . get_class($this) . ' is displayed.');
-            return true;
+        if (null !== $this->refElementLocator) {
+            list($method, $value) = $this->refElementLocator;
+            if ($this->hasElement(\WebDriverBy::$method($value))) {
+                AssertionMessage::set('Page ' . get_class($this) . ' is displayed.');
+                return true;
+            } else {
+                AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
+                return false;
+            }
         } else {
-            AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
-            return false;
+            throw new InvalidCallException('You must define ' . get_class($this) . '::$refElementLocator.' );
         }
     }
 
