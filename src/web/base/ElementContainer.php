@@ -193,7 +193,11 @@ abstract class ElementContainer
             if (is_string($config)) $config = ['class' => $config];
             $config = \yii\helpers\ArrayHelper::merge($defaultConfig, $config);
         }
-        return \Yii::createObject($config, [$this->webDriver, $id]);
+        /**
+         * @todo clean if implementation works
+         */
+        return new Element($id, $this->webDriver);
+//        return \Yii::createObject($config, [$this->webDriver, $id]);
     }
 
     protected function locationToWebDriverBy($location)

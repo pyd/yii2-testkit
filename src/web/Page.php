@@ -26,17 +26,6 @@ class Page extends base\ElementContainer
      */
     protected $refElementLocator;
 
-//    public function __construct(Driver $webDriver, array $config = [])
-//    {
-//        $this->webDriver = $webDriver;
-//        parent::__construct($config);
-//    }
-//
-//    public function init()
-//    {
-//        $this->initLocators();
-//    }
-
     private $_request;
 
     /**
@@ -51,10 +40,11 @@ class Page extends base\ElementContainer
     }
 
     /**
+     * Send a command to selenium.
      * @param string $command
      * @param array $params
      */
-    protected function execute($command, array $params = [])
+    public function execute($command, array $params = [])
     {
         return $this->webDriver->execute($command, $params);
     }
