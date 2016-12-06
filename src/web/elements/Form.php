@@ -1,5 +1,5 @@
 <?php
-namespace pyd\testkit\web\element;
+namespace pyd\testkit\web\elements;
 
 use pyd\testkit\AssertionMessage;
 use pyd\testkit\web\element\Helper as ElementHelper;
@@ -16,11 +16,10 @@ class Form extends \pyd\testkit\web\Element
      */
     protected $buttonInputTypes = ['button', 'submit', 'reset', 'image'];
 
-
     protected function initLocators() {
         $this->addLocator('submitButton', \WebDriverBy::cssSelector('*[type="submit"]'));
         $this->addLocator('csrf', \WebDriverBy::name(\Yii::$app->getRequest()->csrfParam));
-        $this->addLocator('helpBlockError', ['className', 'help-block-error']);
+        $this->addLocator('helpBlockError', \WebDriverBy::className('help-block-error'));
     }
 
     /**
@@ -243,14 +242,9 @@ class Form extends \pyd\testkit\web\Element
     public function addModelAttributesLocators(\yii\base\Model $model)
     {
         foreach ($model->attributes() as $attribute) {
-            $id = \yii\helpers\Html::getInputId($model, $attribute);
-            $by = \WebDriverBy::id($id);
-            if (!$this->hasLocator($attribute)) {
-                $alias = $attribute;
-            } else {
-                $alias = $model->formName() . '-' . $attribute;
-            }
-            $this->addLocator($alias, $by, false);
+            $locatorAlias = (!$this->hasLocator($attribute)) ? $attribute : $model->formName() . '-' . $attribute;
+            $cssId = \yii\helpers\Html::getInputId($model, $attribute);
+            $this->addLocator($locatorAlias, \WebDriverBy::id($cssId), false);
         }
     }
 

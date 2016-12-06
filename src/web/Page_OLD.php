@@ -6,7 +6,7 @@ namespace pyd\testkit\web;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class Element extends base\ElementWrapper
+class Page extends base\Page
 {
     use base\ElementContainerTrait;
 
@@ -20,6 +20,6 @@ class Element extends base\ElementWrapper
         if (array_key_exists($name, $this->locators)) {
             return $this->findElement($this->locators[$name]);
         }
-        return parent::__get($name);
+        throw new \yii\base\UnknownPropertyException("Getting unknown property " .get_class(). " '$name'.");
     }
 }

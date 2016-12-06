@@ -3,14 +3,17 @@ namespace pyd\testkit\web;
 
 use yii\base\InvalidCallException;
 use pyd\testkit\AssertionMessage;
+use pyd\testkit\web\PageIsNotDisplayedException;
 
 /**
  * A page object.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class Page extends base\ElementContainer
+class Page extends \yii\base\Object
 {
+    use base\ElementContainerTrait;
+
     /**
      * @var string route part of the url
      */
@@ -20,13 +23,32 @@ class Page extends base\ElementContainer
      */
     protected $webDriver;
     /**
-     * @var string|array|\WebDriverBy locator of the reference element used
+     * @var string|array|\WebDriverBy location of the reference element used
      * to verify if the expected page is displayed
      * @see isDisplayed()
      */
-    protected $refElementLocator;
+    protected $referenceLocation;
 
     private $_request;
+
+    public function __construct(\RemoteWebDriver $webDriver, $config = array())
+    {
+        $this->webDriver = $webDriver;
+        parent::__construct($config);
+    }
+
+    public function init()
+    {
+        $this->initElementContainerTrait();
+    }
+
+    public function __get($name)
+    {
+        if (array_key_exists($name, $this->locators)) {
+            return $this->findElement($this->locators[$name]);
+        }
+        throw new \yii\base\UnknownPropertyException("Getting unknown property " .get_class(). " '$name'.");
+    }
 
     /**
      * @return \pyd\testkit\web\Request
@@ -34,7 +56,7 @@ class Page extends base\ElementContainer
     public function getRequest()
     {
         if (null === $this->_request) {
-            $this->_request = new Request($this->webDriver, ['route' => $this->route]);
+            $this->_request = new \pyd\testkit\web\Request($this->webDriver, ['route' => $this->route]);
         }
         return $this->_request;
     }
@@ -47,25 +69,6 @@ class Page extends base\ElementContainer
     public function execute($command, array $params = [])
     {
         return $this->webDriver->execute($command, $params);
-    }
-
-    public function findId($location)
-    {
-        $by = $this->locationToWebDriverBy($location);
-        $response = $this->execute(\DriverCommand::FIND_ELEMENT, ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
-        return $response['ELEMENT'];
-    }
-
-    public function findIds($location)
-    {
-        $ids = [];
-        try {
-            $response = $this->execute(\DriverCommand::FIND_ELEMENTS, ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
-        } catch (\Exception $e) {
-            throw $e;
-        }
-        foreach ($response as $item) $ids[] = $item['ELEMENT'];
-        return $ids;
     }
 
     /**
@@ -99,17 +102,16 @@ class Page extends base\ElementContainer
      */
     public function isDisplayed()
     {
-        if (null !== $this->refElementLocator) {
-            list($method, $value) = $this->refElementLocator;
-            if ($this->hasElement(\WebDriverBy::$method($value))) {
-                AssertionMessage::set('Page ' . get_class($this) . ' is displayed.');
-                return true;
-            } else {
-                AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
-                return false;
-            }
+        if (null === $this->referenceLocation) {
+            throw new InvalidCallException('You must define ' . get_class($this) . '::$referenceLocation.' );
+        }
+
+        if ($this->hasElement($this->locationToWebDriverBy($this->referenceLocation))) {
+            AssertionMessage::set('Page ' . get_class($this) . ' is displayed.');
+            return true;
         } else {
-            throw new InvalidCallException('You must define ' . get_class($this) . '::$refElementLocator.' );
+            AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
+            return false;
         }
     }
 

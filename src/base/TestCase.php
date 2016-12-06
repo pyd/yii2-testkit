@@ -35,6 +35,10 @@ class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected $fixtures;
     /**
+     * @var \pyd\testkit\fixtures\Db
+     */
+    protected $dbFixture;
+    /**
      * @var \pyd\testkit\Manager
      */
     private static $testkit;
@@ -75,6 +79,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
     {
         self::$testkit->getEvents()->trigger(Events::SETUP, $this);
         $this->fixtures = self::$testkit->getFixtures();
+        $this->dbFixture = self::$testkit->getFixtures()->getDb();
     }
 
     public function tearDown()
