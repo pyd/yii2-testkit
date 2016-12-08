@@ -2,7 +2,7 @@
 namespace pyd\testkit\web\elements;
 
 use pyd\testkit\AssertionMessage;
-use pyd\testkit\web\element\Helper as ElementHelper;
+use pyd\testkit\web\elements\Helper as ElementHelper;
 
 /**
  * A <form> element.
@@ -93,7 +93,7 @@ class Form extends \pyd\testkit\web\Element
     {
         $actualInputs = $this->findUserInputs($displayed);
         // remove duplicate attribute names (in a radioButtonList, the same name can appear several times)
-        $actualNames = \pyd\testkit\web\element\Helper::getNames($actualInputs, true);
+        $actualNames = \pyd\testkit\web\elements\Helper::getNames($actualInputs, true);
         return $this->compareNameAttributes($actualNames, $names, $strict);
     }
 

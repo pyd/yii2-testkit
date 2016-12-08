@@ -1,10 +1,12 @@
 <?php
-namespace pyd\testkit\web\element;
+namespace pyd\testkit\web\elements;
 
 use yii\base\InvalidParamException;
 
 /**
  * Helpers for web elements.
+ *
+ * @todo
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
