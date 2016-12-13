@@ -74,13 +74,15 @@ class Db extends \yii\base\Object
     /**
      * Unload all loaded db tables.
      *
+     * @param boolean $force db tables are unloaded without checking if they are
+     * loaded
      * @see pyd\testkit\fixtures\DbTable::getIsLoaded()
      * @see pyd\testkit\fixtures\DbTable::unload()
      */
-    public function unload()
+    public function unload($force = false)
     {
         foreach (array_reverse($this->dbTableInstances) as $dbTable) {
-            if ($dbTable->getIsLoaded()) {
+            if ($force || $dbTable->getIsLoaded()) {
                 $dbTable->unload();
             }
         }

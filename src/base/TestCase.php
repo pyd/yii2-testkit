@@ -31,6 +31,11 @@ class TestCase extends \PHPUnit_Framework_TestCase
      */
     public static $shareDbFixture = false;
     /**
+     * @var boolean this test case is in development mode:
+     * - this will force an unload on required db tables when the test case starts;
+     */
+    public static $devMode = false;
+    /**
      * @var \pyd\testkit\fixtures\Manager
      */
     protected $fixtures;

@@ -105,13 +105,18 @@ class Db extends base\Db
 
         if ($this->testCaseRequireDb) {
             $this->createDbTableInstances($dbTablesToLoad);
+
+            // force unload on DbTable instances
+            if ($testCaseClassName::$devMode && $testCaseStart) {
+                $this->unload(true);
+            }
         }
     }
 
     /**
      * Handle 'setUp' event.
      *
-     * If test method in isolation, all tables are unloaded.
+     * If test method is executed in isolation, all tables must be unloaded.
      * Load db tables.
      *
      * @param type $testCaseInstance
