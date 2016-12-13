@@ -43,19 +43,49 @@ class Request extends \yii\base\Object
      * - execute js within the page to create a form;
      * - submit the form;
      *
-     * @param array $urlParams the url params ['paramName' => $paramValue, ...]
+     * @param array $postData name => value pairs of data to put in $_POST
+     * @param false|'auto' $csrf if false, the hidden field containing the csrf
+     * token is not appended to the form. If 'auto', the field is appended if
+     * Yii require it to be present.
      * @param string $initialPageRoute the route part of the url to the initial
+     * @param array $urlParams the url params ['paramName' => $paramValue, ...]
      * page i.e. the one where the form in created
      */
-    public function sendPost(array $urlParams = [], $initialPageRoute = '/')
+    public function sendPost($postData = [], $csrf = 'auto', $initialPageRoute = '/', array $urlParams = [])
     {
         // load the base page
         $initialPageUrl = $this->createUrl($initialPageRoute, $urlParams);
         $this->webDriver->execute(\DriverCommand::GET, ['url' => $initialPageUrl]);
 
-        // create the form
+        // build javascript to create and submit the form
         $csrfParam = \Yii::$app->getRequest()->csrfParam;
-        $formAction = $this->createUrl($this->route, $urlParams);
+        // create code for hidden inputs containing post data
+        $postInputsCode = '';
+        foreach ($postData as $name => $value) {
+            $varName = $name.'Input';
+            $postInputsCode .= "
+                    var $varName = document.createElement('input');
+                    $varName.setAttribute('type', 'hidden');
+                    $varName.setAttribute('name', '$name')
+                    $varName.setAttribute('value', '$value');
+                    form.appendChild($varName);";
+
+        }
+        // create code for hidden input containing csrf token
+        $csrfInputCode = '';
+        if ('auto' === $csrf) {
+            $csrfInputCode .= "
+                    var csrfParamMeta = document.getElementsByName('csrf-param');
+                    var csrfTokenMeta = document.getElementsByName('csrf-token');
+                    if (csrfTokenMeta.length > 0) {
+                        var csrfInput = document.createElement('input');
+                        csrfInput.setAttribute('type', 'hidden');
+                        csrfInput.setAttribute('name', csrfParamMeta[0].getAttribute('content'));
+                        csrfInput.setAttribute('value', csrfTokenMeta[0].getAttribute('content'));
+                        form.appendChild(csrfInput);
+                    }
+                    ";
+        }
         // create a form using the target url
         // if there's a meta named 'csrf-token', add it's content to a csrf input
         // add form and submit it
@@ -63,18 +93,14 @@ class Request extends \yii\base\Object
 (function () {
     var form = document.createElement("form");
     form.setAttribute('method',"post");
-    form.setAttribute('action',"$formAction");
+    form.setAttribute('action',"{$this->createUrl($this->route, $urlParams)}");
 
-    var csrfMeta = document.getElementsByName('csrf-token');
-    if (csrfMeta.length > 0) {
-        var input = document.createElement("input");
-        input.setAttribute('type', "hidden");
-        input.setAttribute('name', "$csrfParam");
-        input.setAttribute('value', csrfMeta[0].getAttribute('content'));
-        form.appendChild(input);
-    }
+    $csrfInputCode
+
+    $postInputsCode
 
     document.body.appendChild(form);
+
     form.submit();
 })();
 END;
