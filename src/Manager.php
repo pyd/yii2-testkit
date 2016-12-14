@@ -19,7 +19,7 @@ class Manager extends \yii\base\Object
      */
     protected $events;
     /**
-     * @var \pyd\testkit\SharedData
+     * @var \pyd\testkit\FileSharedData
      */
     protected $sharedData;
     /**

@@ -16,6 +16,7 @@ class Events extends \yii\base\Object
     const TEARDOWNAFTERCLASS = 'tearDownAfterClass';
 
     /**
+     * @todo remove static
      * @var array list of valid event names
      */
     public static $validNames = ['setUpBeforeClass', 'setUp', 'tearDown', 'tearDownAfterClass'];
@@ -66,7 +67,21 @@ class Events extends \yii\base\Object
         }
     }
 
-
+    /**
+     * Unregister an observer.
+     *
+     * @param object $observer
+     * @throws \yii\base\InvalidParamException*
+     */
+    public function unregisterObserver($observer)
+    {
+        foreach ($this->observers as $event => $observers) {
+            $key = array_search($observer, $observers);
+            if (false !== $key) {
+                unset($this->observers[$event][$key]);
+            }
+        }
+    }
 
     /**
      * Inform registered observers that an event occurs.
