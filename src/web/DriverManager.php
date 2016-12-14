@@ -32,8 +32,16 @@ class DriverManager
      * @see $shareDriver property is set to true.
      */
     protected $clearCookies;
-
+    /**
+     * @var array config used to create the web driver instance(s)
+     * initialized by @see onSetUpBeforeClass
+     */
     protected $driverConfig;
+    /**
+     * @var \pyd\testkit\Events
+     * initialized by @see registerAsObserver
+     */
+    private $eventManager;
 
     /**
      * @return \pyd\testkit\web\Driver
@@ -94,6 +102,7 @@ class DriverManager
     public function onTearDownAfterClass()
     {
         $this->destroyDriver(false);
+        $this->eventManager->unregisterObserver($this);
     }
 
     /**
@@ -103,6 +112,7 @@ class DriverManager
      */
     public function registerAsObserver(Events $events)
     {
+        $this->eventManager = $events;
         $events->registerObservers(Events::SETUPBEFORECLASS, [$this]);
         $events->registerObservers(Events::SETUP, [$this]);
         $events->registerObservers(Events::TEARDOWN, [$this]);
