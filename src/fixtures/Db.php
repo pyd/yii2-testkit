@@ -106,7 +106,7 @@ class Db extends base\Db
         if ($this->testCaseRequireDb) {
             $this->createDbTableInstances($dbTablesToLoad);
 
-            // force unload on DbTable instances
+            // force unload on DbTable instances when in dev mode
             if ($testCaseClassName::$devMode && $testCaseStart) {
                 $this->unload(true);
             }
@@ -161,6 +161,7 @@ class Db extends base\Db
     {
         if ($this->testCaseRequireDb && $testCaseEnd) {
             $this->unload();
+            $this->dbTableInstances = [];
         }
     }
 
