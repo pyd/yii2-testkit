@@ -86,6 +86,7 @@ class Form extends \pyd\testkit\web\Element
      *
      * @param array $names expected element names i.e. a model attribute e.g.
      * 'firstname' or a 'name' attribute value e.g. formName[firstname].
+     * @param boolean $displayed search for displayed inputs or not
      * @param boolean $strict if false named element must exist in the form; If
      * true, named elements must match actual elements.
      */
