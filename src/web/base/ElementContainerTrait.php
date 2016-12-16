@@ -1,8 +1,8 @@
 <?php
 namespace pyd\testkit\web\base;
 
-use pyd\testkit\AssertionMessage;
-use yii\base\InvalidCallException;
+use \pyd\testkit\AssertionMessage;
+use \yii\base\InvalidCallException;
 
 /**
  * For objects that contain web elements.
@@ -110,7 +110,7 @@ trait ElementContainerTrait
 
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
-     * @return pyd\testkit\base\Element
+     * @return \pyd\testkit\base\Element
      */
     public function findElement($location)
     {
@@ -119,7 +119,7 @@ trait ElementContainerTrait
 
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
-     * @return array pyd\testkit\base\Element
+     * @return array \pyd\testkit\base\Element
      */
     public function findElements($location)
     {
@@ -158,6 +158,14 @@ trait ElementContainerTrait
         return new Element($this->webDriver, $id);
     }
 
+    /**
+     * Create a @see \WebDriverBy instance based on the $location param, if it
+     * is not already such an instance.
+     *
+     * @param string|array|\WebDriverBy $location
+     * @return \WebDriverBy
+     * @throws \yii\base\InvalidParamException
+     */
     protected function locationToWebDriverBy($location)
     {
         if (is_string($location)) {
@@ -168,7 +176,7 @@ trait ElementContainerTrait
             list($method, $value) = $location;
             return \WebDriverBy::$method($value);
         }
-        throw new \yii\base\InvalidParamException("Location param must be a string (locator alias) or an instance of \WebDriverBy." .
+        throw new \yii\base\InvalidParamException("Location param must be a string (locator alias), an array ['mechanism' => 'value'] or an instance of \WebDriverBy." .
                 gettype($location) . " given.");
     }
 
@@ -184,7 +192,12 @@ trait ElementContainerTrait
     }
 
     /**
-     * You can add locators here.
+     * This method is the dedicated place to add locators.
+     *
+     * ```php
+     * parent::initLocators();
+     * $this->addLocator('loginForm', \WebDriverBy::id('login-form'));
+     * ```
      */
     protected function initLocators() {}
 
