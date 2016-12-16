@@ -52,12 +52,16 @@ class Element extends \yii\base\Object
      * Create a @see pyd\testkit\web\base\ElementWrapper instance of $className
      * based on this element.
      *
-     * @param string $className
+     * @param string|array|callable $objectType the object type
+     * @see \yii\BaseYii::createObject
+     * @param array $objectParams the constructor parameters
+     * @see \yii\BaseYii::createObject
      * @return \pyd\testkit\web\base\ElementWrapper
      */
-    public function asA($className)
+    public function asA($objectType, array $objectParams = [])
     {
-        return new $className($this);
+        array_unshift($objectParams, $this);
+        return \Yii::createObject($objectType, $objectParams);
     }
 
     /**
