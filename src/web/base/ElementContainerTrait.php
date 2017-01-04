@@ -110,22 +110,24 @@ trait ElementContainerTrait
 
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
+     * @param string|array $elementConfig config of the element to be created
      * @return \pyd\testkit\base\Element
      */
-    public function findElement($location)
+    public function findElement($location, $elementConfig = null)
     {
-        return $this->createElement($this->findId($location));
+        return $this->createElement($this->findId($location), $elementConfig);
     }
 
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
+     * @param string|array $elementConfig config of the elements to be created
      * @return array \pyd\testkit\base\Element
      */
-    public function findElements($location)
+    public function findElements($location, $elementConfig = null)
     {
         $elements = [];
         foreach ($this->findIds($location) as $id) {
-            $elements[] = $this->createElement($id);
+            $elements[] = $this->createElement($id, $elementConfig);
         }
         return $elements;
     }
@@ -151,11 +153,17 @@ trait ElementContainerTrait
 
     /**
      * @param string $id selenium ID of the web element
+     * @param string|array $elementConfig config of the element to be created
      * @return \pyd\testkit\web\Element
      */
-    protected function createElement($id)
+    protected function createElement($id, $elementConfig = null)
     {
-        return new Element($this->webDriver, $id);
+        $element = new Element($this->webDriver, $id);
+        if (null === $elementConfig) {
+            return $element;
+        } else {
+            return $element->asA($elementConfig);
+        }
     }
 
     /**
