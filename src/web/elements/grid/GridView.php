@@ -16,6 +16,9 @@ use pyd\testkit\AssertionMessage;
  */
 class GridView extends \pyd\testkit\web\Element
 {
+    /**
+     * @var array \pyd\testkit\web\elements\grid\GridViewRow table rows
+     */
     private $_rows = [];
 
     protected function initLocators()
@@ -24,7 +27,7 @@ class GridView extends \pyd\testkit\web\Element
         $this->addLocator('table', \WebDriverBy::tagName('table'));
         $this->addLocator('tableHeaders', \WebDriverBy::tagName('th'));
         $this->addLocator('tableRows', \WebDriverBy::cssSelector('table tbody tr'));
-        // ligne de la table qui contient le msg 'aucun résultat', lorsque la grid est vide
+        // empty view message
         $this->addLocator('emptyRow', \WebDriverBy::className('empty'));
     }
 
@@ -33,7 +36,7 @@ class GridView extends \pyd\testkit\web\Element
      *
      * @return \pyd\testkit\web\elements\Table
      */
-    public function getTable()
+    public function findTable()
     {
         return $this->findElement('table', \pyd\testkit\web\elements\Table::className());
     }
@@ -43,10 +46,10 @@ class GridView extends \pyd\testkit\web\Element
      *
      * @return array \pyd\testkit\web\Element
      */
-    public function getRows()
+    public function findRows()
     {
         if ([] === $this->_rows) {
-            $this->_rows = $this->findElements('tableRows', \pyd\testkit\web\Element::className());
+            $this->_rows = $this->findElements('tableRows', \pyd\testkit\web\elements\grid\GridViewRow::className());
         }
         return $this->_rows;
     }
@@ -57,9 +60,26 @@ class GridView extends \pyd\testkit\web\Element
      * @param integer $index
      * @return \pyd\testkit\functional\Element
      */
-    public function getRowByIndex($index)
+    public function findRowByIndex($index)
     {
-        return $this->getRows()[$index];
+        return $this->findRows()[$index];
+    }
+
+    /**
+     * Get rows that contain some text.
+     *
+     * @param string $text
+     * @return array \pyd\testkit\web\elements\grid\GridViewRows
+     */
+    public function findRowsByText($text)
+    {
+        $rows = [];
+        foreach ($this->findRows() as $row) {
+            if (false !== strstr($row->getText(), $text)) {
+                $rows[] = $row;
+            }
+        }
+        return  $rows;
     }
 
     /**
@@ -69,7 +89,7 @@ class GridView extends \pyd\testkit\web\Element
      */
     public function countRows()
     {
-        return count($this->getRows());
+        return count($this->findRows());
     }
 
     /**
