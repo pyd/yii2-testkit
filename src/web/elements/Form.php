@@ -240,9 +240,10 @@ class Form extends \pyd\testkit\web\Element
      * The \yii\base\Model::getAttributes() method is used to retrieve the model
      * attribute names.
      */
-    public function addModelAttributesLocators(\yii\base\Model $model)
+    public function addModelAttributesLocators(\yii\base\Model $model, array $attributes = [])
     {
-        foreach ($model->attributes() as $attribute) {
+        if ([] === $attributes) $attributes = $model->attributes();
+        foreach ($attributes as $attribute) {
             $locatorAlias = (!$this->hasLocator($attribute)) ? $attribute : $model->formName() . '-' . $attribute;
             $cssId = \yii\helpers\Html::getInputId($model, $attribute);
             $this->addLocator($locatorAlias, \WebDriverBy::id($cssId), false);
