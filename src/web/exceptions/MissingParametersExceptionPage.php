@@ -4,12 +4,19 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * When a yii\web\Action parameter is missing, a yii\web\BadRequestHttpException
- * is thrown.
- * This class represents the page displayed by the framework - in test mode - in
- * such a case. This is a minimalistic page with a generic message and a list
- * of missing parameters. This is usefull to verify which parameter is required
- * by an action.
+ * An instance of this class represents the exception page displayed by the
+ * Yii2 framework when a yii\web\Action parameter is missing (in test mode!).
+ *
+ * In such a case, a a yii\web\BadRequestHttpException is thrown. The page
+ * contains a generic message and a list of missing parameters.
+ *
+ * <code>
+ * // in a test method, verify that the 'id' parameter is required by a controller action
+ * $exceptionPage = new MissingParametersExceptionPage($this->webDriver);
+ * $this->webDriver->get($urlWithoutIdParameter);
+ * $this->assertTrue($exceptionPage->isDisplayed(), \pyd\testkit\AssertionMessage::get()));
+ * $this->assertTrue($pageException->missingParametersAre(['id'], \pyd\testkit\AssertionMessage::get()));
+ * </code>
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -36,24 +43,20 @@ class MissingParametersExceptionPage extends ExceptionPage
     }
 
     /**
-     * Compare missing parameters listed by the exception message to the
-     * expected ones.
+     * Verify that the missing parameters listed by the exception message match
+     * the expected ones.
      *
-     * @param array $params parameter names that should be listed as missing by
-     * the exception message
-     * @return boolean true only if expected ones === listed ones
+     * @param array $paramNames param names
+     * @return boolean true missing parameters === expected parameters
      */
-    public function missingParametersAre(array $params)
+    public function missingParametersAre(array $paramNames)
     {
-        $paramsFound = $this->getMissingParameters();
+        $paramsFound = $this->extractMissingParameterNames();
 
-        if ($params == $paramsFound) {
-            $this->assertionMessage = "Missing parameters are [" .  implode(', ', $params). "].";
-            return true;
-        }
+        if ($paramNames == $paramsFound) { return true; }
 
-        $unexpectedFound = array_diff($paramsFound, $params);
-        $expectedNotFound = array_diff($params, $paramsFound);
+        $unexpectedFound = array_diff($paramsFound, $paramNames);
+        $expectedNotFound = array_diff($paramNames, $paramsFound);
 
         $assertionMessage = '';
         if ([] !== $unexpectedFound) {
@@ -67,11 +70,11 @@ class MissingParametersExceptionPage extends ExceptionPage
     }
 
     /**
-     * Extract missing parameter names listed by the exception message.
+     * Extract missing parameter names from the exception message.
      *
      * @return array
      */
-    public function getMissingParameters()
+    public function extractMissingParameterNames()
     {
         $baseMessage = $this->getMissingParametersBaseMessage();
         $paramsStartPos = strpos($this->getMessage(), $baseMessage) + (strlen($baseMessage));
@@ -80,7 +83,7 @@ class MissingParametersExceptionPage extends ExceptionPage
     }
 
     /**
-     * @return string base of the exception message
+     * @return string skeleton of the exception message
      */
     protected function getMissingParametersBaseMessage()
     {
