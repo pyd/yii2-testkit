@@ -3,9 +3,10 @@ namespace pyd\testkit\fixtures;
 
 use pyd\testkit\Manager as Testkit;
 use pyd\testkit\base\TestCase;
+use yii\base\InvalidCallException;
 
 /**
- * Manage @see \pyd\testkit\DbTable instances required by a test case.
+ * A manage for the @see \pyd\testkit\DbTable instances required by a test case.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -16,28 +17,27 @@ class Db extends base\Db
      */
     protected $testkit;
     /**
-     * @var bool if set to false, each test method will be executed with db
-     * loaded with fresh data. If set to true db is loaded once with fresh
-     * data
+     * @var boolean
+     * @see \pyd\testkit\base\TestCase::$shareDbFixture
      */
     protected $testCaseShareDbFixture;
     /**
-     * @var boolean the currently processed test case require some db tables to
-     * be loaded with fixture data.
+     * @var boolean the currently processed test case requires some db tables to
+     * be loaded.
      */
     protected $testCaseRequireDb;
 
     /**
-     * Get data from a @see $dbTables instance.
+     * Get data from a @see $dbTableInstances instance.
      *
-     * ``php
-     * $userTableData = $fixtureDb->user;
+     * <code>
+     * $userData = $fixtureDb->user;
      * // is a shortcut for
-     * $userTableData = $dbFixture->getTable('user')->getData();
-     * ``
+     * $userData = $this->dbFixture->getTable('user')->getData();
+     * <code>
      *
-     * @param string $name
-     * @throw UnknownPropertyException see {@link \yii\base\Object}
+     * @param string $name the alias of a @see $dbTableInstances instance
+     * @throw UnknownPropertyException @see \yii\base\Object
      */
     public function __get($name)
     {
@@ -49,26 +49,29 @@ class Db extends base\Db
     }
 
     /**
-     * Get a model populated with data from a @see $dbTables instance.
+     * Get a model populated with data from a @see $dbTableInstances instance.
      *
-     * ``php
-     * $adminModel = $fixtureDb->user('admin', '\app\models\user\Admin');
+     * <code>
+     * $adminModel = $this->fixtureDb->user('admin', '\app\models\user\Admin');
      * // is a shortcut for
-     * $adminModel = $fixtureDb->getDbTableInstance('user')->getModel('admin', '\app\models\user\Admin');
-     * // second param is the model class name. Use it if it's not defined in
-     * // the DbTable class or if you want another
-     * ``
-     * @param string $name a fixture instance alias
-     * @param array $params first item must be an alias of a data row. A second
-     * item can contain a model class name.
+     * $adminModel = $this->fixtureDb->getDbTableInstance('user')->getModel('admin', '\app\models\user\Admin');
+     * <code>
+     *
+     * @param string $name the alias of a @see $dbTableInstances instance
+     * @param array $params the first value must be the alias of a data row. A
+     * second value (optional) can be the class name of the returned model.
      * @return yii\db\ActiveRecord
      * @throws \yii\base\InvalidParamException $params[0] is not an existing data alias
-     * @throws \yii\base\UnknownMethodException see {@link \yii\base\Object}
+     * @throws \yii\base\UnknownMethodException @see \yii\base\Object
      */
     public function __call($name, $params)
     {
         if (array_key_exists($name, $this->dbTableInstances)) {
 
+            if (empty($params)) {
+                throw new InvalidCallException("Missing argument 1 for pyd\\testkit\\fixtures\\DbTable::getModel()"
+                        . " called via " . __METHOD__ . ". You must provide the alias of a data row to populate the '$name' model.");
+            }
             $dataRowAlias = $params[0];
             $modelClass = isset($params[1]) ? $params[1] : null;
 
@@ -76,7 +79,7 @@ class Db extends base\Db
 
             if (null === $model) {
                 throw new \yii\base\InvalidParamException("Cannot create model for fixture"
-                        . " named '$name'. There's no data row called '" . $dataRowAlias . "'.");
+                        . " '$name'. No data row matching alias '" . $dataRowAlias . "' was found.");
             }
 
             return $model;
