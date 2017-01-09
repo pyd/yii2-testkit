@@ -60,7 +60,7 @@ class Form extends \pyd\testkit\web\Element
             }
             // ".//input//[not(@type='type1') and not(@type='type2' ...)]"
             $inputXpath = ".//input[".  implode(' and ', $inputTypesToSkip)."]";
-            $inputs = $this->findElements(\WebDriverBy::xpath($inputXpath), ['tagName' => 'input']);
+            $inputs = $this->findElements(\WebDriverBy::xpath($inputXpath));
             $this->userInputs = array_merge($textareas, $selects, $inputs);
         }
 
