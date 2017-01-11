@@ -225,19 +225,32 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
     }
 
     /**
-     * Verify that an attribute validation fails if its value is not unique.
+     * Verify that an attribute validation fails with a value that already
+     * exists in db.
      *
      * @param string $attribute attribute name
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
+     * @param \yii\db\BaseActiveRecord $model an instance of the tested model.
+     * If null, an instance will be provided by the @see getModel() method.
      */
-    public function assertAttributeMustHaveUniqueValue($attribute, Model $model = null)
+    public function assertAttributeMustHaveUniqueValue($attribute, \yii\db\BaseActiveRecord $model = null)
     {
-        if (null === $model) $model = $this->getModel();
+        if (null === $model) { $model = $this->getModel(); }
         $modelClass = get_class($model);
-        $firstRecord = $modelClass::find()->one();
+        $otherRecord;
 
-        $model->$attribute = $firstRecord->$attribute;
+        // Make sure that the table row does not match the one of the tested $model
+        // otherwise validation will pass
+        if ($model->getIsNewRecord()) {
+            $otherRecord = $modelClass::find()->one();
+        } else {
+            $otherRecord = $modelClass::find()->where("$attribute!='{$model->$attribute}'")->one();
+        }
+        if (null === $otherRecord) {
+            throw new InvalidCallException("Not enough rows in table "
+                    . $modelClass::tableName() . " to execute " . __METHOD__);
+        }
+
+        $model->$attribute = $otherRecord->$attribute;
         $this->assertFalse($model->validate([$attribute]), "Validation should fail for attribute '$attribute' with non unique value '{$model->$attribute}'.");
     }
 
