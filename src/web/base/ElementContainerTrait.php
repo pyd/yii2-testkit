@@ -26,12 +26,12 @@ trait ElementContainerTrait
      * @var string selenium command
      * @see findId
      */
-    protected $cmdFindFirst;
+    public $cmdFindFirst;
     /**
      * @var string selenium command
      * @see findIds
      */
-    protected $cmdFindAll;
+    public $cmdFindAll;
 
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
@@ -214,7 +214,7 @@ trait ElementContainerTrait
      */
     protected function initCommands()
     {
-        if ($this instanceof \pyd\testkit\web\element\Base) {
+        if ($this instanceof ElementWrapper) {
             $this->cmdFindFirst = \DriverCommand::FIND_CHILD_ELEMENT;
             $this->cmdFindAll = \DriverCommand::FIND_CHILD_ELEMENTS;
         } else {
