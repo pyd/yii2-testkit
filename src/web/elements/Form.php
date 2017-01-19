@@ -271,4 +271,13 @@ class Form extends \pyd\testkit\web\Element
             return true;
         }
     }
+
+    /**
+     * @param string|array|\WebDriverBy $location
+     * @return \pyd\testkit\web\elements\TextInput
+     */
+    public function findTextInput($location)
+    {
+        return $this->findElement($location, 'TextInput');
+    }
 }
