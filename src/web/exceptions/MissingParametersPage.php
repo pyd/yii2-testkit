@@ -4,23 +4,20 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * An instance of this class represents the exception page displayed by the
- * Yii2 framework when a yii\web\Action parameter is missing (in test mode!).
- *
- * In such a case, a a yii\web\BadRequestHttpException is thrown. The page
- * contains a generic message and a list of missing parameters.
+ * Missing parameter(s) exception page.
  *
  * <code>
  * // in a test method, verify that the 'id' parameter is required by a controller action
- * $exceptionPage = new MissingParametersExceptionPage($this->webDriver);
+ * $exceptionPage = new MissingParametersPage($this->webDriver);
  * $this->webDriver->get($urlWithoutIdParameter);
  * $this->assertTrue($exceptionPage->isDisplayed(), \pyd\testkit\AssertionMessage::get()));
+ * // verify that the action require an 'id' parameter
  * $this->assertTrue($pageException->missingParametersAre(['id'], \pyd\testkit\AssertionMessage::get()));
  * </code>
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class MissingParametersExceptionPage extends ExceptionPage
+class MissingParametersPage extends ExceptionPage
 {
     /**
      * @return boolean the currently displayed page is a missing parameter
