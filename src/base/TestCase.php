@@ -97,4 +97,14 @@ class TestCase extends \PHPUnit_Framework_TestCase
         $testCaseEnd = !self::$testkit->getIsInIsolation();
         self::$testkit->getEvents()->trigger(Events::TEARDOWNAFTERCLASS, get_called_class(), $testCaseEnd);
     }
+
+    /**
+     * Suspend test execution until tester press the ENTER key.
+     *
+     * @warning the terminal window must have focus to capture key press.
+     */
+    public function pause()
+    {
+        if (trim(fgets(fopen("php://stdin","r"))) != chr(13)) return;
+    }
 }
