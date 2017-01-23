@@ -12,7 +12,7 @@ use pyd\testkit\web\elements\Helper as ElementHelper;
 class Form extends \pyd\testkit\web\Element
 {
     /**
-     * @var array input types for buttons
+     * @var array input types for buttons. To find inputs that are not buttons
      */
     protected $buttonInputTypes = ['button', 'submit', 'reset', 'image'];
 
@@ -23,7 +23,7 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * The csrf element is present.
+     * The csrf hidden input is present.
      *
      * @return boolean
      */
@@ -42,10 +42,10 @@ class Form extends \pyd\testkit\web\Element
 
     /**
      * Find all user input elements i.e. <select> <textarea> and <input> which
-     * are not buttons.
+     * are not buttons @see $buttonInputTypes.
      *
-     * @param null|bool $visible if null, it returns all elements. An element is
-     * visible if {@link \pyd\testkit\web\Element::isDisplayed)(} returns true.
+     * @param null|bool $visible if null, all 'displayed' elements are returned
+     * @see\pyd\testkit\web\Element::isDisplayed
      * @return array \pyd\testkit\web\Element
      */
     public function findUserInputs($visible = null)
@@ -71,8 +71,6 @@ class Form extends \pyd\testkit\web\Element
 
     /**
      * Reset user inputs.
-     *
-     * All previously found user inputs are cleared.
      */
     public function resetUserInputs()
     {
@@ -80,40 +78,37 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Verify that a form contains expected named user inputs.
+     * Verify that a form contains expected user inputs.
      *
      * @see findUserInputs
      *
      * @param array $names expected element names i.e. a model attribute e.g.
      * 'firstname' or a 'name' attribute value e.g. formName[firstname].
-     * @param boolean $displayed search for displayed inputs or not
-     * @param boolean $strict if false named element must exist in the form; If
-     * true, named elements must match actual elements.
+     * @param boolean $visible search for visible or hidden inputs
+     * @param boolean $strict if true, expected inputs must exactly match found
+     * inputs. If false, form can have more inputs than the expected ones.
      */
-    public function hasUserInputs($names, $displayed = true, $strict = true)
+    public function hasUserInputs($names, $visible = true, $strict = true)
     {
-        $actualInputs = $this->findUserInputs($displayed);
+        $actualInputs = $this->findUserInputs($visible);
         // remove duplicate attribute names (in a radioButtonList, the same name can appear several times)
         $actualNames = \pyd\testkit\web\elements\Helper::getNames($actualInputs, true);
-        return $this->compareNameAttributes($actualNames, $names, $strict);
+        return $this->compareNameAttributes($names, $actualNames, $strict);
     }
 
 
     /**
-     * Perform element name attributes comparison.
+     * Compare element name attributes.
      *
-     * @param array $actualNames actual element names in the yii format:
-     * $formName[$attributeName]
-     * @param array $expectedNames expected element names:
-     * - model attribute e.g. 'password';
-     * - element attribute e.g. 'user[password]';
-     *
+     * @param array $expectedNames element names that should be present in the
+     * $actualNames param. Name format is 'password'.
+     * @param array $actualNames element names reference. Name format can be
+     * 'password' or 'user[password]'.
      * @param boolean $strict if false expected names must be found. If true
      * expected names must match actual names.
-     *
      * @return boolean
      */
-    public function compareNameAttributes(array $actualNames, array $expectedNames, $strict = true)
+    public function compareNameAttributes(array $expectedNames, array $actualNames, $strict = true)
     {
         $this->verifyNoDuplicates($expectedNames);
 
@@ -196,8 +191,6 @@ class Form extends \pyd\testkit\web\Element
 
     /**
      * Submit the form using the selenium 'submit' command.
-     *
-     * @todo clean
      */
     public function submit()
     {
@@ -209,22 +202,11 @@ class Form extends \pyd\testkit\web\Element
      *
      * Append an element to the document body and wait untill it's not present.
      */
-    public function submitAndWaitForNewPage($timeout = 5, $interval = 200)
+    public function submitAndWaitReadyStateComplete($timeout = 5, $interval = 200)
     {
-        // add 'flag' element
-        $this->execute(\DriverCommand::EXECUTE_SCRIPT, [
-            'script' => 'var waitE = document.createElement("p");waitE.setAttribute("id", "submit-wait");document.body.appendChild(waitE);',
-            'args' => []
-        ]);
-        // submit the form
-       $this->submit();
-       // wait until the flag element is not present anymore i.e. a new page is loaded
-        $this->webDriver->wait($timeout, $interval)->until(
-            function(){
-                return null === func_get_arg(0)->executeScript('return document.getElementById("submit-wait");');
-            },
-            "$timeout seconds after submit, new page still not loaded."
-        );
+        $this->webDriver->addPageFlag();
+        $this->submit();
+        $this->webDriver->waitReadyStateComplete();
     }
 
     /**
@@ -250,7 +232,12 @@ class Form extends \pyd\testkit\web\Element
         }
     }
 
-    public function displayValidationErrors()
+    /**
+     * Validation error messages are displayed in the form.
+     *
+     * @return boolean
+     */
+    public function hasValidationErrors()
     {
         $elements = $this->findElements('helpBlockError');
         $messages = [];
@@ -273,6 +260,8 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
+     * Find an element and returns it as a TextInput.
+     *
      * @param string|array|\WebDriverBy $location
      * @return \pyd\testkit\web\elements\TextInput
      */

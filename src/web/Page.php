@@ -15,7 +15,7 @@ class Page extends \yii\base\Object
     use base\ElementContainerTrait;
 
     /**
-     * @var string route part of the url
+     * @var string route used to load this page
      */
     public $route;
     /**
@@ -28,7 +28,9 @@ class Page extends \yii\base\Object
      * @see isDisplayed()
      */
     protected $referenceLocation;
-
+    /**
+     * @var \pyd\testkit\web\Request
+     */
     private $_request;
 
     public function __construct(\RemoteWebDriver $webDriver, $config = array())
@@ -85,9 +87,7 @@ class Page extends \yii\base\Object
             throw new InvalidCallException("Property " . get_class($this) . "::\$route must be initialized to load the page.");
         }
 
-        $this->getRequest()->send($urlParams);
-
-        $this->waitReadyStateComplete();
+        $this->getRequest()->sendAndWaitReadyStateComplete($urlParams);
 
         if ($verifyDisplay && !$this->isDisplayed()) {
             throw new PageIsNotDisplayedException('Page ' . get_class($this) . ' is not properly displayed.');
@@ -113,22 +113,6 @@ class Page extends \yii\base\Object
             AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
             return false;
         }
-    }
-
-    /**
-     * Wait until the document.readyState returns 'complete'.
-     *
-     * @param int $timeout in seconds
-     * @param int $interval in milliseconds
-     */
-    public function waitReadyStateComplete($timeout = 5, $interval = 500)
-    {
-        $this->webDriver->wait($timeout, $interval)->until(
-            function(){
-                return 'complete' === func_get_arg(0)->executeScript("return document.readyState;");
-            },
-            "After $timeout seconds waiting, document.readyState still not 'complete'."
-        );
     }
 
     /**

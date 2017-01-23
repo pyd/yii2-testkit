@@ -2,7 +2,9 @@
 namespace pyd\testkit\web;
 
 /**
- * Http request.
+ * Send http request iva GET or POST.
+ *
+ * Target url is based on @see $route and generated using the urlManager component.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -13,11 +15,11 @@ class Request extends \yii\base\Object
      */
     public $route;
     /**
-     * @var \RemoteWebDriver
+     * @var \pyd\testkit\web\Driver
      */
     protected $webDriver;
 
-    public function __construct(\RemoteWebDriver $webDriver, $config = array())
+    public function __construct(Driver $webDriver, $config = array())
     {
         $this->webDriver = $webDriver;
         parent::__construct($config);
@@ -31,7 +33,47 @@ class Request extends \yii\base\Object
     public function send(array $urlParams = [])
     {
         $url = $this->createUrl($this->route, $urlParams);
-        $this->webDriver->execute(\DriverCommand::GET, ['url' => $url]);
+        $this->webDriver->get($url);
+    }
+
+    /**
+     * Send an http GET request and wait until the document.readyState property
+     * of the requested page is 'complete'.
+     *
+     * @param array $urlParams the url params ['paramName' => $paramValue, ...]
+     */
+    public function sendAndWaitReadyStateComplete(array $urlParams = [])
+    {
+        $this->webDriver->addPageFlag();
+        $this->send($urlParams);
+        $this->webDriver->waitReadyStateComplete();
+    }
+
+    /**
+     * Send an http POST request and and wait until the document.readyState
+     * property of the requested page is 'complete'.
+     *
+     * @see sendPost
+     *
+     * @param array $postData ['name' => 'value',...]
+     * @param array $urlParams ['name' => 'value',...]
+     * @param boolean|'auto' $addCsrf if true or false, the hidden field containing
+     * the csrf token is appended or not to the form. If 'auto', the field is
+     * appended according to the Request::$enableCsrfValidation property.
+     * @param null|string $initialPageUrl navigate to this page to build the form
+     * If null, the form will be build on the 'about' page.
+     */
+    public function sendPostAndWaitReadyStateComplete(array $postData = [], array $urlParams = [], $addCsrf = 'auto', $initialPageUrl = null)
+    {
+        if (null !== $initialPageUrl) {
+            $this->webDriver->addPageFlag();
+            $this->webDriver->get($initialPageUrl);
+            $this->webDriver->waitReadyStateComplete();
+        }
+
+        $this->webDriver->addPageFlag();
+        $this->addAndSubmitForm($postData, $urlParams, $addCsrf);
+        $this->webDriver->waitReadyStateComplete();
     }
 
     /**
@@ -39,28 +81,43 @@ class Request extends \yii\base\Object
      *
      * Selenium does not support sending POST request directly to the browser.
      * This method uses a common workaround:
-     * - load an 'initial' page in the browser;
-     * - execute js within the page to create a form;
-     * - submit the form;
+     * - navigate to an initial page if needed;
+     * - execute javascript to create a form (set POST data) and submit it;
      *
-     * @param array $postParams params added to the POST body
-     * @param array $getParams params added to the url of the form 'action'
+     * @see addAndSubmitForm
+     *
+     * @param array $postData ['name' => 'value',...]
+     * @param array $urlParams ['name' => 'value',...]
      * @param boolean|'auto' $addCsrf if true or false, the hidden field containing
      * the csrf token is appended or not to the form. If 'auto', the field is
      * appended according to the Request::$enableCsrfValidation property.
-     * @param string $initialPageUrl the url of the page where the form is added
+     * @param null|string $initialPageUrl navigate to this page to build the form
+     * If null, the form will be build on the 'about' page.
      */
-    public function sendPost(array $postParams = [], array $getParams = [], $addCsrf = 'auto', $initialPageUrl = null)
+    public function sendPost(array $postData = [], array $urlParams = [], $addCsrf = 'auto', $initialPageUrl = null)
     {
-        // load the initial page
-        if (null === $initialPageUrl) $initialPageUrl = $this->createUrl ('/');
-        $this->webDriver->execute(\DriverCommand::GET, ['url' => $initialPageUrl]);
+        if (null !== $initialPageUrl) {
+            $this->webDriver->addPageFlag();
+            $this->webDriver->get($initialPageUrl);
+            $this->webDriver->waitReadyStateComplete();
+        }
 
-        // build javascript to create and submit the form
-        $csrfParam = \Yii::$app->getRequest()->csrfParam;
-        // create code for hidden inputs containing post data
+        $this->addAndSubmitForm($postData, $urlParams, $addCsrf);
+    }
+
+    /**
+     * Execute javascript to create a form, add POST data and submit the form.
+     *
+     * @param array $postData ['name' => 'value',...]
+     * @param array $urlParams ['name' => 'value',...]
+     * @param boolean|'auto' $addCsrf if true or false, the hidden field containing
+     * the csrf token is appended or not to the form. If 'auto', the field is
+     * appended according to the Request::$enableCsrfValidation property.
+     */
+    protected function addAndSubmitForm(array $postData = [], array $urlParams = [], $addCsrf = 'auto')
+    {
         $postInputsCode = '';
-        foreach ($postParams as $name => $value) {
+        foreach ($postData as $name => $value) {
             $varName = $name.'Input';
             $postInputsCode .= "
                     var $varName = document.createElement('input');
@@ -70,7 +127,9 @@ class Request extends \yii\base\Object
                     form.appendChild($varName);";
 
         }
-        // create code for hidden input containing csrf token
+
+        $csrfParam = \Yii::$app->getRequest()->csrfParam;
+        // hidden field for csrf token
         $csrfInputCode = '';
         if (('auto' === $addCsrf && \Yii::$app->getRequest()->enableCsrfValidation) || true === $addCsrf) {
             $csrfInputCode .= "
@@ -85,14 +144,12 @@ class Request extends \yii\base\Object
                     }
                     ";
         }
-        // create a form using the target url
-        // if there's a meta named 'csrf-token', add it's content to a csrf input
-        // add form and submit it
+
         $script = <<<END
 (function () {
     var form = document.createElement("form");
     form.setAttribute('method',"post");
-    form.setAttribute('action',"{$this->createUrl($this->route, $getParams)}");
+    form.setAttribute('action',"{$this->createUrl($this->route, $urlParams)}");
 
     $csrfInputCode
 
@@ -106,8 +163,9 @@ END;
         $this->webDriver->executeScript($script);
     }
 
+
     /**
-     * Create an url using the Yii app url manager.
+     * Create an url using the urlManager component.
      *
      * @param string $route
      * @param array $urlParams
