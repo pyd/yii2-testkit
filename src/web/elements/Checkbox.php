@@ -15,6 +15,9 @@ class Checkbox extends \pyd\testkit\web\Element
         $this->addLocator('label', \WebDriverBy::tagName('label'));
     }
 
+    /**
+     * @return boolean checkbox is checked
+     */
     public function isChecked()
     {
         if ($this->execute(\DriverCommand::IS_ELEMENT_SELECTED)) {
@@ -24,5 +27,21 @@ class Checkbox extends \pyd\testkit\web\Element
             AssertionMessage::set("Checkbox is not checked.");
             return false;
         }
+    }
+
+    /**
+     * Set checkbox checked.
+     */
+    public function check()
+    {
+        if (!$this->isChecked()) $this->sendKeys(\WebDriverKeys::SPACE);
+    }
+
+    /**
+     * Set checkbox unchecked.
+     */
+    public function uncheck()
+    {
+        if ($this->isChecked()) $this->sendKeys(\WebDriverKeys::SPACE);
     }
 }

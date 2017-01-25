@@ -260,13 +260,24 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Find an element and returns it as a TextInput.
+     * Find the first element matching $location and return it as a text input.
      *
      * @param string|array|\WebDriverBy $location
      * @return \pyd\testkit\web\elements\TextInput
      */
     public function findTextInput($location)
     {
-        return $this->findElement($location, 'TextInput');
+        return $this->findElement($location, TextInput::className());
+    }
+
+    /**
+     * Find the first element matching $location and return it as a checkbox.
+     *
+     * @param string|array|\WebDriverBy $location
+     * @return \pyd\testkit\web\elements\Checkbox
+     */
+    public function findCheckbox($location)
+    {
+        return $this->findElement($location, Checkbox::className());
     }
 }
