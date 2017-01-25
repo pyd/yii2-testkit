@@ -24,6 +24,8 @@ namespace pyd\testkit\web\base;
  * to be visible
  * @method void waitIsHidden($timeout=5, $interval=1000) wait for this element
  * to be hidden
+ * @method void sendKeys(string $value) sendKeys($value) Simulate typing into an
+ * element, which may set its value.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */

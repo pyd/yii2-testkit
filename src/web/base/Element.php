@@ -194,7 +194,7 @@ class Element extends \yii\base\Object
         );
     }
 
-     /**
+    /**
      * Wait for this element to be hidden.
      *
      * @param integer $timeout how long to wait in seconds
@@ -205,5 +205,15 @@ class Element extends \yii\base\Object
         $this->webDriver->wait($timeout, $interval)->until(
             function(){ return !$this->isDisplayed(); }
         );
+    }
+
+    /**
+     * Simulate typing into an element, which may set its value.
+     *
+     * @param string $value
+     */
+    public function sendKeys($value)
+    {
+      $this->execute(\DriverCommand::SEND_KEYS_TO_ELEMENT, ['value' => \WebDriverKeys::encode($value)]);
     }
 }
