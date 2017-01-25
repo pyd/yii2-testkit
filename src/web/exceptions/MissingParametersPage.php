@@ -7,21 +7,19 @@ use pyd\testkit\AssertionMessage;
  * Missing parameter(s) exception page.
  *
  * <code>
- * // in a test method, verify that the 'id' parameter is required by a controller action
+ * // verify that an action require an 'id' parameter
  * $exceptionPage = new MissingParametersPage($this->webDriver);
  * $this->webDriver->get($urlWithoutIdParameter);
  * $this->assertTrue($exceptionPage->isDisplayed(), \pyd\testkit\AssertionMessage::get()));
- * // verify that the action require an 'id' parameter
  * $this->assertTrue($pageException->missingParametersAre(['id'], \pyd\testkit\AssertionMessage::get()));
  * </code>
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class MissingParametersPage extends ExceptionPage
+class MissingParametersPage extends Page
 {
     /**
-     * @return boolean the currently displayed page is a missing parameter
-     * exception page
+     * @return boolean displayed page is a missing parameters exception page
      */
     public function isDisplayed()
     {
@@ -40,17 +38,18 @@ class MissingParametersPage extends ExceptionPage
     }
 
     /**
-     * Verify that the missing parameters listed by the exception message match
-     * the expected ones.
+     * Verify that the missing parameters matches the expected names.
      *
-     * @param array $paramNames param names
+     * Missing parameters are extracted from the exception message.
+     *
+     * @param array $expected param names
      * @return boolean true missing parameters === expected parameters
      */
-    public function missingParametersAre(array $paramNames)
+    public function missingParametersAre(array $expected)
     {
-        $paramsFound = $this->extractMissingParameterNames();
+        $extracted = $this->extractMissingParameterNames();
 
-        if ($paramNames == $paramsFound) { return true; }
+        if ($expected == $extracted) { return true; }
 
         $unexpectedFound = array_diff($paramsFound, $paramNames);
         $expectedNotFound = array_diff($paramNames, $paramsFound);
