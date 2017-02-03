@@ -7,6 +7,11 @@ use pyd\testkit\web\elements\Helper as ElementHelper;
 /**
  * A <form> element.
  *
+ * @property \pyd\testkit\web\base\Element $submitButton
+ * @property \pyd\testkit\web\base\Element $csrf csrf hidden input
+ * @property array of \pyd\testkit\web\base\Element $helpBlockError validation
+ * error msg containers
+ *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
 class Form extends \pyd\testkit\web\Element
