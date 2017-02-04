@@ -1,5 +1,5 @@
 <?php
-namespace pyd\testkit\web\elements\grid;
+namespace pyd\testkit\web\elements;
 
 use pyd\testkit\AssertionMessage;
 
@@ -17,7 +17,7 @@ use pyd\testkit\AssertionMessage;
 class GridView extends \pyd\testkit\web\Element
 {
     /**
-     * @var array \pyd\testkit\web\elements\grid\GridViewRow table rows
+     * @var array \pyd\testkit\web\elements\GridViewRow table rows
      */
     private $_rows = [];
 
@@ -49,7 +49,7 @@ class GridView extends \pyd\testkit\web\Element
     public function findRows()
     {
         if ([] === $this->_rows) {
-            $this->_rows = $this->findElements('tableRows', \pyd\testkit\web\elements\grid\GridViewRow::className());
+            $this->_rows = $this->findElements('tableRows', \pyd\testkit\web\elements\GridViewRow::className());
         }
         return $this->_rows;
     }
@@ -69,7 +69,7 @@ class GridView extends \pyd\testkit\web\Element
      * Get rows that contain some text.
      *
      * @param string $text
-     * @return array \pyd\testkit\web\elements\grid\GridViewRows
+     * @return array \pyd\testkit\web\elements\GridViewRows
      */
     public function findRowsByText($text)
     {
@@ -80,6 +80,14 @@ class GridView extends \pyd\testkit\web\Element
             }
         }
         return  $rows;
+    }
+
+    /**
+     * @return GridViewSummary
+     */
+    public function findSummary()
+    {
+        return $this->findElement('summary', GridViewSummary::className());
     }
 
     /**

@@ -1,5 +1,5 @@
 <?php
-namespace pyd\testkit\web\elements\grid;
+namespace pyd\testkit\web\elements;
 
 /**
  * This element represent a row in a grid view table.

@@ -1,5 +1,5 @@
 <?php
-namespace pyd\testkit\web\elements\grid;
+namespace pyd\testkit\web\elements;
 
 /**
  * A grid view cell.
