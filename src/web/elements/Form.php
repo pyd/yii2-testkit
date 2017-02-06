@@ -17,7 +17,9 @@ use pyd\testkit\web\elements\Helper as ElementHelper;
 class Form extends \pyd\testkit\web\Element
 {
     /**
-     * @var array input types for buttons. To find inputs that are not buttons
+     * @var array to identify an <input> element that is a button. An <input>
+     * element with another type is considered a 'user input'.
+     * @see findUserInputs
      */
     protected $buttonInputTypes = ['button', 'submit', 'reset', 'image'];
 
@@ -46,11 +48,12 @@ class Form extends \pyd\testkit\web\Element
     private $userInputs;
 
     /**
-     * Find all user input elements i.e. <select> <textarea> and <input> which
-     * are not buttons @see $buttonInputTypes.
+     * Find all 'user input' elements i.e. <select> <textarea> and <input> (except
+     * buttons @see $buttonInputTypes)
      *
-     * @param null|bool $visible if null, all 'displayed' elements are returned
-     * @see\pyd\testkit\web\Element::isDisplayed
+     * @param bool|null $visible return 'displayed' or 'not displayed' elements
+     * @see\pyd\testkit\web\Element::isDisplayed. If null all 'user inputs' are
+     * returned.
      * @return array \pyd\testkit\web\Element
      */
     public function findUserInputs($visible = null)
@@ -265,7 +268,7 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Find the first element matching $location and return it as a text input.
+     * Find the first element matching $location and returns it as a text input.
      *
      * @param string|array|\WebDriverBy $location
      * @return \pyd\testkit\web\elements\TextInput
@@ -276,7 +279,7 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Find the first element matching $location and return it as a checkbox.
+     * Find the first element matching $location and returns it as a checkbox.
      *
      * @param string|array|\WebDriverBy $location
      * @return \pyd\testkit\web\elements\Checkbox
@@ -284,5 +287,16 @@ class Form extends \pyd\testkit\web\Element
     public function findCheckbox($location)
     {
         return $this->findElement($location, Checkbox::className());
+    }
+
+    /**
+     * Find the first element matching $location and returns it as a select.
+     *
+     * @param string|array|\WebDriverBy $location
+     * @return \pyd\testkit\web\elements\Select
+     */
+    public function findSelect($location)
+    {
+        return $this->findElement($location, Select::className());
     }
 }
