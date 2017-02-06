@@ -235,22 +235,23 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
     public function assertAttributeMustHaveUniqueValue($attribute, \yii\db\BaseActiveRecord $model = null)
     {
         if (null === $model) { $model = $this->getModel(); }
-        $modelClass = get_class($model);
-        $otherRecord;
 
-        // Make sure that the table row does not match the one of the tested $model
-        // otherwise validation will pass
-        if ($model->getIsNewRecord()) {
-            $otherRecord = $modelClass::find()->one();
-        } else {
-            $otherRecord = $modelClass::find()->where("$attribute!='{$model->$attribute}'")->one();
+        // get an existing value from db for this attribute
+        $query = (new \yii\db\Query())
+            ->select($attribute)
+            ->from($model->tableName())
+            ->limit(1);
+        if (!$model->getIsNewRecord()) {
+            // attribute value must be different from the model one
+            $query->where("$attribute!='{$model->$attribute}'");
         }
-        if (null === $otherRecord) {
-            throw new InvalidCallException("Not enough rows in table "
-                    . $modelClass::tableName() . " to execute " . __METHOD__);
+        $existingValue = $query->scalar();
+        if (false === $existingValue) {
+            throw new InvalidCallException("Cannot get an existing value for attribute '$attribute' "
+                    . " in table {$model->tableName()}. You should add a row of fixture data for this table.");
         }
 
-        $model->$attribute = $otherRecord->$attribute;
+        $model->$attribute = $existingValue;
         $this->assertFalse($model->validate([$attribute]), "Validation should fail for attribute '$attribute' with non unique value '{$model->$attribute}'.");
     }
 
