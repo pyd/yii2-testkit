@@ -59,8 +59,8 @@ class Form extends \pyd\testkit\web\Element
     public function findUserInputs($visible = null)
     {
         if (null === $this->userInputs) {
-            $textareas = $this->findElements(\WebDriverBy::tagName('textarea'), ['tagName' => 'textarea']);
-            $selects = $this->findElements(\WebDriverBy::tagName('select'), ['tagName' => 'select']);
+            $textareas = $this->findElements(\WebDriverBy::tagName('textarea'));
+            $selects = $this->findElements(\WebDriverBy::tagName('select'));
 
             $inputTypesToSkip = [];
             foreach ($this->buttonInputTypes as $type) {

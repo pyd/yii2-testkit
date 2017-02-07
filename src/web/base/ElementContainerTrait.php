@@ -158,11 +158,12 @@ trait ElementContainerTrait
      */
     protected function createElement($id, $elementConfig = null)
     {
-        $element = new Element($this->webDriver, $id);
         if (null === $elementConfig) {
-            return $element;
+            return new Element($this->webDriver, $id);
+        } else if (is_array($elementConfig) && !isset($elementConfig['class'])) {
+            return new Element($this->webDriver, $id, $elementConfig);
         } else {
-            return $element->asA($elementConfig);
+            return (new Element($this->webDriver, $id))->asA($elementConfig);
         }
     }
 

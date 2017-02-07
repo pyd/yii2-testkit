@@ -80,13 +80,31 @@ class Element extends \yii\base\Object
     /**
      * @return bool this element is currently displayed
      */
-    public function isDisplayed() {
+    public function isDisplayed()
+    {
         if ($this->execute(\DriverCommand::IS_ELEMENT_DISPLAYED)) {
             AssertionMessage::set('Element is displayed.');
             return true;
         } else {
             AssertionMessage::set('Element is not displayed.');
             return false;
+        }
+    }
+
+    /**
+     * Determine whether or not this element is selected or not.
+     *
+     * @return bool
+     */
+    public function isSelected()
+    {
+        if ($this->execute(\DriverCommand::IS_ELEMENT_SELECTED)) {
+            AssertionMessage::set('Element is selected.');
+            return true;
+        } else {
+            AssertionMessage::set('Element is not selected.');
+            return false;
+
         }
     }
 
