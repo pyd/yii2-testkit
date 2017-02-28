@@ -123,6 +123,20 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
     }
 
     /**
+     * Get a valid value for each attribute.
+     *
+     * @return array ['attribute1' => $attribute1ValidValue, 'attribute2' => $attribute2ValidValue,...]
+     */
+    public static function getAttributesValidValue()
+    {
+        $validData = [];
+        foreach (static::validationData() as $attribute => $data) {
+            $validData[$attribute] = $data['valid'][0];
+        }
+        return $validData;
+    }
+
+    /**
      * This method will verify that, for each active attribute:
      * - validation succeeds with 'valid' values;
      * - validation fails with 'invalid' values;
