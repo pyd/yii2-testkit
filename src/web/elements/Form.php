@@ -3,9 +3,11 @@ namespace pyd\testkit\web\elements;
 
 use pyd\testkit\AssertionMessage;
 use pyd\testkit\web\elements\Helper as ElementHelper;
+use yii\base\InvalidCallException;
+use yii\base\InvalidParamException;
 
 /**
- * A <form> element.
+ * A <form> element created by the yii\widgets\ActiveForm widget.
  *
  * @property \pyd\testkit\web\base\Element $submitButton
  * @property \pyd\testkit\web\base\Element $csrf csrf hidden input
@@ -17,11 +19,73 @@ use pyd\testkit\web\elements\Helper as ElementHelper;
 class Form extends \pyd\testkit\web\Element
 {
     /**
-     * @var array to identify an <input> element that is a button. An <input>
-     * element with another type is considered a 'user input'.
+     * @var array input types for buttons
      * @see findUserInputs
      */
     protected $buttonInputTypes = ['button', 'submit', 'reset', 'image'];
+
+    /**
+     * Add input locators for model attributes.
+     *
+     * This method will create locators to find inputs using their attribute names.
+     *
+     * <code>
+     * // assuming the Users model has safe 'username' and 'country_id' attributes
+     * $model = new \app\model\Users;
+     * $form->addInputLocatorsByModel($model);
+     * ...
+     * $form->username->setAttribute('value', 'tarzan');     // write 'tarzan' in the 'username' text field
+     * $form->find('country_id', Select::className)->selectByValue('Vanuatu');
+     * </code>
+     *
+     * @param \yii\base\Model $model
+     * @param array $attributes a locator will be added for each of this
+     * attributes. If empty, attributes returned by Model::safeAttributes() will
+     * be used.
+     */
+    public function addInputLocatorsByModel(\yii\base\Model $model, array $attributes = [])
+    {
+        if ([] === $attributes) $attributes = $model->safeAttributes();
+        foreach ($attributes as $attribute) {
+            $locatorAlias = (!$this->hasLocator($attribute)) ? $attribute : $model->formName() . '-' . $attribute;
+            $cssId = \yii\helpers\Html::getInputId($model, $attribute);
+            $this->addLocator($locatorAlias, \WebDriverBy::id($cssId), false);
+        }
+    }
+
+    /**
+     * Verify if an input has an invalid value.
+     *
+     * Note that input locator must have been added for this attribute with
+     * @see addInputLocatorsByModel
+     *
+     * @param string $attribute
+     * @return boolean
+     * @throws InvalidCallException $attribute locator does not use the 'id' mechanism
+     * @throws InvalidParamException no locator was defined for $attribute
+     */
+    public function InputHasError($attribute)
+    {
+        if ($this->hasLocator($attribute)) {
+            $by = $this->getLocator($attribute);
+            if ('id' === $by->getMechanism()) {
+                try {
+                    $cssSelector = '.field-' . $by->getValue() . '.has-error';
+                    $this->findId(\WebDriverBy::cssSelector($cssSelector));
+                    AssertionMessage::set("Attribute '$attribute' has validation error.");
+                    return true;
+                } catch (\NoSuchElementException $e) {
+                    AssertionMessage::set("No validation error for attribute '$attribute'.");
+                    return false;
+                }
+            }else {
+                throw new InvalidCallException("Attribute '$attribute' locator must use the 'id' mechanism.");
+            }
+
+        } else {
+            throw new InvalidParamException("Attribute '$attribute' has no locator.");
+        }
+    }
 
     protected function initLocators() {
         $this->addLocator('submitButton', \WebDriverBy::cssSelector('*[type="submit"]'));
@@ -174,29 +238,6 @@ class Form extends \pyd\testkit\web\Element
         }
     }
 
-    private $_models;
-
-    /**
-     * Define models - their attributes - used by the form and add their
-     * attributes as locators.
-     * @see addModelAttributesLocators()
-     *
-     * @param array \yii\base\models
-     * @throws \yii\base\InvalidCallException
-     */
-    public function setModels(array $models)
-    {
-        if (null !== $this->_models) {
-            throw new \yii\base\InvalidCallException("Models can only be initialized once."
-                    . " You should create a new " . __METHOD__ . " instance.");
-        }
-        foreach ($models as $model) {
-            $modelInstance = \yii\di\Instance::ensure($model, '\yii\base\Model');
-            $this->_models[] = $modelInstance;
-            $this->addModelAttributesLocators($modelInstance);
-        }
-    }
-
     /**
      * Submit the form using the selenium 'submit' command.
      */
@@ -215,29 +256,6 @@ class Form extends \pyd\testkit\web\Element
         $this->webDriver->addPageFlag();
         $this->submit();
         $this->webDriver->waitReadyStateComplete();
-    }
-
-    /**
-     * Add locators for the model attributes.
-     *
-     * If a 'user' model has 'firstname' and 'lastname' attributes this will has
-     * a 'lastname' and a 'firstname' locators:
-     * ```php
-     * $form->firstname; // will return the user[firstname] text input element
-     * $form->lastname;  // will return the user[lastname] text input element
-     * ```
-     *
-     * The \yii\base\Model::getAttributes() method is used to retrieve the model
-     * attribute names.
-     */
-    public function addModelAttributesLocators(\yii\base\Model $model, array $attributes = [])
-    {
-        if ([] === $attributes) $attributes = $model->attributes();
-        foreach ($attributes as $attribute) {
-            $locatorAlias = (!$this->hasLocator($attribute)) ? $attribute : $model->formName() . '-' . $attribute;
-            $cssId = \yii\helpers\Html::getInputId($model, $attribute);
-            $this->addLocator($locatorAlias, \WebDriverBy::id($cssId), false);
-        }
     }
 
     /**
