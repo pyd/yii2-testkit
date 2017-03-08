@@ -2,7 +2,13 @@
 namespace pyd\testkit\fixtures;
 
 /**
- * @brief ...
+ * Manager for fixture objects.
+ *
+ * This class ensures that Yii app fixture manager and Db fixture manager are
+ * initialized and accessible.
+ *
+ * @see \pyd\testkit\fixtures\App
+ * @see \pyd\testkit\fixtures\Db
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
