@@ -41,7 +41,7 @@ class Db extends base\Db
      */
     public function __get($name)
     {
-        if (array_key_exists($this->dbTableInstances[$name])) {
+        if (array_key_exists($name, $this->dbTableInstances)) {
             return $this->dbTableInstances[$name]->getData();
         } else {
             parent::__get($name);
