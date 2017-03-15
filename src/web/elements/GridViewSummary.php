@@ -14,12 +14,12 @@ class GridViewSummary extends \pyd\testkit\web\Element
     public $totalCountPattern = "` (?P<total>[0-9]+) `";
 
     /**
-     * Extract total count value from grid view summary.
+     * Extract the total of items from the gridView summary.
      *
      * @return integer grid view elements total count
      * @throws \LogicException failed to extract total count
      */
-    public function extractTotalCount()
+    public function getTotalItems()
     {
         $text = $this->getText();
         $result = preg_match($this->totalCountPattern, $text, $matches);
