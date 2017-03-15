@@ -28,7 +28,7 @@ class TextInput extends \pyd\testkit\web\base\ElementWrapper
 
     public function clear()
     {
-        $this->setAttribute('value', '');
+        $this->setValue('');
     }
 
     /**
@@ -38,5 +38,15 @@ class TextInput extends \pyd\testkit\web\base\ElementWrapper
     {
         throw new InvalidCallException("Method " . __METHOD__ . " is not "
                 . "available for a text input element. Use getValue() instead.");
+    }
+
+    /**
+     * Text input is empty.
+     *
+     * @return boolean
+     */
+    public function isEmpty()
+    {
+        return '' === $this->getValue();
     }
 }
