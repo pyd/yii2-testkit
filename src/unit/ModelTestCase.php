@@ -210,6 +210,11 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
         $this->assertTrue('' === $failureMessages, $failureMessages);
     }
 
+    public function valueIsValidForAttribute($attribute, $value, $otherAttributes = [])
+    {
+        
+    }
+
     /**
      * Verify that an attribute validation fails with 'invalid' values.
      *

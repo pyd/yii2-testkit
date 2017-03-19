@@ -83,6 +83,25 @@ class GridView extends \pyd\testkit\web\Element
     }
 
     /**
+     * Get a row that contains some text.
+     *
+     * @param string $text
+     * @return array \pyd\testkit\web\elements\GridViewRow
+     */
+    public function findRowByText($text)
+    {
+        $rows = $this->findRowsByText($text);
+        $count = count($rows);
+        if (1 === $count) {
+            return $rows[0];
+        } else if (0 === $count) {
+            throw new \yii\base\InvalidCallException("No row in the grid contains text '$text'.");
+        } else {
+            throw new \yii\base\InvalidCallException("More than one row in the grid contain text '$text'.");
+        }
+    }
+
+    /**
      * @return GridViewSummary
      */
     public function findSummary()
