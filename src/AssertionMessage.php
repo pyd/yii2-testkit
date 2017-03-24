@@ -17,10 +17,11 @@ class AssertionMessage
     /**
      * @var string message container
      */
-    protected static $msg;
+    protected static $msg = '';
 
     /**
-     * Store a message. Any existing content will be overwritten.
+     * Set an assertion message.
+     * Any previous message will be overwritten.
      *
      * @param string $msg
      */
@@ -30,37 +31,53 @@ class AssertionMessage
     }
 
     /**
-     * Return the currently stored message and remove it.
+     * Return the stored assertion message.
+     *
+     * If no message is stored, the default "No assertion message available."
+     * message is returned.
      *
      * @return string
      */
     public static function get()
     {
-        $msg = self::$msg;
-        if (null === $msg) {
+        if (self::isEmpty()) {
             return "No assertion message available.";
+        } else {
+            $msg = self::$msg;
+            self::clear();
+            return  $msg;
         }
-        self::$msg = null;
-        return $msg;
     }
 
     /**
-     * Add a message. Any existing content will be preserved.
+     * Add an assertion message.
+     * Any existing message is preserved.
      *
      * @param string $msg
-     * @param boolean $newLine add a new line "\n" before the added message
+     * @param boolean $newLine add a new line "\n" before the new message
      */
     public static function add($msg, $newLine = false)
     {
-        $msg = $newLine ? "\n$msg" : " $msg";
-        self::$msg .= $msg;
+        if ($newLine) {
+            self::$msg .= "\n$msg";
+        } else {
+            self::$msg .= (self::isEmpty()) ? $msg : " $msg";
+        }
     }
 
     /**
-     * Clear message.
+     * Clear assertion message.
      */
     public static function clear()
     {
         self::$msg = '';
+    }
+
+    /**
+     * @return boolean no assertion message stored
+     */
+    public static function isEmpty()
+    {
+        return '' === self::$msg;
     }
 }
