@@ -6,18 +6,22 @@ use yii\di\Instance;
 use yii\base\InvalidCallException;
 use yii\base\InvalidParamException;
 use yii\base\UnknownPropertyException;
+use pyd\testkit\AssertionMessage;
 
 /**
  * Base class for models unit tests.
+ *
+ * Usage:
+ * - create a test case extending this class;
+ * - set model to be tested using @see setModel() - in each test method - or by
+ * implementing @see modelReference()
  *
  * <code>
  * class UserCreateTest extends \pyd\testkit\unit\ModelTestCase
  * {
  *      public function modelReference()
  *      {
- *          return app\models\user\Create::className();
- *          // or
- *          // return ['class' => app\models\User::className(), 'scenario' => 'create'];
+ *          return ['class' => app\models\User::className(), 'scenario' => 'create'];
  *      }
  *
  *      public static function validationData()
@@ -27,8 +31,21 @@ use yii\base\UnknownPropertyException;
  *              'lastname'  => ['valid' => ['Del Mar', "O'Crohan"], 'invalid' => ['', 'Von-Stemberg']],
  *              'username' => ['valid' => ['valid_username'], 'invalid' => ['2short', '0123456789'],
  *              'password' => ['valid' => ['valid.password'], 'invalid' => ['', '2short'],
+ *              'password_confirm => [
+ *                  'valid' => [
+ *                      // use an array to set other attributes values
+ *                      // 'value' contains the password_confirm attribute value
+ *                      ['value' => 'shortpwd' 'otherAttributes' => ['password' => 'shortpwd']]
+ *                  ],
+ *                  'invalid' => [
+ *                      // password is not set
+ *                      'shortpwd',
+ *                      // password is not confirmed
+ *                      ['value' => 'shortpwd', 'otherAttributes' => ['password' => 'shortpXd]]
+ *                  ]
+ *              ]
  *              'mail' => [...],
- *              'birthDate' => [...],
+ *              'birth_date' => [...],
  *              'created_at' => [...],
  *              'is_admin' => ['valid' => [0, 1,'0', '1'], 'invalid => ['', '2', 3]
  *          ];
@@ -39,7 +56,7 @@ use yii\base\UnknownPropertyException;
  *          $this->assertSafeAttributesAre(['firstname', 'lastname', 'username', 'password', 'mail', 'birthDate]);
  *          $this->assertActiveAttributesAre(['firstname', 'lastname', 'username', 'password', 'mail', 'birthDate', 'created_at', 'is_admin]);
  *          $this->assertRequiredAttributesAre(['firstname', 'lastname', 'username', 'password', 'mail']);
- *          $this->assertValidationDataMatchValidationRules(self::validationData());
+ *          $this->assertValidationDataMatchesValidationRules(self::validationData());
  *      }
  *
  *      public function testDefaultValues()
@@ -90,162 +107,180 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
     }
 
     /**
-     * Reference used to create the model to test.
+     * Clear the instance of the model under test.
      *
+     * @see $model
+     */
+    public function clearModel()
+    {
+        $this->model = null;
+    }
+
+    /**
+     * Return a "reference" of the model under test.
+     *
+     * Used by @see setModel() to create a model instance if it's not initialized.
+     *
+     * @see $getModel
      * @see $setModel
      * @return object|string|array|static
-     * @throws InvalidCallException
      */
     public function modelReference()
     {
         throw new InvalidCallException("You must implement the " . __METHOD__ . "() method.");
     }
 
+    /**
+     * Verify that a value is valid for an attribute.
+     *
+     * This method will set target attribute with a value - eventually other
+     * attributes too - and verify, after calling validate(), if the model
+     * has errors for this attribute.
+     *
+     * @param string $attribute attribute name
+     * @param int|string $value value to verify
+     * @param array $otherAttributes attribute/value pairs to initialize other
+     * model attributes
+     *
+     * @return boolean
+     */
+    public function attributeValueIsValid($attribute, $value, $otherAttributes = [])
+    {
+        $model = $this->getModel();
+        // set $otherAttributes first in case it contains - by error - a value for $attribute
+        $model->setAttributes($otherAttributes, false);
+        $model->$attribute = $value;
+        $model->validate();
+        if (!$model->hasErrors($attribute)) {
+            AssertionMessage::set("Value '$value' is valid for attribute '$attribute'.");
+            return true;
+        } else {
+            AssertionMessage::set("Value '$value' is not valid for attribute '$attribute'.
+                Error message is : '" .  end($model->getErrors($attribute)). "'.");
+            return false;
+        }
+        $this->clearModel();
+    }
 
     /**
-     * A set of valid and invalid values to test the validation rules.
+     * Verify validation rules with valid and invalid attribute values.
      *
-     * return [
+     * You give an array of valid and invalid values for each model 'active'
+     * attribute and this method will verify that validation succeeds or fails
+     * for these values.
+     *
+     * Validation data array format:
+     *
+     * - each root key must be a model attribute name and its value must be an
+     * array - with 'valid' and 'invalid' keys - or FALSE - if you want to skip
+     * verification for an attribute (see created_at);
+     *
+     * - 'valid' and 'invalid' keys must point to an array of values or FALSE -
+     * if you want to skip verification for 'valid' or 'invalid' values (see
+     * comment 'invalid' key);
+     *
+     * - a 'valid' or 'invalid' value can be a string, an integer or an array.
+     * You can use the latter when you want to set other attributes values (see
+     * passwordConfirm). In this case the array must contain a 'value' key
+     * with the valid or invalid attribute value and an 'otherAttributes' key
+     * with an array containing attributes name and value pairs;
+     *
+     * <code>
+     * $validationData = [
      *      'username' => [
-     *          'valid' => ['tomcat55', 'roberto'],
-     *          'invalid' => ['short']
+     *          'valid' => ['username1', 'username2'],
+     *          'invalid' => ['short', 'notUniqueUsername']
      *      ],
      *      'password' => [
-     *          'valid' => [...],
-     *          'invalid' => [...]
-     *      ],...
+     *          'valid' => ['shortest', 'longuestPassword'],
+     *          'invalid' => ['short']
+     *      ],
+     *      'passwordConfirm' => [
+     *          // password value must be set to verify confirmation
+     *          'valid' => [
+     *              // use an array to set attribute value and other attributes values
+     *              // both passwordConfirm and password attributes receive the same value
+     *              ['value' => 'validPassword', 'otherAttributes' => ['password' => 'validPassword']
+     *          ]
+     *          'invalid' => [
+     *              // invalid value as a string
+     *              'noPasswordSet',
+     *              // invalid value as an array
+     *              ['value' => 'onePassword', 'otherAttributes' => ['password' => 'otherPassword']]
+     *          ]
+     *      ],
+     *      // skip verification with invalid comment values
+     *      'comment' => ['valid' => ['Valid comment'], 'invalid' => FALSE],
+     *      // skip verification for created_at attribute
+     *      'created_at' => false,
      * ];
-     * @return array
-     */
-    public static function validationData()
-    {
-        throw new InvalidCallException("You must implement the " . __METHOD__ . "() method.");
-    }
-
-    /**
-     * Get a valid value for each attribute.
+     * </code>
      *
-     * @return array ['attribute1' => $attribute1ValidValue, 'attribute2' => $attribute2ValidValue,...]
+     * @param array $validationData
+     * @throws InvalidParamException
      */
-    public static function getAttributesValidValue()
+    public function assertValidationDataMatchesValidationRules(array $validationData)
     {
-        $validData = [];
-        foreach (static::validationData() as $attribute => $data) {
-            $validData[$attribute] = $data['valid'][0];
-        }
-        return $validData;
-    }
+        $model = $this->getModel();
+        $errorMessages = '';
 
-    /**
-     * This method will verify that, for each active attribute:
-     * - validation succeeds with 'valid' values;
-     * - validation fails with 'invalid' values;
-     *
-     * @param array $validationData valid and invalid data to verify the validation
-     * rules. If an empty array (default) @see validationData() will be called
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
-     * @throws InvalidParamException validation data is missing or invalid
-     */
-    public function assertValidationDataMatchValidationRules(array $validationData = [], Model $model = null)
-    {
-        if ([] === $validationData) $validationData = static::validationData();
-        if (null === $model) $model = $this->getModel();
-        $failureMessages = '';
-
-        // each 'active' attribute must have its validation rules verified
+        // each 'active' attribute will be checked...
         foreach ($model->activeAttributes() as $attribute) {
 
-            // one needs 'valid' and 'invalid' data to verify this attribute rules
-            if (!array_key_exists($attribute, $validationData) || !is_array($validationData[$attribute])) {
-                throw new InvalidParamException("Missing or invalid (an array is expected) validation data for attribute '$attribute'.");
+            // ...unless you explicitely don't want to
+            if (!array_key_exists($attribute, $validationData)) {
+                throw new InvalidParamException("Missing validation data for attribute '$attribute'.
+                    To skip verification for this attribute set its value to FALSE in validation data.");
+            }
+            if (false === $validationData[$attribute]) continue;
+
+            // we expect validation data for an attribute to be an array with
+            // 'valid' and 'invalid' keys
+            if (!is_array($validationData[$attribute])
+                    || !array_key_exists('valid', $validationData[$attribute])
+                    || !array_key_exists('invalid', $validationData[$attribute])) {
+                throw new InvalidParamException("Invalid validation data for attribute '$attribute'.
+                        It must be an array with 'valid' and 'invalid' keys.");
             }
 
-            $attributeValidationData = $validationData[$attribute];
+            // valid validation data must be an array or FALSE. If the latter
+            // validation with valid values will be skipped for this attribute
+            if (false !== $validationData[$attribute]['valid']) {
 
-            if (!array_key_exists('valid', $attributeValidationData) || !is_array($attributeValidationData['valid'])) {
-                throw new InvalidParamException("Missing or invalid (an array is expected) 'valid' validation data for attribute '$attribute'.");
+                foreach ($validationData[$attribute]['valid'] as $validData) {
+
+                    // valid data can contain a single value or an array. If the
+                    // latter it must have 'value' and 'otherAttributes' keys.
+                    $value = (is_array($validData)) ? $validData['value'] : $validData;
+                    $otherAttributes = (is_array($validData)) ? $validData['otherAttributes'] : [];
+                    if (!$this->attributeValueIsValid($attribute, $value, $otherAttributes, false)) {
+                        $errorMessages = "\nValidation should not fail for attribute '$attribute' with value $value.
+                                Error message is : '" .  end($model->getErrors($attribute)). "'.";
+                    }
+                }
             }
 
-            if (!array_key_exists('invalid', $attributeValidationData) || !is_array($attributeValidationData['valid'])) {
-                throw new InvalidParamException("Missing or invalid (an array is expected) 'invalid' validation data for attribute '$attribute'.");
+            // invalid validation data must be an array or FALSE. If the latter
+            // validation with invalid values will be skipped for this attribute
+            if (false !== $validationData[$attribute]['invalid']) {
+
+                foreach ($validationData[$attribute]['invalid'] as $invalidData) {
+
+                    // invalid data can contain a single value or an array. If
+                    // the latter it must have 'value' and 'otherAttributes' keys.
+                    $value = (is_array($invalidData)) ? $invalidData['value'] : $invalidData;
+                    $otherAttributes = (is_array($invalidData)) ? $invalidData['otherAttributes'] : [];
+                    if ($this->attributeValueIsValid($attribute, $value, $otherAttributes, false)) {
+                        $errorMessages .= "\nValidation should fail for attribute '$attribute' with value $value.";
+                    }
+                }
             }
-
-            $message = $this->assertAttributeValidationSucceedsWithValidValues($attribute, $attributeValidationData['valid'], $model, true);
-            if ('' !== $message) $failureMessages .= "\n" . $message;
-
-            $message = $this->assertAttributeValidationFailsWithInvalidValues($attribute, $attributeValidationData['invalid'], $model, true);
-            if ('' !== $message) $failureMessages .= "\n" . $message;
         }
-
-        $this->assertTrue('' === $failureMessages, $failureMessages);
+        self::assertTrue('' === $errorMessages, $errorMessages);
     }
 
     /**
-     * Verify that an attribute validation succeeds with 'valid' values.
-     *
-     * @param string $attribute attribute name
-     * @param array $values valid values for this attribute
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
-     * @param boolean $returnMessage force to return failure message(s). For
-     * internal use, when this method is called by @see assertValidationDataMatchValidationRules
-     */
-    public function assertAttributeValidationSucceedsWithValidValues($attribute, array $values = [], Model $model = null, $returnMessage = false)
-    {
-        if ([] === $values) $values = self::validationData()[$attribute];
-        if (null === $model) $model = $this->getModel();
-        $failureMessages = '';
-
-        foreach ($values as $value) {
-            $model->$attribute = $value;
-            if (!$model->validate([$attribute])) {
-                $failureMessages .= "Validation should not fail for attribute '$attribute' with value '$value'";
-                $failureMessages .= "\n\tModel error : " . end($model->getErrors($attribute));
-            }
-        }
-
-        if ($returnMessage) return $failureMessages;
-
-        $this->assertTrue('' === $failureMessages, $failureMessages);
-    }
-
-    public function valueIsValidForAttribute($attribute, $value, $otherAttributes = [])
-    {
-        
-    }
-
-    /**
-     * Verify that an attribute validation fails with 'invalid' values.
-     *
-     * @param string $attribute attribute name
-     * @param array $values invalid values for this attribute
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
-     * @param boolean $returnMessage force to return failure message(s). For
-     * internal use, when this method is called by @see assertValidationDataMatchValidationRules
-     */
-    public function assertAttributeValidationFailsWithInvalidValues($attribute, array $values = [], Model $model = null, $returnMessage = false)
-    {
-        if ([] === $values) $values = self::validationData()[$attribute];
-        if (null === $model) $model = $this->getModel();
-        $failureMessages = '';
-
-        foreach ($values as $value) {
-            $model->$attribute = $value;
-            if ($model->validate([$attribute])) {
-                $failureMessages .= "Validation should fail for attribute '$attribute' with value '$value'.";
-            }
-        }
-
-        if ($returnMessage) return $failureMessages;
-
-        $this->assertTrue('' === $failureMessages, $failureMessages);
-    }
-
-    /**
-     * Verify that an attribute validation fails with a value that already
-     * exists in db.
+     * Verify that an attribute validation fails with a non unique value.
      *
      * @param string $attribute attribute name
      * @param \yii\db\BaseActiveRecord $model an instance of the tested model.
@@ -313,18 +348,16 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
     }
 
     /**
-     * Verify that attributes are of type $type.
+     * Verify that attributes are of type $type - internal use.
      *
      * @param string $type the expected type ('safe', 'active', 'required') of the attributes
      * @param array $attributes attribute names
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
-     * @throws InvalidParamException
+     * @throws InvalidParamException param $type is not supported
      */
-    protected function assertAttributesAre($type, array $attributes, Model $model = null)
+    protected function assertAttributesAre($type, array $attributes)
     {
-        if (null === $model) $model = $this->getModel();
-        $failureMessages = [];
+        $model = $this->getModel();
+        $assertionMessages = '';
 
         switch ($type) {
             case 'safe':
@@ -344,26 +377,25 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
         $expectedNotFound = array_diff($attributes, $modelAttributes);
 
         if ([] !== $foundNotExpected) {
-            $failureMessages[] = "Attribute(s) [" . implode(', ', array_values($foundNotExpected)) . "] should not be $type in the model.\n";
+            $assertionMessages .= "Attribute(s) [" . implode(', ', array_values($foundNotExpected)) . "] should not be $type in the model.\n";
         }
 
         if ([] !== $expectedNotFound) {
-            $failureMessages[] = "Attribute(s) [" . implode(', ', array_values($expectedNotFound)) . "] should be $type in the model.\n";
+            $assertionMessages .= "Attribute(s) [" . implode(', ', array_values($expectedNotFound)) . "] should be $type in the model.\n";
         }
 
-        $this->assertTrue([] === $failureMessages, implode("\n", $failureMessages));
+        $this->clearModel();
+        $this->assertTrue('' === $assertionMessages, $assertionMessages);
     }
 
     /**
      * Return the 'required' 'active' attributes of the model.
      *
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
      * @return array
      */
-    protected function getRequiredActiveAttributes(Model $model = null)
+    protected function getRequiredActiveAttributes()
     {
-        if (null === $model) $model = $this->getModel();
+        $model = $this->getModel();
         $attributes = [];
         $activeAttributes = $model->activeAttributes();
         foreach ($model->getActiveValidators() as $validator) {
@@ -372,27 +404,7 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
                 $attributes = array_merge($attributes, $requiredActiveAttributes);
             }
         }
+        $this->clearModel();
         return $attributes;
-    }
-
-    /**
-     * Verify that empty values are allowed for $attributes.
-     *
-     * @param array $attributes attribute names
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
-     */
-    public function assertAttributesAllowingEmptyValueAre(array $attributes, Model $model = null)
-    {
-        if (null === $model) $model = $this->getModel();
-        $failureMessages = [];
-
-        foreach ($attributes as $attribute) {
-            $model->$attribute = '';
-            if (!$model->validate([$attribute])) {
-                $failureMessages[] = "Validation should not fail for attribute '$attribute' with an value.";
-            }
-        }
-        $this->assertTrue([] === $failureMessages, implode("\n", $failureMessages));
     }
 }
