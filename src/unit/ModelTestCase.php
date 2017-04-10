@@ -146,7 +146,7 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      */
     public function attributeValueIsValid($attribute, $value, $otherAttributes = [])
     {
-        $model = $this->getModel();
+        $model = clone $this->getModel();
         // set $otherAttributes first in case it contains - by error - a value for $attribute
         $model->setAttributes($otherAttributes, false);
         $model->$attribute = $value;
@@ -159,7 +159,6 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
                 Error message is : '" .  end($model->getErrors($attribute)). "'.");
             return false;
         }
-        $this->clearModel();
     }
 
     /**
@@ -221,7 +220,7 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      */
     public function assertValidationDataMatchesValidationRules(array $validationData)
     {
-        $model = $this->getModel();
+        $model = clone $this->getModel();
         $errorMessages = '';
 
         // each 'active' attribute will be checked...
@@ -283,12 +282,10 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      * Verify that an attribute validation fails with a non unique value.
      *
      * @param string $attribute attribute name
-     * @param \yii\db\BaseActiveRecord $model an instance of the tested model.
-     * If null, an instance will be provided by the @see getModel() method.
      */
-    public function assertAttributeMustHaveUniqueValue($attribute, \yii\db\BaseActiveRecord $model = null)
+    public function assertAttributeMustHaveUniqueValue($attribute)
     {
-        if (null === $model) { $model = $this->getModel(); }
+        $model = clone $this->getModel();
 
         // get an existing value from db for this attribute
         $query = (new \yii\db\Query())
@@ -313,24 +310,20 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      * Verify that $attributes matches the model 'safe' attribute names.
      *
      * @param array $attributes attribute names
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
      */
-    public function assertSafeAttributesAre(array $attributes, Model $model = null)
+    public function assertSafeAttributesAre(array $attributes)
     {
-        $this->assertAttributesAre('safe', $attributes, $model);
+        $this->assertAttributesAre('safe', $attributes);
     }
 
     /**
      * Verify that $attributes matches the model 'active' attribute names.
      *
      * @param array $attributes attribute names
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
      */
-    public function assertActiveAttributesAre(array $attributes, Model $model = null)
+    public function assertActiveAttributesAre(array $attributes)
     {
-        $this->assertAttributesAre('active', $attributes, $model);
+        $this->assertAttributesAre('active', $attributes);
     }
 
     /**
@@ -339,12 +332,10 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      * Required attributes are the ones that use the RequiredValidator.
      *
      * @param array $attributes attribute names
-     * @param \yii\base\Model $model an instance of the model to test. If null
-     * the instance will be provided by @see getModel()
      */
-    public function assertRequiredAttributesAre($attributes, Model $model = null)
+    public function assertRequiredAttributesAre($attributes)
     {
-        $this->assertAttributesAre('required', $attributes, $model);
+        $this->assertAttributesAre('required', $attributes);
     }
 
     /**
@@ -356,7 +347,7 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      */
     protected function assertAttributesAre($type, array $attributes)
     {
-        $model = $this->getModel();
+        $model = clone $this->getModel();
         $assertionMessages = '';
 
         switch ($type) {
@@ -384,7 +375,6 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
             $assertionMessages .= "Attribute(s) [" . implode(', ', array_values($expectedNotFound)) . "] should be $type in the model.\n";
         }
 
-        $this->clearModel();
         $this->assertTrue('' === $assertionMessages, $assertionMessages);
     }
 
@@ -395,7 +385,7 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
      */
     protected function getRequiredActiveAttributes()
     {
-        $model = $this->getModel();
+        $model = clone $this->getModel();
         $attributes = [];
         $activeAttributes = $model->activeAttributes();
         foreach ($model->getActiveValidators() as $validator) {
@@ -404,7 +394,6 @@ class ModelTestCase extends \pyd\testkit\base\TestCase
                 $attributes = array_merge($attributes, $requiredActiveAttributes);
             }
         }
-        $this->clearModel();
         return $attributes;
     }
 }
