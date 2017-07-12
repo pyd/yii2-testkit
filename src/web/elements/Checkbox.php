@@ -34,7 +34,7 @@ class Checkbox extends \pyd\testkit\web\Element
      */
     public function check()
     {
-        if (!$this->isChecked()) $this->sendKeys(\WebDriverKeys::SPACE);
+        if (!$this->isChecked()) $this->click();
     }
 
     /**
@@ -42,6 +42,6 @@ class Checkbox extends \pyd\testkit\web\Element
      */
     public function uncheck()
     {
-        if ($this->isChecked()) $this->sendKeys(\WebDriverKeys::SPACE);
+        if ($this->isChecked()) $this->click();
     }
 }
