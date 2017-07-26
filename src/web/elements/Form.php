@@ -64,7 +64,7 @@ class Form extends \pyd\testkit\web\Element
      * @throws InvalidCallException $attribute locator does not use the 'id' mechanism
      * @throws InvalidParamException no locator was defined for $attribute
      */
-    public function InputHasError($attribute)
+    public function inputHasError($attribute)
     {
         if ($this->hasLocator($attribute)) {
             $by = $this->getLocator($attribute);
