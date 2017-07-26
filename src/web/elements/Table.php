@@ -26,7 +26,7 @@ class Table extends \pyd\testkit\web\Element
     }
 
     /**
-     * @return array \pyd\testkit\base\Element
+     * @return array \pyd\testkit\web\base\Element
      */
     public function getHeaders()
     {

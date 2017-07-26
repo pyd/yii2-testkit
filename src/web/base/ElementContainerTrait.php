@@ -111,7 +111,7 @@ trait ElementContainerTrait
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
      * @param string|array $elementConfig config of the element to be created
-     * @return \pyd\testkit\base\Element
+     * @return \pyd\testkit\web\base\Element
      */
     public function findElement($location, $elementConfig = null)
     {
@@ -121,7 +121,7 @@ trait ElementContainerTrait
     /**
      * @param string|\WebDriverBy $location locator alias - @see $locators - or \WebDriverBy instance
      * @param string|array $elementConfig config of the elements to be created
-     * @return array \pyd\testkit\base\Element
+     * @return array \pyd\testkit\web\base\Element
      */
     public function findElements($location, $elementConfig = null)
     {

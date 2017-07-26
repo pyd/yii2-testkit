@@ -4,9 +4,9 @@ namespace pyd\testkit\web\elements;
 /**
  * This element represent a row in a grid view table.
  *
- * @property \pyd\testkit\base\Element $deletionLink
- * @property \pyd\testkit\base\Element $viewLink
- * @property \pyd\testkit\base\Element $updateLink
+ * @property \pyd\testkit\web\base\Element $deletionLink
+ * @property \pyd\testkit\web\base\Element $viewLink
+ * @property \pyd\testkit\web\base\Element $updateLink
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
