@@ -26,11 +26,6 @@ class TextInput extends \pyd\testkit\web\base\ElementWrapper
         $this->setAttribute('value', $value);
     }
 
-    public function clear()
-    {
-        $this->setValue('');
-    }
-
     /**
      * @throws InvalidCallException
      */

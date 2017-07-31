@@ -65,6 +65,7 @@ class Element extends \yii\base\Object
     }
 
     /**
+     * Execute a webdriver command.
      *
      * @param string $command selenium command
      * @param array $params command parameters
@@ -92,9 +93,7 @@ class Element extends \yii\base\Object
     }
 
     /**
-     * Determine whether or not this element is selected or not.
-     *
-     * @return bool
+     * @return bool this element is selected
      */
     public function isSelected()
     {
@@ -104,14 +103,12 @@ class Element extends \yii\base\Object
         } else {
             AssertionMessage::set('Element is not selected.');
             return false;
-
         }
     }
 
     /**
-     * Get the visible text of this element, including sub-elements, without any
-     * leading or trailing whitespace.
-     * @return string
+     * @return string the visible text of this element, including sub-elements,
+     * without any leading or trailing whitespace.
      */
     public function getText()
     {
@@ -119,9 +116,8 @@ class Element extends \yii\base\Object
     }
 
     /**
-     * Check if this element equals the $other.
      * @param Element $other
-     * @return boolean
+     * @return boolean this element equals the $other
      */
     public function equals(Element $other) {
         return $this->execute(\DriverCommand::ELEMENT_EQUALS, [':other' => $other->getId()]);
@@ -129,7 +125,7 @@ class Element extends \yii\base\Object
 
     /**
      * Click on this element.
-     * @return Element
+     * @return pyd\testkit\web\base\Element
      */
     public function click() {
         $this->execute(\DriverCommand::CLICK_ELEMENT);
@@ -137,6 +133,7 @@ class Element extends \yii\base\Object
     }
 
     private $tagName;
+
     /**
      * @return string this element tag name
      */
@@ -204,12 +201,14 @@ class Element extends \yii\base\Object
      *
      * @param integer $timeout how long to wait in seconds
      * @param integer $interval verify condition every $interval milliseconds
+     * @return pyd\testkit\web\base\Element
      */
     public function waitIsVisible($timeout=5, $interval=1000)
     {
         $this->webDriver->wait($timeout, $interval)->until(
             function(){ return $this->isDisplayed(); }
         );
+        return $this;
     }
 
     /**
@@ -217,21 +216,35 @@ class Element extends \yii\base\Object
      *
      * @param integer $timeout how long to wait in seconds
      * @param integer $interval verify condition every $interval milliseconds
+     * @return pyd\testkit\web\base\Element
      */
     public function waitIsHidden($timeout=5, $interval=1000)
     {
         $this->webDriver->wait($timeout, $interval)->until(
             function(){ return !$this->isDisplayed(); }
         );
+        return $this;
     }
 
     /**
      * Simulate typing into an element, which may set its value.
      *
      * @param string $value
+     * @return pyd\testkit\web\base\Element
      */
     public function sendKeys($value)
     {
       $this->execute(\DriverCommand::SEND_KEYS_TO_ELEMENT, ['value' => \WebDriverKeys::encode($value)]);
+    }
+
+    /**
+     * Clear this element value if it's a text input or a textarea.
+     *
+     * @return pyd\testkit\web\base\Element
+     */
+    public function clear()
+    {
+        $this->execute(\DriverCommand::CLEAR_ELEMENT, []);
+        return $this;
     }
 }
