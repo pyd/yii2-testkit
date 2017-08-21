@@ -35,13 +35,12 @@ class CsrfValidationPage extends Page
     }
 
     /**
-     * Return some text that should be present in the exception message to
-     * identify this page as a 'csrf validation' exception page.
+     * Return the message related to a 'csrf validation' exception page.
      *
      * @return string
      */
     protected function getReferenceText()
     {
-        return "Unable to verify your data submission";
+        return \Yii::t('yii', 'Unable to verify your data submission.');
     }
 }
