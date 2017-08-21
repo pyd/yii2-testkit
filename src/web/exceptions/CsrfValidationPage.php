@@ -21,9 +21,6 @@ class CsrfValidationPage extends Page
     {
         if (parent::isDisplayed()) {
 
-echo "\nexception message: " . $this->getMessage();
-echo "\nexpected message: " . $this->getReferenceText();
-
             if (false !== strpos($this->getMessage(), $this->getReferenceText())) {
                 AssertionMessage::set("This is a CSRF validation Exception page.");
                 return true;
@@ -38,7 +35,7 @@ echo "\nexpected message: " . $this->getReferenceText();
     }
 
     /**
-     * Return the message related to a 'csrf validation' exception page.
+     * Return the message displayed by a 'csrf validation' exception page.
      *
      * @return string
      */
