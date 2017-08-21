@@ -21,6 +21,9 @@ class CsrfValidationPage extends Page
     {
         if (parent::isDisplayed()) {
 
+echo "\nexception message: " . $this->getMessage();
+echo "\nexpected message: " . $this->getReferenceText();
+
             if (false !== strpos($this->getMessage(), $this->getReferenceText())) {
                 AssertionMessage::set("This is a CSRF validation Exception page.");
                 return true;
@@ -42,6 +45,6 @@ class CsrfValidationPage extends Page
      */
     protected function getReferenceText()
     {
-        return "Unable to verify your data submission";
+        return \Yii::t('yii', 'Unable to verify your data submission.');
     }
 }
