@@ -19,7 +19,7 @@ use yii\web\ServerErrorHttpException;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class Page extends \pyd\testkit\web\Page
+class Page extends \pyd\testkit\web\base\Page
 {
     /**
      * @var string the start of the source

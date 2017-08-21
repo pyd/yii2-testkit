@@ -1,27 +1,43 @@
 <?php
 namespace pyd\testkit\web;
 
-use yii\base\InvalidCallException;
 use pyd\testkit\AssertionMessage;
-use pyd\testkit\web\PageIsNotDisplayedException;
 
 /**
- * A page object.
+ * A specific page.
+ *
+ * Usage:
+ * <code>
+ * class LoginPage extends \pyd\testkit\web\Page
+ * {
+ *      protected $route = 'users/auth/login';
+ *
+ *      protected $referenceLocation = 'loginForm';     // location is an alias, it could be an array
+ *
+ *      protected function initLocators()
+ *      {
+ *          $this->locator->add('loginForm', \WebDriverBy::id('login-form'));
+ *          $this->locator->add('loginFailureMessage', \WebDriverBy::className('login-failure-message'));
+ *      }
+ *
+ *      public function findLoginForm()
+ *      {
+ *          $form = $this->findElement('loginForm', \pyd\testkit\web\elements\Form::className());
+ *          $form->addInputLocatorsByModel(new Login());
+ *          return $form;
+ *      }
+ * }
+ * $loginPage = new LoginPage($webDriver);
+ * </code>
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class Page extends \yii\base\Object
+class Page extends base\Page
 {
-    use base\ElementContainerTrait;
-
     /**
-     * @var string route used to load this page
+     * @var string url route
      */
-    public $route;
-    /**
-     * @var \pyd\testkit\web\Driver
-     */
-    protected $webDriver;
+    protected $route;
     /**
      * @var string|array|\WebDriverBy location of the reference element used
      * to verify if the expected page is displayed
@@ -33,23 +49,18 @@ class Page extends \yii\base\Object
      */
     private $_request;
 
-    public function __construct(\RemoteWebDriver $webDriver, $config = array())
-    {
-        $this->webDriver = $webDriver;
-        parent::__construct($config);
-    }
-
-    public function init()
-    {
-        $this->initElementContainerTrait();
-    }
-
+    /**
+     * If $name is a location alias, a web element object will be returned.
+     *
+     * @param string $name a location alias
+     * @return \pyd\testkit\web\base\Element
+     */
     public function __get($name)
     {
-        if (array_key_exists($name, $this->locators)) {
-            return $this->findElement($this->locators[$name]);
+        if ($this->locator->aliasExists($name)) {
+            return $this->findElement($this->locator->get($name));
         }
-        throw new \yii\base\UnknownPropertyException("Getting unknown property " .get_class(). " '$name'.");
+        throw new \yii\base\UnknownPropertyException("Getting unknown property " .get_class(). "::$name.");
     }
 
     /**
@@ -58,44 +69,47 @@ class Page extends \yii\base\Object
     public function getRequest()
     {
         if (null === $this->_request) {
-            $this->_request = new \pyd\testkit\web\Request($this->webDriver, ['route' => $this->route]);
+            $this->setRequest(new Request($this->driver, ['route' => $this->route]));
         }
         return $this->_request;
     }
 
-    /**
-     * Send a command to selenium.
-     * @param string $command
-     * @param array $params
-     */
-    public function execute($command, array $params = [])
+    public function setRequest(Request $request)
     {
-        return $this->webDriver->execute($command, $params);
+        $this->_request = $request;
     }
 
     /**
-     * Load the page.
+     * @return string @see route
+     */
+    public function getRoute()
+    {
+        return $this->route;
+    }
+
+    /**
+     * Load this page.
      *
      * @param array $urlParams
-     * @param boolean $verifyDisplay
-     * @throws InvalidCallException
-     * @throws \Exception
+     * @param boolean $verifyIsDisplayed verify that the browser displays
+     * this page @see isDisplayed
+     * @throws InvalidCallException route was not initialized
      */
-    public function load(array $urlParams = [], $verifyDisplay = true)
+    public function load(array $urlParams = [], $verifyIsDisplayed = true)
     {
         if (null === $this->route) {
             throw new InvalidCallException("Property " . get_class($this) . "::\$route must be initialized to load the page.");
         }
 
-        $this->getRequest()->sendAndWaitReadyStateComplete($urlParams);
+        $this->getRequest()->sendAndWait($urlParams);
 
-        if ($verifyDisplay && !$this->isDisplayed()) {
-            throw new PageIsNotDisplayedException('Page ' . get_class($this) . ' is not properly displayed.');
+        if ($verifyIsDisplayed && !$this->isDisplayed()) {
+            throw new PageIsNotDisplayedException('Browser does not display the expected page ' . get_class($this) . '.');
         }
     }
 
     /**
-     * Verify that this page is displayed in the browser window.
+     * Verify that this page is displayed i.e. reference element is present.
      *
      * @return boolean
      * @throws InvalidCallException
@@ -103,35 +117,16 @@ class Page extends \yii\base\Object
     public function isDisplayed()
     {
         if (null === $this->referenceLocation) {
-            throw new InvalidCallException('You must define ' . get_class($this) . '::$referenceLocation.' );
+            throw new InvalidCallException('You must define ' . get_class($this)
+                    . '::$referenceLocation property.' );
         }
 
-        if ($this->hasElement($this->locationToWebDriverBy($this->referenceLocation))) {
+        if ($this->hasElement($this->referenceLocation)) {
             AssertionMessage::set('Page ' . get_class($this) . ' is displayed.');
             return true;
         } else {
             AssertionMessage::set('Page '  . get_class($this) . ' is not displayed.');
             return false;
         }
-    }
-
-    /**
-     * Get page source.
-     *
-     * @return string
-     */
-    public function getSource()
-    {
-        return $this->webDriver->getPageSource();
-    }
-
-    /**
-     * Get page title.
-     *
-     * @return string
-     */
-    public function getTitle()
-    {
-        return $this->webDriver->getTitle();
     }
 }

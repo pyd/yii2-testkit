@@ -16,7 +16,7 @@ class Breadcrumb extends \pyd\testkit\web\Element
     protected function initLocators()
     {
         parent::initLocators();
-        $this->addLocator('items', \WebDriverBy::tagName('li'));
+        $this->locator->add('items', \WebDriverBy::tagName('li'));
     }
 
     /**

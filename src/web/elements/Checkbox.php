@@ -12,7 +12,7 @@ class Checkbox extends \pyd\testkit\web\Element
 {
     protected function initLocators()
     {
-        $this->addLocator('label', \WebDriverBy::tagName('label'));
+        $this->locator->add('label', \WebDriverBy::tagName('label'));
     }
 
     /**

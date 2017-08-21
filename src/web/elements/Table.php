@@ -20,9 +20,9 @@ class Table extends \pyd\testkit\web\Element
     protected function initLocators()
     {
         parent::initLocations();
-        $this->addLocator('caption', \WebDriverBy::tagName('caption'));
-        $this->addLocator('headers', \WebDriverBy::tagName('th'));
-        $this->addLocator('row', $location);
+        $this->locator->add('caption', \WebDriverBy::tagName('caption'));
+        $this->locator->add('headers', \WebDriverBy::tagName('th'));
+        $this->locator->add('row', $location);
     }
 
     /**

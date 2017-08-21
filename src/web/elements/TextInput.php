@@ -8,7 +8,7 @@ use yii\base\InvalidCallException;
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class TextInput extends \pyd\testkit\web\base\ElementWrapper
+class TextInput extends \pyd\testkit\web\base\Element
 {
     /**
      * @return string the input value

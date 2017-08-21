@@ -6,21 +6,9 @@ use yii\base\InvalidParamException;
 /**
  * Helpers for web elements.
  *
- * @todo
- *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
 class Helper {
-
-    public static function createWebDriverByFromArray(array $locator)
-    {
-        if (is_string($locator[0]) && method_exists('WebDriverBy', $locator[0]) && is_string($locator[1])) {
-            return \WebDriverBy::$locator[0]($locator[1]);
-        }
-        throw new InvalidParamException("This array ['" .  implode("', '", $locator). "'] is not a valid locator."
-                . "\nExpected format is ['WebdriverBy method name', 'value']."
-                . "\nMethod names are 'id', 'className', 'cssSelector', 'tagName', 'xpath', 'name', 'linkText', 'partialLinkText'.");
-    }
 
     /**
      * Convert a \WebDriverBy object into a string to identifying a web element
@@ -32,43 +20,6 @@ class Helper {
     public static function byToString(\WebDriverBy $by)
     {
         return '[' . $by->getMechanism() . ':' . $by->getValue() . ']';
-    }
-
-    /**
-     * Wait for a present element to be visible.
-     *
-     * @param Element $element
-     * @param integer $timeout (seconds( how long to wait for the element to be present
-     * @param integer $interval (milliseconds) check condition every $interval ms
-     */
-    public static function waitElementVisible(Element $element, $timeout=5, $interval=1000)
-    {
-        Test::$webDriver->wait($timeout, $interval)->until(
-                function ($driver) use ($element) {
-                    return $element->isDisplayed();
-                },
-                'Element ' . $this->byToString($element->getBy()) . ' still not present after ' . $timeout . ' sec wait.'
-        );
-    }
-
-    /**
-     * Wait for a present element to be hidden.
-     *
-     * @deprecated Test class does not exist anymore. Move to Element class.
-     *
-     * @param Element $element
-     * @param integer $timeout (seconds( how long to wait for the element to be present
-     * @param integer $interval (milliseconds) check condition every $interval ms
-     */
-    public static function waitElementHidden(Element $element, $timeout=5, $interval=1000)
-    {
-        throw new \yii\base\Exception("Deprecated method " . __METHOD__);
-//        Test::$webDriver->wait($timeout, $interval)->until(
-//                function ($driver) use ($element) {
-//                    return $element->isDisplayed();
-//                },
-//                'Element ' . $this->byToString($element->getBy()) . ' still not present after ' . $timeout . ' sec wait.'
-//        );
     }
 
     /**

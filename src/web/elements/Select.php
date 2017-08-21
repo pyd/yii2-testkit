@@ -257,6 +257,6 @@ class Select extends \pyd\testkit\web\Element
 
     protected function initLocators()
     {
-        $this->addLocator('options', \WebDriverBy::tagName('option'));
+        $this->locator->add('options', \WebDriverBy::tagName('option'));
     }
 }

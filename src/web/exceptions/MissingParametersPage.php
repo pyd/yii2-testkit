@@ -4,15 +4,11 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * Missing parameter(s) exception page.
+ * This page is displayed when a request is sent without all the required
+ * parameters.
  *
- * <code>
- * // verify that an action require an 'id' parameter
- * $exceptionPage = new MissingParametersPage($this->webDriver);
- * $this->webDriver->get($urlWithoutIdParameter);
- * $this->assertTrue($exceptionPage->isDisplayed(), \pyd\testkit\AssertionMessage::get()));
- * $this->assertTrue($pageException->missingParametersAre(['id'], \pyd\testkit\AssertionMessage::get()));
- * </code>
+ * @see yii\web\Controller::bindActionParams()
+ *
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
@@ -23,18 +19,21 @@ class MissingParametersPage extends Page
      */
     public function isDisplayed()
     {
-        if (parent::isDisplayed()) {
+        if (parent::isDisplayed()) {    // this is an exception page
 
-            $baseMessage = $this->getMissingParametersBaseMessage();
+            $baseMessage = $this->getReferenceText();
 
             if (false !== strpos($this->getMessage(), $baseMessage)) {
                 AssertionMessage::set("This is a missing parameters exception page.");
                 return true;
             } else {
                 AssertionMessage::set("This is not a missing parameters exception page.");
+                return false;
             }
+
+        } else {
+            return false;
         }
-        return false;
     }
 
     /**
@@ -72,16 +71,18 @@ class MissingParametersPage extends Page
      */
     public function extractMissingParameterNames()
     {
-        $baseMessage = $this->getMissingParametersBaseMessage();
+        $baseMessage = $this->getReferenceText();
         $paramsStartPos = strpos($this->getMessage(), $baseMessage) + (strlen($baseMessage));
         $params = substr($this->getMessage(), $paramsStartPos);
         return explode(', ', $params);
     }
 
     /**
+     * Return the reference of the exception message.
+     * 
      * @return string skeleton of the exception message
      */
-    protected function getMissingParametersBaseMessage()
+    protected function getReferenceText()
     {
         return \Yii::t('yii', 'Missing required parameters: {params}', ['params' => '']);
     }

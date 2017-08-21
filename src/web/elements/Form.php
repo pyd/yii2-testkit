@@ -47,9 +47,9 @@ class Form extends \pyd\testkit\web\Element
     {
         if ([] === $attributes) $attributes = $model->safeAttributes();
         foreach ($attributes as $attribute) {
-            $locatorAlias = (!$this->hasLocator($attribute)) ? $attribute : $model->formName() . '-' . $attribute;
+            $locatorAlias = (!$this->locator->aliasExists($attribute)) ? $attribute : $model->formName() . '-' . $attribute;
             $cssId = \yii\helpers\Html::getInputId($model, $attribute);
-            $this->addLocator($locatorAlias, \WebDriverBy::id($cssId), false);
+            $this->locator->add($locatorAlias, \WebDriverBy::id($cssId), false);
         }
     }
 
@@ -66,12 +66,12 @@ class Form extends \pyd\testkit\web\Element
      */
     public function inputHasError($attribute)
     {
-        if ($this->hasLocator($attribute)) {
-            $by = $this->getLocator($attribute);
+        if ($this->locator->aliasExists($attribute)) {
+            $by = $this->locator->resolve($attribute);
             if ('id' === $by->getMechanism()) {
                 try {
                     $cssSelector = '.field-' . $by->getValue() . '.has-error';
-                    $this->findId(\WebDriverBy::cssSelector($cssSelector));
+                    $this->finder->getChildID(\WebDriverBy::cssSelector($cssSelector), $this->getID());
                     AssertionMessage::set("Attribute '$attribute' has validation error.");
                     return true;
                 } catch (\NoSuchElementException $e) {
@@ -79,18 +79,20 @@ class Form extends \pyd\testkit\web\Element
                     return false;
                 }
             }else {
-                throw new InvalidCallException("Attribute '$attribute' locator must use the 'id' mechanism.");
+                throw new InvalidCallException("Attribute '$attribute' location
+                    must use the 'id' mechanism.");
             }
 
         } else {
-            throw new InvalidParamException("Attribute '$attribute' has no locator.");
+            throw new InvalidParamException("No location was defined for
+                '$attribute' input.");
         }
     }
 
     protected function initLocators() {
-        $this->addLocator('submitButton', \WebDriverBy::cssSelector('*[type="submit"]'));
-        $this->addLocator('csrf', \WebDriverBy::name(\Yii::$app->getRequest()->csrfParam));
-        $this->addLocator('helpBlockError', \WebDriverBy::className('help-block-error'));
+        $this->locator->add('submitButton', \WebDriverBy::cssSelector('*[type="submit"]'));
+        $this->locator->add('csrf', \WebDriverBy::name(\Yii::$app->getRequest()->csrfParam));
+        $this->locator->add('helpBlockError', \WebDriverBy::className('help-block-error'));
     }
 
     /**
@@ -253,9 +255,9 @@ class Form extends \pyd\testkit\web\Element
      */
     public function submitAndWaitReadyStateComplete($timeout = 5, $interval = 200)
     {
-        $this->webDriver->addPageFlag();
+        $this->driver->addPageFlag();
         $this->submit();
-        $this->webDriver->waitReadyStateComplete();
+        $this->driver->waitNewPageStateComplete();
     }
 
     /**

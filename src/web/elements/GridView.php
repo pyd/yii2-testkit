@@ -23,12 +23,12 @@ class GridView extends \pyd\testkit\web\Element
 
     protected function initLocators()
     {
-        $this->addLocator('summary', \WebDriverBy::className('summary'));
-        $this->addLocator('table', \WebDriverBy::tagName('table'));
-        $this->addLocator('tableHeaders', \WebDriverBy::tagName('th'));
-        $this->addLocator('tableRows', \WebDriverBy::cssSelector('table tbody tr'));
+        $this->locator->add('summary', \WebDriverBy::className('summary'));
+        $this->locator->add('table', \WebDriverBy::tagName('table'));
+        $this->locator->add('tableHeaders', \WebDriverBy::tagName('th'));
+        $this->locator->add('tableRows', \WebDriverBy::cssSelector('table tbody tr'));
         // empty view message
-        $this->addLocator('emptyRow', \WebDriverBy::className('empty'));
+        $this->locator->add('emptyRow', \WebDriverBy::className('empty'));
     }
 
     /**
@@ -44,7 +44,7 @@ class GridView extends \pyd\testkit\web\Element
     /**
      * Get table rows.
      *
-     * @return array \pyd\testkit\web\Element
+     * @return array \pyd\testkit\web\elements\GridViewRow
      */
     public function findRows()
     {
@@ -58,7 +58,7 @@ class GridView extends \pyd\testkit\web\Element
      * Get row by its index - starting from 0.
      *
      * @param integer $index
-     * @return \pyd\testkit\functional\Element
+     * @return \pyd\testkit\web\elements\GridViewRow
      */
     public function findRowByIndex($index)
     {
@@ -68,8 +68,10 @@ class GridView extends \pyd\testkit\web\Element
     /**
      * Get rows that contain some text.
      *
+     * @todo allow $text param as array to pass several words
+     * 
      * @param string $text
-     * @return array \pyd\testkit\web\elements\GridViewRows
+     * @return array \pyd\testkit\web\elements\GridViewRow
      */
     public function findRowsByText($text)
     {
@@ -86,7 +88,7 @@ class GridView extends \pyd\testkit\web\Element
      * Get a row that contains some text.
      *
      * @param string $text
-     * @return array \pyd\testkit\web\elements\GridViewRow
+     * @return \pyd\testkit\web\elements\GridViewRow
      */
     public function findRowByText($text)
     {

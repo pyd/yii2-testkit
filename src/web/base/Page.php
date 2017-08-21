@@ -1,44 +1,49 @@
 <?php
-namespace pyd\testkit\web;
+namespace pyd\testkit\web\base;
 
 /**
- * A web element object.
- *
- * This class provides advanced features, especially to find child elements.
+ * Base class for page objects.
  *
  * @author pyd <pierre.yves.delettre@gmail.com>
  */
-class Element extends base\Element
+class Page extends \yii\base\Object
 {
     /**
-     * @var \pyd\testkit\web\base\ElementFinder
+     * @var \pyd\testkit\web\Driver $driver
      */
-    protected $finder;
+    protected $driver;
     /**
      * @var \pyd\testkit\web\base\ElementLocator
      */
     protected $locator;
 
     /**
-     * Initialization.
-     *
-     * Set @see $finder if it's not already done.
+     * @param \pyd\testkit\web\Driver $webDriver
+     * @param array $config
      */
-    public function init()
+    public function __construct(\pyd\testkit\web\Driver $webDriver, $config = array())
     {
-        if (null === $this->finder) {
-           $this->setFinder($this->driver->getElementFinder());
-        }
-        if (null === $this->locator) {
-            $this->setLocator(new base\ElementLocator());
-        }
-        $this->initLocators();
+        $this->driver = $webDriver;
+        parent::__construct($config);
     }
 
     /**
+     * Initialization.
      *
-     * @param type $name
-     * @return type
+     * Create a @see $locator object if it does not exit yet.
+     */
+    public function init()
+    {
+        if (null === $this->locator) {
+            $this->setLocator(new ElementLocator());
+        }
+    }
+
+    /**
+     * If $name is a locator alias, it will return this element.
+     *
+     * @param string $name
+     * @return \pyd\testkit\web\base\Element
      */
     public function __get($name)
     {
@@ -49,15 +54,18 @@ class Element extends base\Element
     }
 
     /**
-     * @param \pyd\testkit\web\base\ElementFinder $elementFinder
+     * This method set @see $locator and call @see initLocators().
+     *
+     * @param \pyd\testkit\web\base\ElementLocator $locator @see $locator
      */
-    public function setFinder(base\ElementFinder $elementFinder)
+    public function setLocator(\pyd\testkit\web\base\ElementLocator $locator)
     {
-        $this->finder = $elementFinder;
+        $this->locator = $locator;
+        $this->initLocators();
     }
 
     /**
-     * @return \pyd\testkit\web\base\ElementLocator
+     * @return \pyd\testkit\web\base\ElementLocator or subclass
      */
     public function getLocator()
     {
@@ -65,18 +73,10 @@ class Element extends base\Element
     }
 
     /**
-     * @param \pyd\testkit\web\base\ElementLocator $elementLocator
-     */
-    public function setLocator(base\ElementLocator $elementLocator)
-    {
-        $this->locator = $elementLocator;
-    }
-
-    /**
-     * Return an object representing the first element within this element that
-     * matches the provided location.
+     * Return an object representing the first element in the DOM that matches
+     * the $location.
      *
-     * A \NoSuchElementException is raised if there's no matching element.
+     * If there's no matching, a @see \NoSuchElementException is raised.
      *
      * @param \WebDriverBy|string|array $location target element location
      * @see \pyd\testkit\web\base\ElementLocator::resolve()
@@ -88,28 +88,30 @@ class Element extends base\Element
     public function findElement($location, $type = null)
     {
         $by = $this->locator->resolve($location);
-        return $this->finder->findChildElement($by, $this->getID(), $type);
+        return $this->driver->findElementAs($by, $type);
     }
 
     /**
-     * Return an array of objects representing all elements within a web element
-     * that matches the provided location.
+     * Return an an array of object representing all elements in the DOM that
+     * match the location.
      *
-     * @param \WebDriverBy|string|array $location target element location
+     * If there's no matching, an empty array is returned.
+     *
+     * @param \WebDriverBy|string|array $location target elements location
      * @see \pyd\testkit\web\base\ElementLocator::resolve()
      * @param string|array|callable $type a definition of the objects to be
      * created @see \Yii::createObject
-     * @return array of \pyd\testkit\web\base\Element or subclass. An empty
-     * array if no match was found.
+     * @return \pyd\testkit\web\base\Element by default or a subclass depending
+     * on the provided $type param.
      */
     public function findElements($location, $type = null)
     {
         $by = $this->locator->resolve($location);
-        return $this->finder->findChildElements($by, $this->getID(), $type);
+        return $this->driver->findElementsAs($by, $type);
     }
 
     /**
-     * Check if a web element is present within this element (visible or not).
+     * Check if a web element is present in the DOM (visible or not).
      *
      * @param \WebDriverBy|string|array $location target element location
      * @see \pyd\testkit\web\base\ElementLocator::resolve()
@@ -118,7 +120,23 @@ class Element extends base\Element
     public function hasElement($location)
     {
         $by = $this->locator->resolve($location);
-        return $this->finder->hasChildElement($by, $this->getID());
+        return $this->driver->hasElement($by);
+    }
+
+    /**
+     * @return string the current page source
+     */
+    public function getSource()
+    {
+        return $this->driver->getPageSource();
+    }
+
+    /**
+     * @return string the current page title
+     */
+    public function getTitle()
+    {
+        return $this->driver->getTitle();
     }
 
     /**
