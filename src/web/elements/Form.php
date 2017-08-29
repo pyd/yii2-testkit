@@ -249,11 +249,9 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Submit the form and wait for the browser to load a new page.
-     *
-     * Append an element to the document body and wait untill it's not present.
+     * Submit the form and wait for the new page readyState to be 'complete'.
      */
-    public function submitAndWaitReadyStateComplete($timeout = 5, $interval = 200)
+    public function submitAndWaitNewPageComplete($timeout = 5, $interval = 200)
     {
         $this->driver->addPageFlag();
         $this->submit();
