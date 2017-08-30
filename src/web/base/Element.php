@@ -236,6 +236,21 @@ class Element extends \yii\base\Object
     }
 
     /**
+     * Refresh ID of this element from selenium.
+     *
+     * @param \WebDriverBy $by
+     * @param \pyd\testkit\web\base\Element $parentElement
+     */
+    public function refreshID(\WebDriverBy $by, Element $parentElement = null)
+    {
+        if (null === $parentElement) {
+            $this->ID = $this->driver->getElementFinder()->getID($by);
+        } else {
+            $this->ID = $this->driver->getElementFinder()->getChildID($by, $parentElement->getID());
+        }
+    }
+
+    /**
      * Execute a selenium command related to this element.
      *
      * @param string $command command name
