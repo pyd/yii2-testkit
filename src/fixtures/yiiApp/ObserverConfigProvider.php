@@ -1,32 +1,32 @@
 <?php
-namespace pyd\testkit\fixtures;
+namespace pyd\testkit\fixtures\yiiApp;
 
 use yii\base\InvalidConfigException;
 
 /**
- * Provide configuration for Yii app creation.
- *
- * Configuration can contain  bootstrap files to load and $_SERVER variables to
- * initialize before Yii app creation.
- *
- * The config passed to the constructor must contain a 'globalConfig' key which
- * value is a an array of configurations or the path to a file returning an array.
- * @see setGlobalConfig() for it's content.
- * ```php
+ * Provide a config to create a Yii application based on the path to a tests
+ * directory.
+ * 
+ * This 'by-path-config' can contain the Yii app config and, in addition, some
+ * $_SERVER variables to set and some bootstrap files to load, before creating
+ * the app.
+ * 
+ * The @see $globalConfig property must be initialized at instantiation.
+ * <code>
  * $appConfig = new AppConfig(['globalConfig' => $globalConfig]);
- * ```
+ * </code>
  *
- * Example of $globalConfig:
- * ```php
+ * Example of a $globalConfig content:
+ * <code>
  * $globalConfig = [
  *
  *      // config for all test cases of the /var/www/myApp/tests directory
  *      '/var/www/myApp/tests' => [
  *
- *          AppConfig::BOOTSTRAP_FILES_KEY => [
+ *          ObserverConfigProvider::BOOTSTRAP_FILES_KEY => [
  *              '/var/www/myApp/common/config/bootstrap.php'
  *          ],
- *          AppConfig::APP_KEY => [
+ *          ObserverConfigProvider::APP_KEY => [
  *              '/var/www/myApp/common/config/main.php',
  *              '/var/www/myApp/common/config/main-local.php'
  *          ]
@@ -35,15 +35,15 @@ use yii\base\InvalidConfigException;
  *      // config for all test cases of the /var/www/myApp/tests/frontend directory
  *      '/var/www/myApp/tests/frontend' => [
  *
- *          AppConfig::BOOTSTRAP_FILES_KEY => [
+ *          ObserverConfigProvider::BOOTSTRAP_FILES_KEY => [
  *              '/var/www/myApp/frontend/config/bootstrap.php'
  *          ],
- *          AppConfig::SERVER_VARS_KEY => [
+ *          ObserverConfigProvider::SERVER_VARS_KEY => [
  *              'SERVER_NAME' => 'http://domain.com',
  *              'SCRIPT_NAME' => 'http://domain.com/index-test.php',
  *              'SCRIPT_FILENAME' => '/var/www/myApp/frontend/web/index-test.php',
  *          ],
- *          AppConfig::APP_KEY => [
+ *          ObserverConfigProvider::APP_KEY => [
  *              '/var/www/myApp/frontend/config/main.php',
  *              '/var/www/myApp/frontend/config/main-local.php'
  *          ]
@@ -52,15 +52,15 @@ use yii\base\InvalidConfigException;
  *      // config for all test cases of the /var/www/myApp/tests/backend directory
  *      '/var/www/myApp/tests/backend' => [
  *
- *          AppConfig::BOOTSTRAP_FILES_KEY => [
+ *          ObserverConfigProvider::BOOTSTRAP_FILES_KEY => [
  *              '/var/www/myApp/backend/config/bootstrap.php'
  *          ],
- *          AppConfig::SERVER_VARS_KEY => [
+ *          ObserverConfigProvider::SERVER_VARS_KEY => [
  *              'SERVER_NAME' => 'http://backend.domain.com',
  *              'SCRIPT_NAME' => 'http://backend.domain.com/index-test.php',
  *              'SCRIPT_FILENAME' => '/var/www/myApp/backend/web/index-test.php',
  *          ],
- *          AppConfig::APP_KEY => [
+ *          ObserverConfigProvider::APP_KEY => [
  *              '/var/www/myApp/backend/config/main.php',
  *              '/var/www/myApp/backend/config/main-local.php'
  *          ]
@@ -79,30 +79,28 @@ use yii\base\InvalidConfigException;
  * $appConfig->getAppConfig();
  * ```
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class AppConfig extends \yii\base\Object
+class ObserverConfigProvider extends \yii\base\Object
 {
     /**
-     * Key for bootstrap files array in the @see $globalConfig
+     * Key of the items that contain  bootstrap files in $globalConfig
      */
     const BOOTSTRAP_FILES_KEY = 'bootstrap-files';
     /**
-     * Key for server variables array in the @see $globalConfig
+     * Key of the items that contain $_SERVER variables in $globalConfig
      */
     const SERVER_VARS_KEY = 'server-vars';
     /**
-     * Key for Yii app config array in the @see $globalConfig
+     * Key of the items that contain Yii app config in $globalConfig
      */
     const APP_KEY = 'app';
     /**
-     * @var array global config i.e. for all test cases
+     * @var array global config
      */
     protected $globalConfig;
     /**
-     * @var array config generated for a specific test case, based on the path
-     * to it's parent directory
-     * @see generateConfigForTestCase
+     * @var array specific config generated according to $testCaseDirPath
      */
     protected $configByPath;
     /**
@@ -110,6 +108,9 @@ class AppConfig extends \yii\base\Object
      */
     protected $testCaseDirPath;
 
+    /**
+     * The $globalConfig property must be intialized.
+     */
     public function init()
     {
         if (null === $this->globalConfig) {
@@ -118,8 +119,10 @@ class AppConfig extends \yii\base\Object
     }
 
     /**
-     * Return bootstrap files to load.
+     * Get bootstrap files.
      *
+     * This method can return an empty array.
+     * 
      * @return array [
      *      '/path/to/bootstrap/file/one.php',
      *      '/path/to/bootstrap/file/two.php',
@@ -132,8 +135,10 @@ class AppConfig extends \yii\base\Object
     }
 
     /**
-     * Return server variables to initialize.
+     * Get $_SERVER variables.
      *
+     * This method can return an empty array.
+     * 
      * @return array [
      *      'serverVarName' => $serverVarNameValue,
      *      'otherServerVarName' => $otherServerVarNameValue,
@@ -146,36 +151,36 @@ class AppConfig extends \yii\base\Object
     }
 
    /**
-    * Return the configuration used to create the Yii app.
-    *
-    * Note that the content of the returned array is not verified. It may be
-    * empty.
-    *
-    * @return array the Yii app configuration
+    * Get config to create Yii app.
+    * 
+    * @return array
+    * @throws \LogicException config is empty
     */
     public function getAppConfig()
     {
-        return isset($this->configByPath[self::APP_KEY]) ? $this->configByPath[self::APP_KEY] : [];;
+        $config = isset($this->configByPath[self::APP_KEY]) ? $this->configByPath[self::APP_KEY] : [];
+        if (!empty($config)) {
+            return $config;
+        } else {
+            throw new \LogicException("Config for Yii app should not be empty.");
+        }
     }
 
     /**
-     * Handler of the 'setUpBeforeClass' event.
+     * Handle the 'setUpBeforeClass' event.
      *
-     * @see generateConfigByPath()
-     *
-     * @param string $testCaseClassName class name of the currently executed test
+     * @param string $testCaseClassName class of the currently executed test
      * case
      */
     public function onSetUpBeforeClass($testCaseClassName)
-    {
+    {        
         $rc = new \ReflectionClass($testCaseClassName);
         $this->testCaseDirPath = dirname($rc->getFileName());
         $this->generateConfigByPath();
     }
 
     /**
-     * Generate a configuration to create a Yii app for the currently executed
-     * test case.
+     * Generate a specific configuration for the currently executed test case.
      *
      * @see $testCaseDirPath
      */
@@ -191,7 +196,10 @@ class AppConfig extends \yii\base\Object
     }
 
     /**
-     * Setter for the @see $globalConfig property.
+     * Set global config.
+     * 
+     * This method will resolve file paths to arrays and verify the config
+     * content.
      *
      * This method will verify the $config argument:
      * - it must be an array or a string;
@@ -209,7 +217,6 @@ class AppConfig extends \yii\base\Object
      *
      *
      * @param string|array $config
-     * @see $globalConfig
      */
     protected function setGlobalConfig($config)
     {
@@ -249,7 +256,7 @@ class AppConfig extends \yii\base\Object
                 }
             }
 
-            // check Yii app config:
+            // check Yii app config
             if (isset($data[self::APP_KEY])) {
 
                 $mergedAppConfig = [];

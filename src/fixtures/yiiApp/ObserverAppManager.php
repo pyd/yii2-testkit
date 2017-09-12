@@ -1,89 +1,65 @@
 <?php
-namespace pyd\testkit\fixtures;
+namespace pyd\testkit\fixtures\yiiApp;
 
-use yii\base\InvalidParamException;
-use yii\base\InvalidConfigException;
+use Yii;
+use pyd\testkit\TestCase;
 
 /**
  * Manage Yii app instance creation and destruction at the test case level i.e.
- * an instance won't be shared between test cases.
+ * an instance won't be shared between different test cases.
  *
- * As a fixtures base element - it's db component is used by the db fixture
- * manager - it must be available from the begining 'setUpBeforeClass' to the end
- * 'tearDownAfterClass' of a test case.
+ * The rule is, a Yii app instance must be available in each test method.
+ * 
+ * If the @see pyd\testkit\TestCase::$shareYiiApp property is set to false, which
+ * is the default value, each test method will use a different Yii app instance.
+ * 
+ * If it set to true, a Yii app instance is created at the begining of the test
+ * and is shared between test methods unless the instance is destroyed in a test.
+ * In this case, a new Yii app instance will be created for the next test method
+ * and shared.
+ * 
+ * If a test method is executed in isolation a new yii app instance is created
+ * whatever the value of the @see pyd\testkit\TestCase::$shareYiiApp property.
+ * 
+ * Note that a Yii app instance is available from the 'setUpbeforeClass' to the
+ * 'tearDownAfterClass' events so it can be used by other fixtures e.g the db
+ * fixture manager needs its 'db' component...
  *
- * By default, each test method will use it's own Yii app instance. This is because
- * the @see pyd\testkit\base\TestCase::$shareYiiApp is set to false, by default.
- *
- * If you set the @see pyd\testkit\base\TestCase::$shareYiiApp to true in a test
- * case, the same Yii app instance will be shared between all test methods of
- * this test case, unless it is deleted by the tester - usually at the
- * end of a test method. In that case a new instance will be created.
- *
- * If a test method is executed in isolation, regardless the
- * @see pyd\testkit\base\TestCase::$shareYiiApp value, it will use a fresh Yii
- * app instance.
- *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class App extends base\App
+class ObserverAppManager extends AppManager
 {
     /**
-     * @var boolean the Yii app instance can be shared between test methods of
-     * the currently processed test case.
-     * @see \pyd\testkit\base\TestCase::$shareYiiApp
-     */
-    protected $testCaseShareYiiApp;
-
-    /**
-     * Handle the 'setUpBeforeClass' event (when a test case starts and before
-     * a test method is executed in isolation).
+     * Handle the 'setUp' event.
      *
-     * Create a Yii app instance.
+     * A Yii app instance must be available.
      *
-     * @param string $testCaseClassName class name of the currently executed
-     * test case
+     * @param string $testCase the currently executed test case
      */
-    public function onSetUpBeforeClass($testCaseClassName)
+    public function onSetUp(TestCase $testCase)
     {
-        $this->testCaseShareYiiApp = $testCaseClassName::$shareYiiApp;
-        $this->create();
+        if (null === Yii::$app) {
+            $this->create();
+        }
     }
 
     /**
-     * Handle the 'tearDown' event (after each test method execution).
-     *
-     * If the test method was executed in isolation, a Yii app instance was
-     * created in a separate php process by the @see onSetUpBeforeClass() and
-     * will be destroyed by the @see onTearDownAfterClass().
-     *
-     * If the test method was not executed in isolation:
-     * - the Yii app instance is destroyed if it is not 'shared';
-     * - a Yii app instance is created if it does not already exist;
-     *
-     * Create a yii app instance after a test method execution, even if it's the
-     * last of a test case, ensure that an instance is available till the
-     * tearDownAfterClass 'event'.
+     * Handle the 'tearDown' event.
      */
-    public function onTearDown(\pyd\testkit\base\TestCase $testCase)
+    public function onTearDown(TestCase $testCase)
     {
-        if (!$testCase->isInIsolation()) {
-            if (null !== \Yii::$app && !$this->testCaseShareYiiApp) {
-                $this->destroy();
-            }
-            if (null === \Yii::$app) {
-                $this->create();
-            }
+        if (!$testCase->shareYiiApp) {
+            $this->destroy();
+        }
+        if (null === Yii::$app) {
+            $this->create();
         }
     }
 
     /**
      * Handle the 'tearDownAfterClass' event.
-     *
-     * The Yii app instance is destroyed at the end of a test case or after
-     * a test method executed in isolation.
      */
-    public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
+    public function onTearDownAfterClass()
     {
         $this->destroy();
     }

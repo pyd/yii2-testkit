@@ -1,39 +1,44 @@
 <?php
-namespace pyd\testkit\fixtures\base;
+namespace pyd\testkit\fixtures\yiiApp;
 
 use yii\base\InvalidParamException;
 use yii\base\InvalidConfigException;
 
 /**
- * Create and destroy a Yii application instance used as a testing fixture.
- * Also handle application environment i.e. $_SERVER variables initialization
- * and bootstrap file(s) loading.
+ * Manage Yii application - as a fixture.
+ * 
+ * In order to access some components like 'db' 'urlManager'... a Yii application
+ * instance have to be created. Additionally, it may be necessary to set some
+ * $_SERVER variables and load some bootstrap files.
+ * 
+ * @see $configProvider provides configuration for the Yii application, bootstrap
+ * files and $_SERVER variables.
+ * 
+ * When a Yii app is destroyed, the $_SERVER is restored to its initial state.
+ * @warning Unloading bootstrap files is not possible in a generic way. If you
+ * have to load different bootstrap files you need to implement a method to
+ * 'undo' the bootstrap files job.
  *
- * Yii application config, $_SERVER variables to initialize an bootstrap file(s)
- * to load are provided by the @see $configProvider
- *
- * @see pyd\testkit\fixtures\AppConfig
- *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class App extends \yii\base\Object
+class AppManager extends \yii\base\Object
 {
     /**
-     * @var string class name of the Yii app instance to be created
-     * @todo with the web app some msg are displayed as html, with the console
-     * app a 'user' component must be defined - it's not by default.
+     * @var string class of the Yii app instance to be created
      */
     protected $appClassName = '\yii\web\Application';
     /**
-     * @var \pyd\testkit\fixtures\AppConfig
+     * @var \pyd\testkit\fixtures\yiiApp\ObserverConfigProvider
      */
     protected $configProvider;
     /**
-     * @var boolean
-     * @see \pyd\testkit\base\TestCase::$shareYiiApp
+     * @var array store $_SERVER variables before modifications
      */
-    protected $testCaseShareYiiApp;
+    protected $initialServerVars = [];
 
+    /**
+     * Eager instantiation for the @see $configProvider.
+     */
     public function init()
     {
         if (null === $this->configProvider) {
@@ -42,16 +47,28 @@ class App extends \yii\base\Object
     }
 
     /**
-     * @return \pyd\testkit\fixtures\AppConfig
-     * @see $configProvider
+     * @return \pyd\testkit\fixtures\yiiApp\ObserverConfigProvider
      */
     public function getConfigProvider()
     {
         return $this->configProvider;
     }
+    
+    /**
+     * @param string|array|callable @see \Yii::createObject()
+     */
+    protected function setConfigProvider($type)
+    {
+        $this->configProvider = \Yii::createObject($config);
+    }
 
     /**
-     * Set $_SERVER variables, load bootstrap files and create Yii app.
+     * Create the Yii app instance, eventually after setting some $_SERVER
+     * variables and loading some bootstrap files.
+     * 
+     * @see setServerVars()
+     * @see loadBootstrapFiles()
+     * @see createYiiApp()
      */
     public function create()
     {
@@ -61,27 +78,71 @@ class App extends \yii\base\Object
     }
 
     /**
-     * Destroy Yii application instance.
+     * Destroy the Yii application instance and restore the $_SERVER to its
+     * initial state.
      */
     public function destroy()
     {
         \Yii::$app = null;
+        $this->restoreInitialServerVars();
     }
 
     /**
-     * Initialize $_SERVER variables.
-     *
+     * Set $_SERVER variables.
+     * 
+     * If the $serverVars param is an empty array, nothing is set.
+     * 
      * @param array $serverVars ['name' => $value', 'othername' => $otherValue,...]
      */
     protected function setServerVars(array $serverVars)
     {
-        foreach ($serverVars as $key => $value) {
-            $_SERVER[$key] = $value;
+        if ([] !== $serverVars) {
+            
+            foreach ($serverVars as $key => $value) {
+                /**
+                 * When setting a variable that does not exist in the $_SERVER
+                 * (e.g. 'SERVER_NAME' in CLI), its initial value is set to
+                 * 'remove'. The @see restoreInitialServerVars() method will then
+                 * know that the variable cannot be restored but must be removed.
+                 */
+                if (!array_key_exists($key, $_SERVER)) {
+                    $initialValue = 'remove';
+                } else {
+                    $initialValue = $_SERVER[$key];
+                }
+                $this->initialServerVars[$key] = $initialValue;
+                $_SERVER[$key] = $value;
+            }
+        }
+    }
+    
+    /**
+     * Restore $_SERVER to its initial state.
+     */
+    protected function restoreInitialServerVars()
+    {
+        if ([] !== $this->initialServerVars) {
+            
+            foreach ($this->initialServerVars as $key => $value) {
+                /**
+                 * If a $_SERVER variable has the 'remove' value, it must be
+                 * removed.
+                 * @see setServerVars()
+                 */
+                if ('remove' === $value) {
+                   unset($_SERVER[$key]);  
+                } else {
+                    $_SERVER[$key] = $value;
+                }
+            }
+            $this->initialServerVars = [];
         }
     }
 
     /**
      * Load bootstrap files.
+     * 
+     * If the $bootstrapFiles array is empty, nothing happens.
      *
      * @param array $bootstrapFiles ['/path/to/bootstrapFileOne.php', '/path/to/bootstrapFileTwo.php', ...]
      */
@@ -93,7 +154,11 @@ class App extends \yii\base\Object
     }
 
     /**
-     * Create Yii app.
+     * Create the Yii application only i.e. without setting the $_SERVER
+     * variables neither loading bootstrap files.
+     * 
+     * @see create() if you want to set the $_SERVER variables and load the
+     * bootstrap files returned by the config provider. 
      *
      * @param array $appConfig
      */
@@ -103,13 +168,5 @@ class App extends \yii\base\Object
         \Yii::createObject($appConfig);
     }
 
-    /**
-     * Setter for @see $configProvider.
-     *
-     * @param array $config
-     */
-    protected function setConfigProvider(array $config)
-    {
-        $this->configProvider = \Yii::createObject($config);
-    }
+    
 }
