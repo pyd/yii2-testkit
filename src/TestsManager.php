@@ -1,199 +1,205 @@
 <?php
 namespace pyd\testkit;
 
-use pyd\testkit\Events;
+use Yii;
+use yii\base\InvalidConfigException;
 
 /**
- * Tests manager.
+ * Manage a test session.
+ * 
+ * Its main goal is to manage other objects involved in the testing process -
+ * especially fixtures managers and tools.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Manager extends \yii\base\Object
+class TestsManager extends \yii\base\Object
 {
     /**
-     * @var \pyd\testkit\fixtures\Manager
+     * Test case events notifier.
+     * 
+     * @var \pyd\testkit\EventNotifier
      */
-    protected $fixtures;
+    protected $eventNotifier;
     /**
-     * @var \pyd\testkit\Events
+     * @var \pyd\testkit\fixtures\yiiApp\ObserverAppManager 
      */
-    protected $events;
+    protected $yiiApp;
+    /**
+     * @var \pyd\testkit\fixtures\db\TestCaseTablesManager
+     */
+    protected $dbFixture;
     /**
      * @var \pyd\testkit\FileSharedData
      */
     protected $sharedData;
     /**
-     * @var \pyd\testkit\web\DriverManager
+     * @var \pyd\testkit\web\ObserverDriverManager
      */
-    protected $webDriverManager = '\pyd\testkit\web\DriverManager';
+    protected $webDriverManager;
+    
     /**
-     * @var boolean this instance was created in a separate php process vs this
-     * instance was created at the very begining of the tests execution. If the
-     * latter, the 'setUpBeforeClass' and 'tearDownAfterClass' events occur
-     * respectively at the beginig and at the end of each test case.
+     * @param array $config
      */
-    protected $isInIsolation;
-
+    public static function run(array $config)
+    {
+        \pyd\testkit\Tests::$manager = new self($config);
+    }
+    
     public function init()
     {
-        $properties = ['fixtures', 'events', 'sharedData'];
-        foreach ($properties as $property) {
-            if (null === $this->$property){
-                throw new \yii\base\InvalidConfigException("Property " . get_class() . "::$property must be initialized.");
-            }
-        }
-        $this->isInIsolation = $this->sharedData->testCaseIsStarted();
         $this->registerObservers();
     }
-
+    
     /**
-     * @return \pyd\testkit\fixtures\Manager
+     * @param string|array|callable $type the object type.
      */
-    public function getFixtures()
+    public function setEventNotifier($type)
     {
-        return $this->fixtures;
+        $this->eventNotifier = Yii::createObject($type);
     }
-
+    
     /**
-     * @return \pyd\testkit\Events
+     * @param string|array|callable $type the object type.
      */
-    public function getEvents()
+    public function setYiiApp
+            ($type)
     {
-        return $this->events;
+        $this->yiiApp = Yii::createObject($type);
     }
-
+    
     /**
-     * @return \pyd\testkit\SharedData
+     * @param string|array|callable $type the object type.
+     */
+    public function setDbFixture($type)
+    {
+        $this->dbFixture = Yii::createObject($type);
+    }
+    
+    /**
+     * @param string|array|callable $type the object type.
+     */
+    public function setSharedData($type)
+    {
+        $this->sharedData = Yii::createObject($type);
+    }
+    
+    /**
+     * @return \pyd\testkit\FileSharedData
      */
     public function getSharedData()
     {
         return $this->sharedData;
     }
-
+    
     /**
-     * @return \pyd\testkit\web\DriverManager
+     * @todo store $type and create web driver manager instance on demand with
+     * getWebDriverManager()?
+     * 
+     * @param string|array|callable $type the object type.
+     */
+    public function setWebDriverManager($type)
+    {
+        $this->webDriverManager = \Yii::createObject($type);
+    }
+    
+    /**
+     * @return \pyd\testkit\web\ObserverDriverManager
      */
     public function getWebDriverManager()
     {
-        if (!is_object($this->webDriverManager)) {
-            $this->webDriverManager = \Yii::createObject($this->webDriverManager);
-        }
         return $this->webDriverManager;
     }
-
+    
     /**
-     * @see $isInIsolation
-     * @return boolean
+     * Handle the 'setUpBeforeClass' event from the current test case.
+     * 
+     * @param string $testCaseClass currently processed test case class name
      */
-    public function getIsInIsolation()
+    public function onSetUpBeforeClass($testCaseClass)
     {
-        return $this->isInIsolation;
-    }
-
-    /**
-     * Handle 'setUpBeforeClass' event.
-     *
-     * @param string $testCaseClassName
-     * @param boolean $testCaseStart if true this event occurs at the beginning
-     * of the test case. if false it occurs before a test method in isolation.
-     */
-    public function onSetUpBeforeClass($testCaseClassName, $testCaseStart)
-    {
-        if ($testCaseStart) {
-            $this->sharedData->recordTestCaseStarted();
+        if (is_subclass_of($testCaseClass, '\pyd\testkit\web\TestCase')) {
+            $this->getWebDriverManager()->activate($this->eventNotifier);
         }
+        $this->eventNotifier->notify(TestCase::SETUP_BEFORE_CLASS, $testCaseClass);
     }
-
+    
     /**
-     * Handle 'tearDownAfterClass' event.
-     *
-     * @param string $testCaseClassName
-     * @param boolean $testCaseEnd if true this event occurs at the end
-     * of the test case. if false it occurs after a test method in isolation.
+     * Handle the 'setUp' event from the current test case.
+     * 
+     * @param string $testCase currently executed test case instance
      */
-    public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
+    public function onSetUp(TestCase $testCase)
     {
-        if ($testCaseEnd) {
-            $this->sharedData->destroy();
-        }
+        $testCase->dbFixture = $this->dbFixture;
+        $testCase->yiiApp = $this->yiiApp;
+        $this->eventNotifier->notify(TestCase::SETUP, $testCase);
     }
-
+    
     /**
-     * @see $fixtures
-     * @param array $config
+     * Handle the 'tearDown' event from the current test case.
      */
-    protected function setFixtures(array $config)
+    public function onTearDown(TestCase $testCase )
     {
-        $this->fixtures = \Yii::createObject($config);
+        $this->eventNotifier->notify(TestCase::TEAR_DOWN, $testCase);
     }
-
+    
     /**
-     * @see $events
-     * @param array $config
+     * Handle and notify the 'tearDownAfterClass' event from current test case
+     * class.
+     * 
+     * @param string $testCaseClass currently processed test case class name
      */
-    protected function setEvents(array $config)
+    public function onTearDownAfterClass($testCaseClass)
     {
-        $config['testkit'] = $this;
-        $this->events = \Yii::createObject($config);
+        $this->eventNotifier->notify(TestCase::TEARDOWN_AFTER_CLASS, $testCaseClass);
     }
-
+    
     /**
-     * @see $sharedData
-     * @param array $config
-     */
-    protected function setSharedData(array $config)
-    {
-        $this->sharedData = \Yii::createObject($config);
-    }
-
-    /**
-     * @param string|array $config
-     */
-    protected function setWebDriverManager($config)
-    {
-        $this->webDriverManager = $config;
-    }
-
-    /**
-     * Set events observers.
+     * Register event observers.
      *
      * Order matters.
      */
     protected function registerObservers()
     {
-        /** @var \pyd\testkit\fixtures\App */
-        $fixtureApp = $this->fixtures->getApp();
-        /** @var \pyd\testkit\fixtures\Db */
-        $fixtureDb = $this->fixtures->getDb();
+        $notifier = $this->eventNotifier;
+        $setUpBeforeClass = TestCase::SETUP_BEFORE_CLASS;
+        $setUp = TestCase::SETUP;
+        $tearDown = TestCase::TEAR_DOWN;
+        $tearDownAfterClass = TestCase::TEARDOWN_AFTER_CLASS;
+       
+        $notifier->attachObserver($this->yiiApp->getConfigProvider(), $setUpBeforeClass);
+        // db
+        $notifier->attachObserver($this->yiiApp, $setUp);
+        $notifier->attachObserver($this->yiiApp, $tearDown);
+        $notifier->attachObserver($this->yiiApp, $tearDownAfterClass);
 
-        $this->events->registerObservers(
-            Events::SETUPBEFORECLASS,
-            [
-                $this,
-                $fixtureApp->getConfigProvider(),
-                $fixtureApp,
-                $fixtureDb,
-            ]);
-
-        $this->events->registerObservers(
-            Events::SETUP,
-            [
-                $fixtureDb,
-            ]);
-
-        $this->events->registerObservers(
-            Events::TEARDOWN,
-            [
-                $fixtureDb,
-                $fixtureApp,
-            ]);
-
-        $this->events->registerObservers(
-            Events::TEARDOWNAFTERCLASS,
-            [
-                $fixtureDb,
-                $fixtureApp,
-                $this,
-            ]);
+//        $this->events->registerObservers(
+//            Events::SETUPBEFORECLASS,
+//            [
+//                $fixtureApp->getConfigProvider(),
+//                $fixtureApp,
+//                $fixtureDb,
+//            ]);
+//
+//        $this->events->registerObservers(
+//            Events::SETUP,
+//            [
+//                $fixtureDb,
+//            ]);
+//
+//        $this->events->registerObservers(
+//            Events::TEARDOWN,
+//            [
+//                $fixtureDb,
+//                $fixtureApp,
+//            ]);
+//
+//        $this->events->registerObservers(
+//            Events::TEARDOWNAFTERCLASS,
+//            [
+//                $fixtureDb,
+//                $fixtureApp,
+//                $this,
+//            ]);
     }
 }
