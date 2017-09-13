@@ -1,42 +1,54 @@
 <?php
 namespace pyd\testkit\web;
 
+use pyd\testkit\Tests;
+
 /**
- * Web Test Case base class.
+ * Base class for web test case.
+ * 
+ * The default setting is 'isolation' oriented. A selenium session is created
+ * before and destroyed after each test method. Therefor the browser is launched
+ * and closed accordingly.
+ * 
+ * Check the @see $shareWebDriver property to increase the testing speed.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class TestCase extends \pyd\testkit\base\TestCase
+class TestCase extends \pyd\testkit\TestCase
 {
     /**
      * @var \pyd\testkit\web\Driver
      */
-    protected $webDriver;
+    public $webDriver;
     /**
-     * Each test method will use the same web driver instance - your browser won't
-     * close between each test method. This can speed up a little your tests.
-     *
-     * Note that cookies will remain in your browser unless you set @see $clearCookies
-     * to true.
-     *
+     * Share the web driver session between the test methods of this test case.
+     * 
+     * If set to false, a selenium session is created - the browser is launched
+     * - and destroyed - the browser is closed - for each test method. This will
+     * ensure isolation but will increase the testing time.
+     * 
+     * If set to true, a selenium session is created - and the browser launched -
+     * once at the beginning of the test case. It remains opened untill the end
+     * of the test case unless it is willingly destroyed. in this case a new
+     * session is created for the next test method.
+     * 
      * @var boolean use the same web driver instance for each test method
      */
     public static $shareWebDriver = false;
     /**
-     * If set to true, all cookies will be deleted between each test method @see tearDown.
-     * Note that this is relevant only if @see $shareWebDriver is enabled.
+     * If set to true, cookies will be deleted after each test method.
      *
-     * @var boolean delete all cookies between each test method
+     * @var boolean
      */
     public static $clearCookies = true;
 
     /**
-     * Define config for the web driver creation.
+     * Web driver configuration.
      *
-     * This is a basic config. You will have to adapt it to your needs, especially
-     * the browser desired capabilities, in a base web test case class.
-     *
+     * Basic config for firefox.
+     * 
      * @see \RemoteWebDriver::create()
+     *
      * @return array
      */
     public static function webDriverConfig()
@@ -48,17 +60,5 @@ class TestCase extends \pyd\testkit\base\TestCase
             'connectionTimeout' => null,
             'requestTimeout' => null
         ];
-    }
-
-    public static function setUpBeforeClass()
-    {
-        self::getTestkit()->getWebDriverManager()->registerAsObserver(self::getTestkit()->getEvents());
-        parent::setUpBeforeClass();
-    }
-
-    public function setUp()
-    {
-        parent::setUp();
-        $this->webDriver = self::getTestkit()->getWebDriverManager()->getDriver();
     }
 }

@@ -1,70 +1,67 @@
 <?php
-namespace pyd\testkit\base;
+namespace pyd\testkit;
 
-use pyd\testkit\Events;
+use pyd\testkit\Tests;
+use pyd\testkit\EventNotifier;
 
 /**
- * Test case base class.
- *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * Base class for test case.
+ * 
+ * The default setting is 'isolation' oriented. The required db tables will be
+ * loaded with fresh data and a new Yii app instance created for each test
+ * method.
+ * Check the @see $shareYiiApp and mostly the @see $shareDbFixture properties to
+ * increase the testing speed.
+ * 
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class TestCase extends \PHPUnit_Framework_TestCase
 {
+    const SETUP_BEFORE_CLASS = 'setUpBeforeClass';
+    const BEFORE_CLASS = 'beforeClass';
+    const SETUP = 'setUp';
+    const TEAR_DOWN = 'tearDown';
+    const AFTER_CLASS = 'afterClass';
+    const TEARDOWN_AFTER_CLASS = 'tearDownAfterClass';
+    
     /**
-     * @var boolean if set to false, a fresh Yii app will be created for each
-     * test method of the test case.
-     * If set to true, a single Yii app is created for all test methods of the
-     * test case unless it is deleted by the tester. in this case a new Yii app
-     * is automatically created.
+     * Share the same Yii app instance between all test methods in this test
+     * case.
+     * 
+     * If a test method is executed in isolation, a new app instance is available
+     * whatever the value of this property.
+     * 
+     * If set to true, it is still possible to destroy a Yii app in a test method
+     * to ensure that a new instance is created for the next test method(s).
      */
-    public static $shareYiiApp = false;
+    public $shareYiiApp = false;
     /**
-     * @var boolean if set to false, each db table, @see dbTablesToLoad(), is
-     * loaded before each test method of the test case.
-     * If set to true, db is loaded once for all test methods of the test case
-     * unless one or more tables are unloaded. In this case, unloaded tables
-     * will be loaded again for the next test method. Note that unload must be
-     * performed using the @see \pyd\testkit\fixtures\Db::unload() or
-     * @see \pyd\testkit\fixtures\DbTable::unload() method. Deleting all rows
-     * of a table using it's model 'delete' method won't cause de table to be
-     * reloaded.
+     * Load the db fixture once at the beginning of the test case vs load it before
+     * each test method.
+     * 
+     * If a test method is executed in isolation, required tables will be reloaded
+     * whatever the value of this property.
+     * 
+     * If set to true, it is still possible to unload one|some|all tables in a
+     * test method to ensure that one|some|all tables are populated with fresh
+     * data before the next test case.
      */
-    public static $shareDbFixture = false;
+    public $shareDbFixture = false;
     /**
-     * @var boolean this test case is in development mode:
-     * - this will force an unload on required db tables when the test case starts;
+     * Manager for db fixture.
+     * 
+     * @var \pyd\testkit\fixtures\db\TablesManager
      */
-    public static $devMode = false;
+    public $dbFixture;
     /**
-     * @var \pyd\testkit\fixtures\Manager
+     * Manager for yii app instance fixture.
+     * 
+     * @var \pyd\testkit\fixtures\YiiAppManager
      */
-    protected $fixtures;
+    public $yiiApp;
     /**
-     * @var \pyd\testkit\fixtures\Db
-     */
-    protected $dbFixture;
-    /**
-     * @var \pyd\testkit\Manager
-     */
-    private static $testkit;
-
-    /**
-     * @param \pyd\testkit\Manager $testkit
-     */
-    public static function setTestkit(\pyd\testkit\Manager $testkit)
-    {
-        self::$testkit = $testkit;
-    }
-
-    /**
-     * @return \pyd\testkit\Manager
-     */
-    public static function getTestkit()
-    {
-        return self::$testkit;
-    }
-
-    /**
+     * Required db fixture.
+     * 
      * @return array config to create @see \pyd\testkit\fixtures\DbTable
      * instances and populate their db tables with test data
      */
@@ -73,35 +70,30 @@ class TestCase extends \PHPUnit_Framework_TestCase
         return [];
     }
 
-
     public static function setUpBeforeClass()
     {
-        $testCaseStart = !self::$testkit->getIsInIsolation();
-        self::$testkit->getEvents()->trigger(Events::SETUPBEFORECLASS, get_called_class(), $testCaseStart);
+        Tests::$manager->onSetUpBeforeClass(get_called_class());
     }
 
     public function setUp()
     {
-        self::$testkit->getEvents()->trigger(Events::SETUP, $this);
-        $this->fixtures = self::$testkit->getFixtures();
-        $this->dbFixture = self::$testkit->getFixtures()->getDb();
+        Tests::$manager->onSetUp($this);
     }
 
     public function tearDown()
     {
-        self::$testkit->getEvents()->trigger(Events::TEARDOWN, $this);
+        Tests::$manager->onTearDown($this);
     }
 
     public static function tearDownAfterClass()
     {
-        $testCaseEnd = !self::$testkit->getIsInIsolation();
-        self::$testkit->getEvents()->trigger(Events::TEARDOWNAFTERCLASS, get_called_class(), $testCaseEnd);
+        Tests::$manager->onTearDownAfterClass(get_called_class());
     }
 
     /**
      * Suspend test execution until tester press the ENTER key.
      *
-     * @warning the terminal window must have focus to capture key press.
+     * @warning the terminal window must have when pressing enter key
      */
     public function pause()
     {
