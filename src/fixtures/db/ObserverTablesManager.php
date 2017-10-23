@@ -1,134 +1,69 @@
 <?php
-namespace pyd\testkit\fixtures;
+namespace pyd\testkit\fixtures\db;
 
 use pyd\testkit\Manager as Testkit;
-use pyd\testkit\base\TestCase;
+use pyd\testkit\TestCase;
 use yii\base\InvalidCallException;
+use pyd\testkit\Tests;
 
 /**
- * A manage for the @see \pyd\testkit\DbTable instances required by a test case.
- *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * Manage db tables content according to the test case events.
+ * 
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Db extends base\Db
+class ObserverTablesManager extends TablesManager
 {
     /**
-     * @var pyd\testkit\Manager
-     */
-    protected $testkit;
-    /**
+     * Db fixture can be shared in the current test case.
+     * 
+     * @see \pyd\testkit\TestCase::$shareDbFixture
+     * 
      * @var boolean
-     * @see \pyd\testkit\base\TestCase::$shareDbFixture
      */
     protected $testCaseShareDbFixture;
     /**
-     * @var boolean the currently processed test case requires some db tables to
-     * be loaded.
+     * Current test case require some db tables to be loaded with fixture.
+     * 
+     * @see \pyd\testkit\TestCase::dbTablesToLoad()
+     * 
+     * @var boolean
      */
     protected $testCaseRequireDb;
 
     /**
-     * Get data from a @see $dbTableInstances instance.
-     *
-     * <code>
-     * $userData = $fixtureDb->user;
-     * // is a shortcut for
-     * $userData = $this->dbFixture->getTable('user')->getData();
-     * <code>
-     *
-     * @param string $name the alias of a @see $dbTableInstances instance
-     * @throw UnknownPropertyException @see \yii\base\Object
-     */
-    public function __get($name)
-    {
-        if (array_key_exists($name, $this->dbTableInstances)) {
-            return $this->dbTableInstances[$name];
-        } else {
-            parent::__get($name);
-        }
-    }
-
-    /**
-     * Get a model populated with data from a @see $dbTableInstances instance.
-     *
-     * <code>
-     * $adminModel = $this->fixtureDb->user('admin', '\app\models\user\Admin');
-     * // is a shortcut for
-     * $adminModel = $this->fixtureDb->getDbTableInstance('user')->getModel('admin', '\app\models\user\Admin');
-     * <code>
-     *
-     * @param string $name the alias of a @see $dbTableInstances instance
-     * @param array $params the first value must be the alias of a data row. A
-     * second value (optional) can be the class name of the returned model.
-     * @return yii\db\ActiveRecord
-     * @throws \yii\base\InvalidParamException $params[0] is not an existing data alias
-     * @throws \yii\base\UnknownMethodException @see \yii\base\Object
-     */
-    public function __call($name, $params)
-    {
-        if (array_key_exists($name, $this->dbTableInstances)) {
-
-            if (empty($params)) {
-                throw new InvalidCallException("Missing argument 1 for pyd\\testkit\\fixtures\\DbTable::getModel()"
-                        . " called via " . __METHOD__ . ". You must provide the alias of a data row to populate the '$name' model.");
-            }
-            $dataRowAlias = $params[0];
-            $modelClass = isset($params[1]) ? $params[1] : null;
-
-            $model = $this->dbTableInstances[$name]->getModel($dataRowAlias, $modelClass);
-
-            if (null === $model) {
-                throw new \yii\base\InvalidParamException("Cannot create model for fixture"
-                        . " '$name'. No data row matching alias '" . $dataRowAlias . "' was found.");
-            }
-
-            return $model;
-
-        } else {
-            parent::__call($name, $params);
-        }
-    }
-
-    /**
      * Handle 'setUpBeforeClass' event.
+     * 
+     * Create Table instances required by the test case.
+     * @see \pyd\testkit\TestCase::dbTablesToLoad()
      *
-     * @param string $testCaseClassName class name of the currently executed
-     * test case
-     * @param boolean $testCaseStart the 'setUpBeforeClass' event occurs when
-     * a new test case is executed vs it occurs before execution of a test method
-     * in isolation
-     * @param \pyd\testkit\Manager $testkit
+     * @param string $testCaseClassName class of the currently executed test case
      */
-    public function onSetUpBeforeClass($testCaseClassName, $testCaseStart, Testkit $testkit)
+    public function onSetUpBeforeClass($testCaseClassName)
     {
-        $this->testkit = $testkit;
         $this->testCaseShareDbFixture = $testCaseClassName::$shareDbFixture;
         $dbTablesToLoad = $testCaseClassName::dbTablesToLoad();
-        $this->testCaseRequireDb = !empty($dbTablesToLoad);
-
-        if ($this->testCaseRequireDb) {
-            $this->createDbTableInstances($dbTablesToLoad);
-
-            // force unload on DbTable instances when in dev mode
-            if ($testCaseClassName::$devMode && $testCaseStart) {
-                $this->unload(true);
-            }
+        
+        if (!empty($dbTablesToLoad)) {
+            $this->testCaseRequireDb = true;
+            $this->collection->createDbTableInstances($dbTablesToLoad);
+        } else {
+            $this->testCaseRequireDb = false;
         }
     }
 
     /**
      * Handle 'setUp' event.
+     * 
+     * Ensure that the db tables are loaded.
+     * Force reload if the test method is executed in isolation.
      *
-     * If test method is executed in isolation, all tables must be unloaded.
-     * Load db tables.
-     *
-     * @param type $testCaseInstance
+     * @param \pyd\testkit\TestCase $testCase
      */
-    public function onSetUp(TestCase $testCaseInstance)
+    public function onSetUp(TestCase $testCase)
     {
         if ($this->testCaseRequireDb) {
             $this->refreshInstancesLoadState();
-            if ($testCaseInstance->isInIsolation()) {
+            if ($testCase->isInIsolation()) {
                 $this->unload();
             }
             $this->load();
@@ -138,13 +73,14 @@ class Db extends base\Db
     /**
      * Handle 'tearDown' event.
      *
-     * Store loaded DbTable class names in case of an isolated test following.
-     * Unload db if it's content must not be shared.
+     * Unload db tables if fixture is not shared.
+     * If the test method is executed in isolation, the db tables are unloaded
+     * when the 'tearDownAfterClass' event occurs.
      */
-    public function onTearDown(TestCase $testCaseInstance)
+    public function onTearDown(TestCase $testCase)
     {
         if ($this->testCaseRequireDb) {
-            if (!$this->testCaseShareDbFixture || $testCaseInstance->isInIsolation()) {
+            if (!$testCase->isInIsolation() && !$this->testCaseShareDbFixture) {
                 $this->unload();
             }
             $this->saveInstancesLoadState();
@@ -154,48 +90,40 @@ class Db extends base\Db
     /**
      * Handle 'tearDownAfterClass' event.
      *
-     * Db tables are unloaded at the end of the test case.
-     *
-     * @param string $testCaseClassName class name of the currently executed
-     * test case
-     * @param boolean $testCaseEnd all test case methods were executed
+     * Db tables must be unloaded at the end of a test case or after a test
+     * method executed in isolation.
      */
-    public function onTearDownAfterClass($testCaseClassName, $testCaseEnd)
+    public function onTearDownAfterClass()
     {
-        if ($this->testCaseRequireDb && $testCaseEnd) {
+        if ($this->testCaseRequireDb) {
             $this->unload();
-            $this->dbTableInstances = [];
+            $this->collection->clear();
         }
     }
 
-    public function isDbTableLoaded($className)
-    {
-        /** @todo implement isDbTableLoaded() */
-    }
-
     /**
-     * Store 'loaded' DbTable class names in shared memory.
+     * Store Table class names, which tables are loaded, in shared memory.
      */
     protected function saveInstancesLoadState()
     {
         $loadedDbTableClassNames = [];
-        foreach ($this->dbTableInstances as $dbTable) {
-            if ($dbTable->getIsLoaded()) {
-                $loadedDbTableClassNames[] = get_class($dbTable);
+        foreach ($this->collection->getAll() as $table) {
+            if ($table->getIsLoaded()) {
+                $loadedDbTableClassNames[] = get_class($table);
             }
         }
-        $this->testkit->getSharedData()->setLoadedDbTables($loadedDbTableClassNames);
+        Tests::$manager->getSharedData()->setLoadedDbTables($loadedDbTableClassNames);
     }
 
     /**
-     * Refresh @see $dbTableInstances $isLoaded property.
+     * Refresh db tables status - loaded|unloaded - from shared memory.
      */
     protected function refreshInstancesLoadState()
     {
-        $loadedDbTableClassNames = $this->testkit->getSharedData()->getLoadedDbTables();
-        foreach ($this->dbTableInstances as $dbTable) {
-            $isloaded = in_array(get_class($dbTable), $loadedDbTableClassNames);
-            $dbTable->refreshLoadState($isloaded);
+        $loadedDbTableClassNames = Tests::$manager->getSharedData()->getLoadedDbTables();
+        foreach ($this->collection->getAll() as $table) {
+            $isloaded = in_array(get_class($table), $loadedDbTableClassNames);
+            $table->forceLoadState($isloaded);
         }
     }
 }
