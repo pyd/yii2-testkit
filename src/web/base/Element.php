@@ -4,12 +4,11 @@ namespace pyd\testkit\web\base;
 use pyd\testkit\AssertionMessage;
 
 /**
- * Base class - with basic features - for web elements.
+ * Base class for objects representing web elements.
  *
- * @see \pyd\testkit\web\Element for an "advanced" version, with elements finder...
- * @see \pyd\testkit\web\elements\ for specialized web elements
+ * @see \pyd\testkit\web\Element
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Element extends \yii\base\Object
 {
@@ -35,15 +34,15 @@ class Element extends \yii\base\Object
     }
 
     /**
-     * Create an object of this web element but with another class.
+     * Get this web element as an object of another class.
      *
-     * You have an object of this class and want to access advanced|specific
-     * features:
+     * ```php
      * $form->countries->getAs('\pyd\testkit\web\elements\Select')->selectByValue('25');
+     * ```
      *
-     * @param string|array $type @see \Yii::createObject
+     * @param string|array $type {@see \Yii::createObject}
      * @param array $params
-     * @return pyd\testkit\web\base\Element a child class
+     * @return pyd\testkit\web\base\Element or subclass
      */
     public function getAs($type, array $params = [])
     {
@@ -67,13 +66,13 @@ class Element extends \yii\base\Object
      * If the requested attribute is not present in the tag, this method will
      * return null.
      *
-     * If the requested attribute is a boolean one e.g. 'hidden', and is present
-     * in the tag, whatever it's value, the string "true" will be returned.
+     * If the requested attribute is a boolean e.g. 'hidden' and is present
+     * in the tag, whatever its value, the string "true" will be returned.
      *
      * @link https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-attribute
      *
-     * @param string $name The name of the attribute.
-     * @return string|null The value of the attribute.
+     * @param string $name name of the attribute.
+     * @return string|null value of the attribute.
      */
     public function getAttribute($name)
     {
@@ -84,8 +83,6 @@ class Element extends \yii\base\Object
      * Set the value of an attribute.
      *
      * If the attribute does not already exist, it will be added.
-     *
-     * @todo investigate element.attribute = value vs element.setAttribute(value)
      *
      * @param string $name attribute name
      * @param string $value attribute value
@@ -103,9 +100,9 @@ class Element extends \yii\base\Object
      * Get the value of a CSS property.
      *
      * @param string $name  name of the CSS property, not the JavaScript property
-     * name (e.g. background-color instead of backgroundColor).
+     * name e.g. background-color instead of backgroundColor
      *
-     * @return string the value
+     * @return string value
      */
     public function getCssProperty($name)
     {
@@ -116,9 +113,9 @@ class Element extends \yii\base\Object
      * Set the value of a CSS property.
      *
      * @param string $name  name of the CSS property, not the JavaScript property
-     * name (e.g. background-color instead of backgroundColor).
+     * name e.g. background-color instead of backgroundColor
      * @param string $value property value
-     * @return \pyd\testkit\web\base\Element
+     * @return \pyd\testkit\web\base\Element or subclass
      */
     public function setCssProperty($name, $value)
     {
@@ -129,7 +126,7 @@ class Element extends \yii\base\Object
     }
 
     /**
-     * @return string this element tag name
+     * @return string this element's tag name
      */
     public function getTagName()
     {
@@ -175,6 +172,12 @@ class Element extends \yii\base\Object
     }
 
     /**
+     * Determine if this element is equal to an other.
+     * 
+     * Two elements are equals if:
+     * - they have the same ID (selenium ID);
+     * - they are same nodes https://dom.spec.whatwg.org/#concept-node-equals
+     * 
      * @param Element $other
      * @return boolean this element equals the $other
      */
@@ -219,7 +222,7 @@ class Element extends \yii\base\Object
     }
 
     /**
-     * Remove content of text input or a textarea.
+     * Remove content of a text input or a textarea.
      *
      * An InvalidElementStateException is raised if the element is not
      * 'user-editable'.
