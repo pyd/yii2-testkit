@@ -18,7 +18,7 @@ use yii\base\InvalidParamException;
  *
  * @see \WebDriverBy
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ElementLocator
 {
@@ -41,6 +41,10 @@ class ElementLocator
      */
     public function add($alias, $location, $overwrite = false)
     {
+        if (!is_string($alias)) {
+            throw new InvalidParamException("Param 'alias' must be a string. " . gettype($alias) . " provided.");
+        }
+        
         if (!isset($this->map[$alias]) || $overwrite) {
 
             if ($location instanceof \WebDriverBy) {
@@ -125,12 +129,15 @@ class ElementLocator
      * 'tag name'                   tagName()
      * 'xpath'                      xpath()
      *
-     *
      * @param array $location
+     * @throws InvalidParamException invalid location strategy
      * @return \WebDriverBy
      */
     public function fromArray(array $location)
     {
+        if (2 !== count($location) || !is_string($location[0]) || !is_string($location[1])) {
+            throw new InvalidParamException("Invalid param 'location' array.");
+        }
         list($strategy, $value) = $location;
         $method;
         switch($strategy) {
