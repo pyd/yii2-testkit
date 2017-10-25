@@ -3,8 +3,12 @@ namespace pyd\testkit\web;
 
 /**
  * WebDriver.
+ * 
+ * @todo could be usefull for this class to extend Object. \remoteWebDriver 
+ * might be accessed via composition, maybe a __call?
+ * 
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Driver extends \RemoteWebDriver
 {

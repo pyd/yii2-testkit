@@ -11,7 +11,7 @@ use yii\base\UnknownPropertyException;
  * @property boolean $testCaseStarted the TestCase::setUpBeforeClass has been
  * executed for the currently processed test case
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class FileSharedData extends \yii\base\Object
 {

@@ -4,7 +4,7 @@ namespace pyd\testkit\web;
 /**
  * Utilities related to csrf token.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Csrf extends \yii\base\Object
 {

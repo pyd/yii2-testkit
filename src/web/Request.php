@@ -4,7 +4,7 @@ namespace pyd\testkit\web;
 /**
  * An http request to be send via webdriver.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Request extends \yii\base\Object
 {

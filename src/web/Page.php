@@ -30,7 +30,7 @@ use pyd\testkit\AssertionMessage;
  * $loginPage = new LoginPage($webDriver);
  * </code>
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Page extends base\Page
 {

@@ -46,7 +46,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
      * test method to ensure that one|some|all tables are populated with fresh
      * data before the next test case.
      */
-    public $shareDbFixture = false;
+    public static $shareDbFixture = false;
     /**
      * Manager for db fixture.
      * 

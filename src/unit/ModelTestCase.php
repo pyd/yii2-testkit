@@ -75,9 +75,9 @@ use pyd\testkit\AssertionMessage;
  * </code>
  *
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class ModelTestCase extends \pyd\testkit\base\TestCase
+class ModelTestCase extends \pyd\testkit\TestCase
 {
     /**
      * @var \yii\base\Model instance of the model under test

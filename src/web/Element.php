@@ -6,7 +6,7 @@ namespace pyd\testkit\web;
  *
  * This class provides advanced features, especially to find child elements.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Element extends base\Element
 {

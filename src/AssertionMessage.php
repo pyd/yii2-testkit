@@ -10,7 +10,7 @@ namespace pyd\testkit;
  * $this->assertTrue($form->username->hasFocus(), AssertionMessage::get());
  * </code>
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class AssertionMessage
 {

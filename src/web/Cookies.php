@@ -12,7 +12,7 @@ namespace pyd\testkit\web;
  * WebDriver provides a shortcut to get an instance of this class:
  * @see \pyd\testkit\functional\base\WebDriver::cookies()
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Cookies extends \yii\base\Object
 {
