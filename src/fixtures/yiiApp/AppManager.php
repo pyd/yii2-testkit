@@ -59,7 +59,7 @@ class AppManager extends \yii\base\Object
      */
     protected function setConfigProvider($type)
     {
-        $this->configProvider = \Yii::createObject($config);
+        $this->configProvider = \Yii::createObject($type);
     }
 
     /**

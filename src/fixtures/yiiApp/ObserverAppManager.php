@@ -13,7 +13,7 @@ use pyd\testkit\TestCase;
  * If the @see pyd\testkit\TestCase::$shareYiiApp property is set to false, which
  * is the default value, each test method will use a different Yii app instance.
  * 
- * If it set to true, a Yii app instance is created at the begining of the test
+ * If it set to true, a Yii app instance is created at the beginning of the test
  * and is shared between test methods unless the instance is destroyed in a test.
  * In this case, a new Yii app instance will be created for the next test method
  * and shared.
@@ -29,6 +29,13 @@ use pyd\testkit\TestCase;
  */
 class ObserverAppManager extends AppManager
 {
+    public function onSetUpBeforeClass()
+    {
+        if (null === Yii::$app) {
+            $this->create();
+        }
+    }
+    
     /**
      * Handle the 'setUp' event.
      *

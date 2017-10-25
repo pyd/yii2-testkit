@@ -4,7 +4,7 @@ namespace pyd\testkit\web\elements;
 /**
  * A grid view cell.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class GridViewCell extends pyd\testkit\web\Element
 {

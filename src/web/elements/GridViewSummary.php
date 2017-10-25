@@ -4,7 +4,7 @@ namespace pyd\testkit\web\elements;
 /**
  * Summary element of a GridView.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class GridViewSummary extends \pyd\testkit\web\Element
 {

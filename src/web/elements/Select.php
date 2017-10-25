@@ -4,7 +4,7 @@ namespace pyd\testkit\web\elements;
 /**
  * <select> element.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Select extends \pyd\testkit\web\Element
 {

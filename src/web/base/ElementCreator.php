@@ -4,7 +4,7 @@ namespace pyd\testkit\web\base;
 /**
  * Create web element objects.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ElementCreator
 {

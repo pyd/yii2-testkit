@@ -4,7 +4,7 @@ namespace pyd\testkit\web\elements;
 /**
  * A breadcrumb element.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Breadcrumb extends \pyd\testkit\web\Element
 {

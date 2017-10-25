@@ -6,7 +6,7 @@ use yii\base\InvalidCallException;
 /**
  * A form input of type text, password
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class TextInput extends \pyd\testkit\web\base\Element
 {

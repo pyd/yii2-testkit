@@ -168,38 +168,16 @@ class TestsManager extends \yii\base\Object
         $tearDownAfterClass = TestCase::TEARDOWN_AFTER_CLASS;
        
         $notifier->attachObserver($this->yiiApp->getConfigProvider(), $setUpBeforeClass);
-        // db
+        $notifier->attachObserver($this->yiiApp, $setUpBeforeClass);
+        $notifier->attachObserver($this->dbFixture, $setUpBeforeClass);
+        
         $notifier->attachObserver($this->yiiApp, $setUp);
+        $notifier->attachObserver($this->dbFixture, $setUp);
+        
+        $notifier->attachObserver($this->dbFixture, $tearDown);
         $notifier->attachObserver($this->yiiApp, $tearDown);
+        
+        $notifier->attachObserver($this->dbFixture, $tearDownAfterClass);
         $notifier->attachObserver($this->yiiApp, $tearDownAfterClass);
-
-//        $this->events->registerObservers(
-//            Events::SETUPBEFORECLASS,
-//            [
-//                $fixtureApp->getConfigProvider(),
-//                $fixtureApp,
-//                $fixtureDb,
-//            ]);
-//
-//        $this->events->registerObservers(
-//            Events::SETUP,
-//            [
-//                $fixtureDb,
-//            ]);
-//
-//        $this->events->registerObservers(
-//            Events::TEARDOWN,
-//            [
-//                $fixtureDb,
-//                $fixtureApp,
-//            ]);
-//
-//        $this->events->registerObservers(
-//            Events::TEARDOWNAFTERCLASS,
-//            [
-//                $fixtureDb,
-//                $fixtureApp,
-//                $this,
-//            ]);
     }
 }

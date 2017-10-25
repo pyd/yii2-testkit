@@ -2,14 +2,15 @@
 namespace pyd\testkit\web;
 
 use pyd\testkit\Manager;
-use pyd\testkit\Events;
+use pyd\testkit\EventNotifier;
+use pyd\testkit\web\TestCase;
 
 /**
  * Manage web driver instance for web test case.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class DriverManager
+class ObserverDriverManager extends \yii\base\Object
 {
     /**
      * @var string Selenium server listening url
@@ -19,6 +20,10 @@ class DriverManager
      * @var \pyd\testkit\web\Driver
      */
     protected $driver;
+    /**
+     * @var string $driver class name 
+     */
+    protected $driverClass;
     /**
      * @var boolean if set to true the browser will be launched once for all
      * tests in a test case. If set to false, the browser will be launched and
@@ -38,11 +43,19 @@ class DriverManager
      */
     protected $driverConfig;
     /**
-     * @var \pyd\testkit\Events
+     * @var \pyd\testkit\EventNotifier
      * initialized by @see registerAsObserver
      */
-    private $eventManager;
+    protected $eventNotifier;
 
+    /**
+     * @param string $className web driver class name
+     */ 
+    public function setDriverClass($className)
+    {
+        $this->driverClass = $className;
+    }
+    
     /**
      * @return \pyd\testkit\web\Driver
      */
@@ -69,11 +82,12 @@ class DriverManager
      *
      * @throws \yii\base\InvalidCallException
      */
-    public function onSetUp()
+    public function onSetUp(TestCase $testCase)
     {
         if (null === $this->driver) {
             try {
-                $this->driver = Driver::create(
+                $driverClass = $this->driverClass;
+                $this->driver = $driverClass::create(
                         $this->driverConfig['url'],
                         $this->driverConfig['desiredCapabilities'],
                         $this->driverConfig['connectionTimeout'],
@@ -82,6 +96,7 @@ class DriverManager
                 throw new \yii\base\InvalidCallException("Cannot create web driver: " . $e->getMessage());
             }
         }
+        $testCase->webDriver = $this->driver;
     }
 
     /**
@@ -102,21 +117,7 @@ class DriverManager
     public function onTearDownAfterClass()
     {
         $this->destroyDriver(false);
-        $this->eventManager->unregisterObserver($this);
-    }
-
-    /**
-     * Register this instance as an observer.
-     *
-     * @param \pyd\testkit\Events $events
-     */
-    public function registerAsObserver(Events $events)
-    {
-        $this->eventManager = $events;
-        $events->registerObservers(Events::SETUPBEFORECLASS, [$this]);
-        $events->registerObservers(Events::SETUP, [$this]);
-        $events->registerObservers(Events::TEARDOWN, [$this]);
-        $events->registerObservers(Events::TEARDOWNAFTERCLASS, [$this]);
+        $this->eventNotifier->detachObserver($this);
     }
 
     /**
@@ -134,5 +135,17 @@ class DriverManager
         } else if ($exceptionIfInstanceIsNull) {
             throw new \yii\base\InvalidCallException("Cannot destroy web driver. Instance is null.");
         }
+    }
+    
+    /**
+     * Register this instance as an observer.
+     */
+    public function activate(EventNotifier $eventNotifier)
+    {
+        $this->eventNotifier = $eventNotifier;
+        $eventNotifier->attachObserver($this, TestCase::SETUP_BEFORE_CLASS);
+        $eventNotifier->attachObserver($this, TestCase::SETUP);
+        $eventNotifier->attachObserver($this, TestCase::TEAR_DOWN);
+        $eventNotifier->attachObserver($this, TestCase::TEARDOWN_AFTER_CLASS);
     }
 }

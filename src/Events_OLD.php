@@ -6,7 +6,7 @@ use yii\base\InvalidConfigException;
 /**
  * Manage events and their observers.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Events extends \yii\base\Object
 {

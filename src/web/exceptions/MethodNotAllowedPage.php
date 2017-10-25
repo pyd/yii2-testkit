@@ -10,7 +10,7 @@ use pyd\testkit\AssertionMessage;
  * @see yii\filters\VerbFilter::beforeAction()
  * @see yii\web\MethodNotAllowedHttpException
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class MethodNotAllowedPage extends Page
 {

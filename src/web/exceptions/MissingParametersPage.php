@@ -10,7 +10,7 @@ use pyd\testkit\AssertionMessage;
  * @see yii\web\Controller::bindActionParams()
  *
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class MissingParametersPage extends Page
 {

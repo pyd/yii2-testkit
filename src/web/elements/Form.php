@@ -14,7 +14,7 @@ use yii\base\InvalidParamException;
  * @property array of \pyd\testkit\web\base\Element $helpBlockError validation
  * error msg containers
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Form extends \pyd\testkit\web\Element
 {

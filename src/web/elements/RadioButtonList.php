@@ -7,7 +7,7 @@ use pyd\testkit\AssertionMessage;
 /**
  * A radio button list element as a container.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class RadioButtonList extends \pyd\testkit\web\Element
 {

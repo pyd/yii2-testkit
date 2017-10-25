@@ -12,7 +12,7 @@ use pyd\testkit\AssertionMessage;
  * @property \pyd\testkit\web\Element $tableRows grid table rows
  * @property \pyd\testkit\web\Element $emptyRow grid row displaying 'no result' msg
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class GridView extends \pyd\testkit\web\Element
 {

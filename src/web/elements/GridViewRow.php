@@ -8,7 +8,7 @@ namespace pyd\testkit\web\elements;
  * @property \pyd\testkit\web\base\Element $viewLink
  * @property \pyd\testkit\web\base\Element $updateLink
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class GridViewRow extends \pyd\testkit\web\Element
 {

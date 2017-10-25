@@ -6,7 +6,7 @@ use pyd\testkit\Events;
 /**
  * Tests manager.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Manager extends \yii\base\Object
 {
@@ -28,7 +28,7 @@ class Manager extends \yii\base\Object
     protected $webDriverManager = '\pyd\testkit\web\DriverManager';
     /**
      * @var boolean this instance was created in a separate php process vs this
-     * instance was created at the very begining of the tests execution. If the
+     * instance was created at the very beginning of the tests execution. If the
      * latter, the 'setUpBeforeClass' and 'tearDownAfterClass' events occur
      * respectively at the beginig and at the end of each test case.
      */

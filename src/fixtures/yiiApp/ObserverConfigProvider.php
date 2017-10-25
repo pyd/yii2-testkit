@@ -310,6 +310,6 @@ class ObserverConfigProvider extends \yii\base\Object
     {
         if (is_string($config) && is_file($config)) $config = include $config;
         if (is_array($config)) return $config;
-        throw new InvalidConfigException("Config must be an array or the path to a file returning an array. $config", 20);
+        throw new InvalidConfigException("Config must be an array or the path to a file returning an array. " . gettype($config), 20);
     }
 }

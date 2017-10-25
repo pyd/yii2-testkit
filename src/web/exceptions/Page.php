@@ -17,7 +17,7 @@ use yii\web\ServerErrorHttpException;
  * method in test environment (YII_ENV === 'test').
  * Therefore, it should not work with customized error handler and/or view.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Page extends \pyd\testkit\web\base\Page
 {

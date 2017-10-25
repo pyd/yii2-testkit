@@ -7,7 +7,7 @@ use pyd\testkit\AssertionMessage;
 /**
  * Utility to find web elements and get them as objects.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ElementFinder
 {

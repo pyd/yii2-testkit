@@ -6,7 +6,7 @@ use pyd\testkit\AssertionMessage;
 /**
  * A checkbox element.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Checkbox extends \pyd\testkit\web\Element
 {

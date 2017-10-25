@@ -4,7 +4,7 @@ namespace pyd\testkit\web\base;
 /**
  * Base class for page objects.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Page extends \yii\base\Object
 {

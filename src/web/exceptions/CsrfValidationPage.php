@@ -8,7 +8,7 @@ use pyd\testkit\AssertionMessage;
  *
  * @see yii\web\Controller::beforeAction()
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class CsrfValidationPage extends Page
 {

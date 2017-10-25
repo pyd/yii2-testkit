@@ -4,7 +4,7 @@ namespace pyd\testkit\web\elements;
 /**
  * An html table.
  *
- * @author pyd <pierre.yves.delettre@gmail.com>
+ * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Table extends \pyd\testkit\web\Element
 {
