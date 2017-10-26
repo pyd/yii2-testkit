@@ -45,7 +45,7 @@ class ObserverTablesManager extends TablesManager
         
         if (!empty($dbTablesToLoad)) {
             $this->testCaseRequireDb = true;
-            $this->collection->createDbTableInstances($dbTablesToLoad);
+            $this->collection->setTables($dbTablesToLoad);
         } else {
             $this->testCaseRequireDb = false;
         }
