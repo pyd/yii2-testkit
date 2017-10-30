@@ -233,7 +233,7 @@ echo "\nUnloading " . $this->name;
     public function getModel($dataRowAlias, $modelClass = null)
     {
         if (!isset($this->loadedData[$dataRowAlias])) {
-            throw new InvalidParamException("Unknown data row alias '$name' for table " . $this->name . '.');
+            throw new InvalidParamException("Unknown data row alias '$dataRowAlias' for table " . $this->name . '.');
         }
 
         $modelClass = (null === $modelClass) ? $this->modelClass : $modelClass;
