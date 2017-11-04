@@ -13,7 +13,7 @@ use yii\base\UnknownPropertyException;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class FileSharedData extends \yii\base\Object
+class SharedData extends \yii\base\Object
 {
     /**
      * @var \Fuz\Component\SharedMemory\SharedMemory
