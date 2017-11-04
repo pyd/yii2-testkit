@@ -5,7 +5,8 @@ use Yii;
 use yii\base\InvalidConfigException;
 
 /**
- * Manage a test session.
+ * Manage a testing session i.e. what happens when the 'phpunit' command is
+ * executed.
  * 
  * Its main goal is to manage other objects involved in the testing process -
  * especially fixtures managers and tools.
@@ -29,14 +30,22 @@ class TestsManager extends \yii\base\Object
      */
     protected $dbFixture;
     /**
-     * @var \pyd\testkit\FileSharedData
+     * @var \pyd\testkit\SharedData
      */
     protected $sharedData;
     /**
      * @var \pyd\testkit\web\ObserverDriverManager
      */
     protected $webDriverManager;
-    
+    /**
+     * @var boolean the current PHP process is the one that was created when the
+     * phpunit command was executed VS it is another process created to execute
+     * a test in isolation. It is used to determine if {@see onSetUpBeforeClass}
+     * and {@see onTearDownAfterClass} are executed respectively at the
+     * begining and the end of a test case VS are executed before and after a
+     * test method in isolation.
+     */
+    private $isMainProcess;
     /**
      * @param array $config
      */
@@ -48,6 +57,14 @@ class TestsManager extends \yii\base\Object
     public function init()
     {
         $this->registerObservers();
+    }
+    
+    /**
+     * @return boolean {@see $isMainProcess}
+     */
+    public function getIsMainProcess()
+    {
+        return $this->isMainProcess;
     }
     
     /**
@@ -84,7 +101,7 @@ class TestsManager extends \yii\base\Object
     }
     
     /**
-     * @return \pyd\testkit\FileSharedData
+     * @return \pyd\testkit\SharedData
      */
     public function getSharedData()
     {
@@ -120,7 +137,19 @@ class TestsManager extends \yii\base\Object
         if (is_subclass_of($testCaseClass, '\pyd\testkit\web\TestCase')) {
             $this->getWebDriverManager()->activate($this->eventNotifier);
         }
-        $this->eventNotifier->notify(TestCase::SETUP_BEFORE_CLASS, $testCaseClass);
+        
+        if (null === $this->isMainProcess) {           
+            if (null === $this->sharedData->getMainProcessStarted()) {
+                $this->isMainProcess = true;
+                $this->sharedData->setMainProcessStarted();
+            } else if (true === $this->sharedData->getMainProcessStarted()) {
+                $this->isMainProcess = false;
+            }
+        } else {
+            $this->sharedData->setMainProcessStarted();
+        }
+        
+        $this->eventNotifier->notify(TestCase::SETUP_BEFORE_CLASS, $testCaseClass, $this->isMainProcess);
     }
     
     /**
@@ -151,7 +180,10 @@ class TestsManager extends \yii\base\Object
      */
     public function onTearDownAfterClass($testCaseClass)
     {
-        $this->eventNotifier->notify(TestCase::TEARDOWN_AFTER_CLASS, $testCaseClass);
+        $this->eventNotifier->notify(TestCase::TEARDOWN_AFTER_CLASS, $testCaseClass, $this->isMainProcess);
+        if ($this->isMainProcess) {
+            $this->sharedData->destroy();
+        }
     }
     
     /**

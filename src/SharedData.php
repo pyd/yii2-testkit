@@ -4,12 +4,11 @@ namespace pyd\testkit;
 use yii\base\UnknownPropertyException;
 
 /**
- * Share data between php processes using a file.
+ * Share data between php processes.
  *
  * @see \Fuz\Component\SharedMemory\SharedMemory
  *
- * @property boolean $testCaseStarted the TestCase::setUpBeforeClass has been
- * executed for the currently processed test case
+ * @property boolean $mainProcessStarted
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -20,14 +19,28 @@ class SharedData extends \yii\base\Object
      */
     protected $adapter;
 
-    public function testCaseIsStarted()
+    /**
+     * @see $adapter
+     * @return \Fuz\Component\SharedMemory\SharedMemory
+     */
+    public function getAdapter()
     {
-        return true === $this->adapter->get('testCaseStarted');
+        return $this->adapter;
+    }
+    /**
+     * @return boolean 
+     */
+    public function getMainProcessStarted()
+    {
+        return $this->adapter->get('mainProcessStarted');
     }
 
-    public function recordTestCaseStarted()
+    /**
+     * 
+     */
+    public function setMainProcessStarted()
     {
-        $this->adapter->set('testCaseStarted', true);
+        $this->adapter->set('mainProcessStarted', true);
     }
 
     public function getLoadedDbTables()
