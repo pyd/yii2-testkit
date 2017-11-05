@@ -18,6 +18,24 @@ class SharedData extends \yii\base\Object
      * @var \Fuz\Component\SharedMemory\SharedMemory
      */
     protected $adapter;
+    
+    public function __get($name)
+    {
+        if ($this->adapter->has($name)) {
+            return $this->adapter->get($name);
+        } else {
+            parent::__get($name);
+        }
+    }
+    
+    public function __set($name, $value)
+    {
+        if ($this->adapter->has($name)) {
+            $this->adapter->set($name, $value);
+        } else {
+            parent::__set($name, $value);
+        }
+    }
 
     /**
      * @see $adapter
