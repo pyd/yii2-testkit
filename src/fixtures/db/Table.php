@@ -7,9 +7,15 @@ use yii\base\InvalidCallException;
 
 /**
  * Manage the content of a db table.
+ * 
+ * This class provides methods to:
+ * - load|unload a db table with fixture data;
+ * - get the fixture data used to populate the db table;
+ * - get the initial content of the table - with PK - after loading;
+ * - get a Model instance representing the fixture of a db table row;
  *
  * This class extends @see \yii\test\Fixture in order to be compatible with
- * @see yii\console\controllers\FixtureController
+ * {@see yii\console\controllers\FixtureController}.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -188,7 +194,6 @@ class Table extends \yii\test\Fixture
      */
     public function load()
     {
-echo "\nLoading " . $this->name;
         if ($this->isLoaded) {
             throw new InvalidCallException("Table '" . $this->name . "' is already loaded.");
         }
@@ -200,18 +205,24 @@ echo "\nLoading " . $this->name;
     }
 
     /**
-     * Remove data from table and reset it's sequence if any.
+     * Delete all rows from table and reset it's sequence if any.
+     * 
+     * @param boolean $force delete table content even if {@see $isLoaded}
+     * property is FALSE
+     * @throws InvalidCallException tried to unload the table although the
+     * {@see $isLoaded} property is FALSE
      */
-    public function unload()
+    public function unload($force = false)
     {
-echo "\nUnloading " . $this->name;
+        
         // if the isLoaded property is null, it means that this intance
         // was created by  the yii\console\controllers\FixtureController::load
         // method which by default unload table before to load it. In this case,
-        // unload an 'unloaded' table should not throw an exception.
-        if (null!== $this->isLoaded && !$this->isLoaded) {
+        // unload an 'unloaded' table must not throw an exception.
+        if (false === $this->isLoaded && false === $force ) {
             throw new InvalidCallException("Table '" . $this->name . "' is already unloaded.");
         }
+        
         $this->loadedData = [];
         $this->db->createCommand()->delete($this->name)->execute();
         if (null !== $this->tableSchema->sequenceName) {

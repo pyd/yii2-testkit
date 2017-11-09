@@ -9,6 +9,8 @@ use pyd\testkit\Tests;
 /**
  * Manage db tables content according to the test case events.
  * 
+ * @see TablesManager
+ * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ObserverTablesManager extends TablesManager
@@ -33,19 +35,19 @@ class ObserverTablesManager extends TablesManager
     /**
      * Handle 'setUpBeforeClass' event.
      * 
-     * Create Table instances required by the test case.
-     * @see \pyd\testkit\TestCase::dbTablesToLoad()
+     * Create Table instances required by the test case {@see \pyd\testkit\TestCase::dbTablesToLoad()}.
      *
-     * @param string $testCaseClassName class of the currently executed test case
+     * @param string $testCaseClass class of the currently executed test case
+     * @param boolean $testCaseStart event 'setUpBeforeClass' occurs when a new
+     * test case is processed VS before test method in isolation
      */
-    public function onSetUpBeforeClass($testCaseClassName)
+    public function onSetUpBeforeClass($testCaseClass, $testCaseStart)
     {
-        $this->testCaseShareDbFixture = $testCaseClassName::$shareDbFixture;
-        $dbTablesToLoad = $testCaseClassName::dbTablesToLoad();
+        $this->testCaseShareDbFixture = $testCaseClass::$shareDbFixture;
         
-        if (!empty($dbTablesToLoad)) {
+        if (!empty($testCaseClass::dbTablesToLoad())) {
             $this->testCaseRequireDb = true;
-            $this->collection->setTables($dbTablesToLoad);
+            $this->collection->setTables($testCaseClass::dbTablesToLoad());
         } else {
             $this->testCaseRequireDb = false;
         }
@@ -54,36 +56,39 @@ class ObserverTablesManager extends TablesManager
     /**
      * Handle 'setUp' event.
      * 
-     * Ensure that the db tables are loaded.
-     * Force reload if the test method is executed in isolation.
+     * Ensure required db tables are loaded with fixture data.
+     * 
+     * If the previous test method was executed in isolation, the db tables
+     * state i.e. loaded|unloaded may be different of their corresponding
+     * {@see Table::$isloaded} property in the current php process. To make sure
+     * that tables state match {@see Table::$isloaded} instances property we have
+     * to force unload i.e. all tables are unloaded - even empty ones - and their
+     * {@see Table::$isloaded} properties are set to false.
+     * 
+     * If the {@see $testCaseShareDbFixture} property is true or the current test
+     * method is executed in isolation, db tables need fresh/untouched content.
+     * So db tables must be unloaded then reloaded.
+     * 
+     * In other cases, only unloaded tables will be loaded with fixture data. 
      *
      * @param \pyd\testkit\TestCase $testCase
      */
     public function onSetUp(TestCase $testCase)
     {
         if ($this->testCaseRequireDb) {
-            $this->refreshInstancesLoadState();
+            
             if ($testCase->isInIsolation()) {
+                $this->unload(true);
+                Tests::$manager->getSharedData()->set('afterIsolatedTest', true);
+            } else if (Tests::$manager->getSharedData()->get('afterIsolatedTest', false)) {
+                $this->unload(true);
+                Tests::$manager->getSharedData()->set('afterIsolatedTest', false);
+            } else if (!$this->testCaseShareDbFixture) {
                 $this->unload();
             }
+            
+            // this will load only 'unloaded' tables
             $this->load();
-        }
-    }
-
-    /**
-     * Handle 'tearDown' event.
-     *
-     * Unload db tables if fixture is not shared.
-     * If the test method is executed in isolation, the db tables are unloaded
-     * when the 'tearDownAfterClass' event occurs.
-     */
-    public function onTearDown(TestCase $testCase)
-    {
-        if ($this->testCaseRequireDb) {
-            if (!$testCase->isInIsolation() && !$this->testCaseShareDbFixture) {
-                $this->unload();
-            }
-            $this->saveInstancesLoadState();
         }
     }
 
@@ -92,12 +97,18 @@ class ObserverTablesManager extends TablesManager
      *
      * Db tables must be unloaded at the end of a test case or after a test
      * method executed in isolation.
+     * 
+     * @param string $testCaseClass class of the currently executed test case
+     * @param boolean $testCaseEnd event 'tearDownAfterClass' occurs when a
+     * test case ends VS after a test method in isolation
      */
-    public function onTearDownAfterClass()
+    public function onTearDownAfterClass($testCaseClass, $testCaseEnd)
     {
         if ($this->testCaseRequireDb) {
-            $this->unload();
-            $this->collection->clear();
+            if ($testCaseEnd) {
+                $this->unload();
+                $this->collection->clear();
+            }
         }
     }
 
@@ -106,13 +117,13 @@ class ObserverTablesManager extends TablesManager
      */
     protected function saveInstancesLoadState()
     {
-        $loadedDbTableClassNames = [];
-        foreach ($this->collection->getAll() as $table) {
+        $loadedTables = [];
+        foreach ($this->collection->getAll() as $key => $table) {
             if ($table->getIsLoaded()) {
-                $loadedDbTableClassNames[] = get_class($table);
+                $loadedTables[] = $key;
             }
         }
-        Tests::$manager->getSharedData()->setLoadedDbTables($loadedDbTableClassNames);
+        Tests::$manager->getSharedData()->setLoadedDbTables($loadedTables);
     }
 
     /**
@@ -120,10 +131,9 @@ class ObserverTablesManager extends TablesManager
      */
     protected function refreshInstancesLoadState()
     {
-        $loadedDbTableClassNames = Tests::$manager->getSharedData()->getLoadedDbTables();
-        foreach ($this->collection->getAll() as $table) {
-            $isloaded = in_array(get_class($table), $loadedDbTableClassNames);
-            $table->forceLoadState($isloaded);
+        $loadedTables = Tests::$manager->getSharedData()->getLoadedDbTables();
+        foreach ($this->collection->getAll() as $key => $table) {
+            $table->forceLoadState(in_array($key, $loadedTables));
         }
     }
 }

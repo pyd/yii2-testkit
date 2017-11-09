@@ -5,11 +5,10 @@ use yii\base\InvalidCallException;
 use yii\base\InvalidParamException;
 
 /**
- * Manage db tables content using a collection {@see $collection} of 
- * {@see \pyd\testkit\fixtures\db\Table} instances.
+ * Manage a {@see $collection} of {@see \pyd\testkit\fixtures\db\Table} instances.
  * 
- * Mostly this will load/unload all db tables represented by the Table instances
- * of the collection
+ * This class provides methods to load|unload all db tables of the collection
+ * and to access to the {@see \pyd\testkit\fixtures\db\Table} instances.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -122,11 +121,14 @@ class TablesManager extends \yii\base\Object
     }
 
     /**
-     * Load fixture data in all tables of the collection.
+     * Load all unloaded tables of the collection.
+     * 
+     * Call the {@see \pyd\testkit\fixtures\db\Table::load} method of all the
+     * instances of the {@see $collection} which are not already loaded
+     * {@see \pyd\testkit\fixtures\db\Table::$isLoaded}.
      */
     public function load()
     {
-echo "\nLoading tables";
         foreach ($this->collection->getAll() as $table) {
             if (!$table->getIsLoaded()) {
                 $table->load();
@@ -136,16 +138,19 @@ echo "\nLoading tables";
 
     /**
      * Unload all tables of the collection.
+     * 
+     * Call the {@see \pyd\testkit\fixtures\db\Table::unload} method of all the
+     * instances of the {@see $collection} which are already loaded - or not if
+     * the $force param is set to true - {@see \pyd\testkit\fixtures\db\Table::$isLoaded}.
      *
      * @param boolean $force tables will be unloaded even if their status is
      * 'not loaded'.
      */
     public function unload($force = false)
     {
-echo "\nUnloading tables" ;
         foreach (array_reverse($this->collection->getAll()) as $table) {
             if ($force || $table->getIsLoaded()) {
-                $table->unload();
+                $table->unload($force);
             }
         }
     }

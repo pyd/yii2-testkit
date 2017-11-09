@@ -30,7 +30,7 @@ class TestsManager extends \yii\base\Object
      */
     protected $dbFixture;
     /**
-     * @var \pyd\testkit\SharedData
+     * @var \SharedDataInterface
      */
     protected $sharedData;
     /**
@@ -95,9 +95,9 @@ class TestsManager extends \yii\base\Object
     /**
      * @param string|array|callable $type the object type.
      */
-    public function setSharedData($type)
+    public function setSharedData(SharedDataInterface $sharedData)
     {
-        $this->sharedData = Yii::createObject($type);
+        $this->sharedData = $sharedData;
     }
     
     /**
@@ -139,14 +139,14 @@ class TestsManager extends \yii\base\Object
         }
         
         if (null === $this->isMainProcess) {           
-            if (null === $this->sharedData->getMainProcessStarted()) {
+            if (null === $this->sharedData->get('testStarted')) {
                 $this->isMainProcess = true;
-                $this->sharedData->setMainProcessStarted();
-            } else if (true === $this->sharedData->getMainProcessStarted()) {
+                $this->sharedData->set('testStarted', true);
+            } else if ($this->sharedData->get('testStarted', false)) {
                 $this->isMainProcess = false;
             }
         } else {
-            $this->sharedData->setMainProcessStarted();
+            $this->sharedData->set('testStarted', true);
         }
         
         $this->eventNotifier->notify(TestCase::SETUP_BEFORE_CLASS, $testCaseClass, $this->isMainProcess);
@@ -182,7 +182,7 @@ class TestsManager extends \yii\base\Object
     {
         $this->eventNotifier->notify(TestCase::TEARDOWN_AFTER_CLASS, $testCaseClass, $this->isMainProcess);
         if ($this->isMainProcess) {
-            $this->sharedData->destroy();
+            $this->sharedData->unsetAll();
         }
     }
     
@@ -206,7 +206,6 @@ class TestsManager extends \yii\base\Object
         $notifier->attachObserver($this->yiiApp, $setUp);
         $notifier->attachObserver($this->dbFixture, $setUp);
         
-        $notifier->attachObserver($this->dbFixture, $tearDown);
         $notifier->attachObserver($this->yiiApp, $tearDown);
         
         $notifier->attachObserver($this->dbFixture, $tearDownAfterClass);
