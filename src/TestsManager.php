@@ -26,7 +26,7 @@ class TestsManager extends \yii\base\Object
      */
     protected $yiiApp;
     /**
-     * @var \pyd\testkit\fixtures\db\TestCaseTablesManager
+     * @var \pyd\testkit\fixtures\db\TablesManager
      */
     protected $dbFixture;
     /**
@@ -90,6 +90,14 @@ class TestsManager extends \yii\base\Object
     public function setDbFixture($type)
     {
         $this->dbFixture = Yii::createObject($type);
+    }
+    
+    /**
+     * @return \pyd\testkit\fixtures\db\TablesManager
+     */
+    public function getDbFixture()
+    {
+        return $this->dbFixture;
     }
     
     /**
