@@ -93,7 +93,8 @@ class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Suspend test execution until tester press the ENTER key.
      *
-     * @warning the terminal window must have when pressing enter key
+     * @warning the terminal window must have focus for the key press to be
+     * detected
      */
     public function pause()
     {
