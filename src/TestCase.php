@@ -18,10 +18,8 @@ use pyd\testkit\EventNotifier;
 class TestCase extends \PHPUnit_Framework_TestCase
 {
     const SETUP_BEFORE_CLASS = 'setUpBeforeClass';
-    const BEFORE_CLASS = 'beforeClass';
     const SETUP = 'setUp';
     const TEAR_DOWN = 'tearDown';
-    const AFTER_CLASS = 'afterClass';
     const TEARDOWN_AFTER_CLASS = 'tearDownAfterClass';
     
     /**
