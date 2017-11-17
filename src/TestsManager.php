@@ -146,11 +146,30 @@ class TestsManager extends \yii\base\Object
             $this->getWebDriverManager()->activate($this->eventNotifier);
         }
         
-        if (null === $this->isMainProcess) {           
-            if (null === $this->sharedData->get('testStarted')) {
+        /**
+         * if the {@see $isMainProperty} is null, it means that:
+         * - this is the initial instance;
+         * - this is an instance created to execute a test in isolation;
+         */
+        if (null === $this->isMainProcess) {
+            
+            $sharedDataTestStarted = $this->sharedData->get('testStarted');
+            
+            // the flag 'testStarted' is TRUE: the previous phpunit execution
+            // did not terminate properly e.g. because of an error in the test
+            // case code, a db exception... and the TestCase::tearDownAfterClass
+            // was not executed, so shared data was not cleared in the
+            // onTearDownAfterClass method.
+            if (true === $sharedDataTestStarted) {
+                $this->sharedData->unsetAll();
+            }
+            
+            // the flag 'testStarted' has not been initialized: this is the initial instance
+            if (null === $sharedDataTestStarted) {
                 $this->isMainProcess = true;
                 $this->sharedData->set('testStarted', true);
-            } else if ($this->sharedData->get('testStarted', false)) {
+            //  the flag 'testStarted' is FALSE: this instance was created before a test in isolation
+            } else if (false === $sharedDataTestStarted) {
                 $this->isMainProcess = false;
             }
         } else {
