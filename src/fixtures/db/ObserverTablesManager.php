@@ -48,6 +48,12 @@ class ObserverTablesManager extends TablesManager
         if (!empty($testCaseClass::dbTablesToLoad())) {
             $this->testCaseRequireDb = true;
             $this->collection->setTables($testCaseClass::dbTablesToLoad());
+            
+            // force unloading when a test case starts in case db was not properly
+            // unloaded in a previous phpunit execution
+            if ($testCaseStart) {
+                $this->unload(true);
+            }
         } else {
             $this->testCaseRequireDb = false;
         }
