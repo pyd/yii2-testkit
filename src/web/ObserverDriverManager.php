@@ -113,6 +113,9 @@ class ObserverDriverManager extends \yii\base\Object
 
     /**
      * Handle 'tearDownAfterClass' event.
+     * 
+     * The web driver instance, if it exists is destroyed.
+     * This observer is detached from the event notifier. 
      */
     public function onTearDownAfterClass()
     {
@@ -122,6 +125,8 @@ class ObserverDriverManager extends \yii\base\Object
 
     /**
      * Close all browser windows and ends selenium session.
+     * 
+     * @note the {@see $driver} property will be set to null.
      *
      * @param boolean $exceptionIfInstanceIsNull throw an exception if the web
      * driver instance is already null and cannot be destroyed
@@ -133,7 +138,7 @@ class ObserverDriverManager extends \yii\base\Object
             $this->driver->quit();
             $this->driver = null;
         } else if ($exceptionIfInstanceIsNull) {
-            throw new \yii\base\InvalidCallException("Cannot destroy web driver. Instance is null.");
+            throw new \yii\base\InvalidCallException("Cannot destroy web driver. Instance does not exist.");
         }
     }
     
