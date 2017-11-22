@@ -6,22 +6,23 @@ use pyd\testkit\EventNotifier;
 use pyd\testkit\web\TestCase;
 
 /**
- * Manage web driver instance for web test case.
- *
+ * Manage web driver instance(s) at the test case level.
+ * 
+ * @todo add possibility to define a default config for the web driver instance
+ * in the phpunit boostrap file. The TestCase::webDriverConfig() could be used
+ * as default config if none is defined in the bootstrap file or be merged with
+ * the latter to customize the web driver instance at the test case level
+ * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ObserverDriverManager extends \yii\base\Object
 {
     /**
-     * @var string Selenium server listening url
-     */
-    public $seleniumUrl = 'http://localhost:4444/wd/hub';
-    /**
-     * @var \pyd\testkit\web\Driver
+     * @var \pyd\testkit\web\Driver the web driver instance
      */
     protected $driver;
     /**
-     * @var string $driver class name 
+     * @var string $driver class name of the web driver instance to create
      */
     protected $driverClass;
     /**
@@ -71,10 +72,9 @@ class ObserverDriverManager extends \yii\base\Object
      */
     public function onSetUpBeforeClass($testCaseClassName)
     {
-        $class = $testCaseClassName;
-        $this->shareDriver = $class::$shareWebDriver;
-        $this->clearCookies = $class::$clearCookies;
-        $this->driverConfig = $class::webDriverConfig();
+        $this->shareDriver = $testCaseClassName::$shareWebDriver;
+        $this->clearCookies = $testCaseClassName::$clearCookies;
+        $this->driverConfig = $testCaseClassName::webDriverConfig();
     }
 
     /**
@@ -98,7 +98,7 @@ class ObserverDriverManager extends \yii\base\Object
         }
         $testCase->webDriver = $this->driver;
     }
-
+    
     /**
      * Handle 'tearDown' event.
      */
