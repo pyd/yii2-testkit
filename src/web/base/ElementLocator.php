@@ -17,6 +17,18 @@ use yii\base\InvalidParamException;
  * </code>
  *
  * @see \WebDriverBy
+ * 
+ * @todo when locator is an array, its conversion to a \WebDriver object should
+ * be handled by the ElementFinder class. This job should not be the responsability
+ * of the ElementLocator. When declaring a locator property in a class as an array,
+ * it is not possible to use $this->webDriver->findElement($this->locator)
+ * because this method param must be a WebDriverBy instance.
+ * We can modify the Driver::findElement - findElements, findElementAs ... -
+ * methods to accept locator as an array.
+ * We can also make the ElementLocator::fromArray method reachable from
+ * anywhere - may be a static method - to convert array to WebDriverBy.
+ * locator resolution here should only handle string locators - aliases. Array
+ * to WebDriverBy resolution should be done elsewhere...
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
