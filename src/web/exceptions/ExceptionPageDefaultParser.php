@@ -44,10 +44,11 @@ class ExceptionPageDefaultParser implements ExceptionPageParserInterface
     {
         try {
             $this->getContainer();
-            AssertionMessage::set("This is not an exception page.");
-            return true;
-        } catch (NoSuchElementException $e) {
             AssertionMessage::set("This is an exception page.");
+            return true;
+        } catch (\NoSuchElementException $e) {
+            AssertionMessage::set("This is not an exception page. Unable to "
+                    . "locate the reference element '" . $this->containerLocator [1] . "'.");
             return false;
         }
     }
@@ -57,8 +58,7 @@ class ExceptionPageDefaultParser implements ExceptionPageParserInterface
      */
     public function getHttpCode()
     {
-        $container  = $this->getContainer();
-        $element = $container->findElement($this->httpCodeLocator);
+        $element = $this->getContainer()->findElement($this->httpCodeLocator);
         $text = $element->getText();
         // will return 404 if text is 'Not Found (#404)'
         if (false !== preg_match('`\(#(\d{3})\)`', $text, $matches)) {
@@ -73,8 +73,7 @@ class ExceptionPageDefaultParser implements ExceptionPageParserInterface
      */
     public function getMessage()
     {
-        $container = $this->getContainer();
-        $element = $container->findElement($this->messageLocator);
+        $element = $container->getContainer->findElement($this->messageLocator);
         return $element->getText();
     }
     
@@ -87,6 +86,7 @@ class ExceptionPageDefaultParser implements ExceptionPageParserInterface
     protected function getContainer()
     {
         if (null === $this->_container) {
+            
             $this->_container = $this->page->findElement($this->containerLocator, '\pyd\testkit\web\Element');
         }
         return $this->_container;
