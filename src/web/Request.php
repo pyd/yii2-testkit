@@ -193,9 +193,9 @@ class Request extends \yii\base\Object
                 $csrfToken = $csrf->getToken();
 
                 if (null === $csrfToken) {
-                    throw new \yii\base\InvalidParamException("The \$csrfToken
-                        param is set to 'auto' but the csrf token value cannot
-                        be found in the current page.");
+                    throw new \yii\base\InvalidParamException("The \$csrfToken " .
+                            " param is set to 'auto' but the csrf token value " .
+                            " cannot be found in the current page.");
                 }
             }
 
