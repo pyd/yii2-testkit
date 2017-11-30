@@ -27,7 +27,7 @@ class ExceptionPageDefaultParser implements ExceptionPageParserInterface
     /**
      * @var array locator of the exception message element within the container. 
      */
-    protected $messageLocator = ['class', 'alert'];
+    protected $messageLocator = ['class name', 'alert'];
     
     /**
      * @param pyd\testkit\web\base\Page $page
@@ -73,7 +73,7 @@ class ExceptionPageDefaultParser implements ExceptionPageParserInterface
      */
     public function getMessage()
     {
-        $element = $container->getContainer->findElement($this->messageLocator);
+        $element = $this->getContainer()->findElement($this->messageLocator);
         return $element->getText();
     }
     
