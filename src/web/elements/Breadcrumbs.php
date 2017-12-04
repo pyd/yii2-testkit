@@ -2,11 +2,11 @@
 namespace pyd\testkit\web\elements;
 
 /**
- * A breadcrumb element.
+ * A breadcrumbs web element.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Breadcrumb extends \pyd\testkit\web\Element
+class Breadcrumbs extends \pyd\testkit\web\Element
 {
     /**
      * @var array \pyd\testkit\functional\Element
