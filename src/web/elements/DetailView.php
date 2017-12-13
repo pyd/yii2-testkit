@@ -1,6 +1,8 @@
 <?php
 namespace pyd\testkit\web\elements;
 
+use pyd\testkit\AssertionMessage;
+
 /**
  * Yii DetailView web element.
  *
@@ -14,7 +16,7 @@ class DetailView extends \pyd\testkit\web\Element
      * @param string $label
      * @return string
      */
-    public function getRowValueByLabel($label)
+    public function getValueByLabel($label)
     {
         /*
          * detail view format is:
@@ -26,5 +28,22 @@ class DetailView extends \pyd\testkit\web\Element
          *   </tr>
          */
         return $this->findElement(\WebDriverBy::xpath('//th[contains(text(), "' . $label . '")]/following-sibling::td'))->getText();
+    }
+    
+    /**
+     * Check if the detail view has a row which label matches the provided one.
+     * 
+     * @param string $label
+     * @return boolean
+     */
+    public function hasLabel($label)
+    {
+        if ($this->hasElement(\WebDriverBy::xpath('//th[contains(text(), "' . $label . '")]'))) {
+            AssertionMessage::set("Detail view has a row named '$label'.");
+            return true;
+        } else {
+            AssertionMessage::set("Detail view does not have a row named '$label'.");
+            return false;
+        }
     }
 }
