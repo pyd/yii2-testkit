@@ -2,20 +2,30 @@
 namespace pyd\testkit;
 
 /**
- * @brief ...
+ * File log.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Log
 {
-    protected static $filename = '/var/www/html/py.delettre.me/tests/testkit.log';
-
-    public static function add($text) {
-        $fh = fopen(self::$filename, 'a') or die("can't open file");
+    /**
+     * Add a log entry.
+     * 
+     * @param string $text
+     * @throws \LogicException failed opening file
+     */
+    public static function add($text, $newLine = true) {
+        /**
+         * @todo check Yii::$app is not null & @test alias is defined.
+         */
+        
+        $file = \Yii::getAlias('@tests') . '/testkit.log';
+        $fh = fopen($file, 'a') or die("can't open file");
         if (false === $fh) {
-            throw new \LogicException("Failed opening file " . self::$filename);
+            throw new \LogicException("Failed opening file " . $file);
         }
-        fwrite($fh, microtime() . " " . $text . " in pid " .  getmypid(). "\n");
+        if ($newLine) $text = "\n" . $text;
+        fwrite($fh, $text);
         fclose($fh);
     }
 }
