@@ -1,8 +1,12 @@
 <?php
 namespace pyd\testkit\web\elements;
 
+use pyd\testkit\AssertionMessage;
+
 /**
- * <select> element.
+ * A <select> element.
+ * 
+ * @property array $options <options> elements of this <select>
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -19,16 +23,72 @@ class Select extends \pyd\testkit\web\Element
     }
 
     /**
+     * @return array <options> elements of this <select>
+     */
+    public function getOptions()
+    {
+        return $this->findElements(\WebDriverBy::tagName('option'));
+    }
+    
+    /**
      * @return array All selected options belonging to this select tag.
      */
     public function getAllSelectedOptions() {
         $options = [];
-        foreach ($this->options as $option) {
+        foreach ($this->getOptions() as $option) {
             if ($option->isSelected()) {
                 $options[] = $option;
             }
         }
         return $options;
+    }
+    
+    /**
+     * Check if the text of the selected option in a non multiple <SELECT>
+     * element matches the $text param.
+     * 
+     * @param string text
+     * @return boolean
+     * @throws \yii\base\InvalidCallException this method is not meant to be
+     * used with 'multiple' <SELECT> element
+     */
+    public function selectedTextIs($text)
+    {
+        if ($this->isMulti) {
+            throw new \yii\base\InvalidCallException("Method " . __METHOD__ . " is not meant to be used with 'multiple' <SELECT> element.");
+        }
+        $selectedText = $this->getFirstSelectedOption()->getText();
+        if ($text == $selectedText) {
+            AssertionMessage::set("Selected text is '$text'.");
+            return true;
+        } else {
+            AssertionMessage::set("Selected text is not '$text' but '$selectedText'.");
+            return false;
+        }
+    }
+    
+    /**
+     * Check if the value of the selected option in a non multiple <SELECT>
+     * element matches the $value param.
+     * 
+     * @param string|int $value
+     * @return boolean
+     * @throws \yii\base\InvalidCallException this method is not meant to be
+     * used with 'multiple' <SELECT> element
+     */
+    public function selectedValueIs($value)
+    {
+        if ($this->isMulti) {
+            throw new \yii\base\InvalidCallException("Method " . __METHOD__ . " is not meant to be used with multiple <SELECT> element.");
+        }
+        $selectedValue = $this->getFirstSelectedOption()->getAttribute('value');
+        if ($value == $selectedValue) {
+            AssertionMessage::set("Selected value is '$value'.");
+            return true;
+        } else {
+            AssertionMessage::set("Selected value is not '$value' but '$selectedValue'.");
+            return false;
+        }
     }
 
     /**
@@ -36,7 +96,7 @@ class Select extends \pyd\testkit\web\Element
      * the currently selected option in a normal select)
      */
     public function getFirstSelectedOption() {
-        foreach ($this->options as $option) {
+        foreach ($this->getOptions() as $option) {
             if ($option->isSelected()) {
                 return $option;
             }
@@ -63,7 +123,7 @@ class Select extends \pyd\testkit\web\Element
             throw new \UnsupportedOperationException('You may only deselect all options of a multi-select');
         }
 
-        foreach ($this->options as $option) {
+        foreach ($this->getOptions() as $option) {
             if ($option->isSelected()) {
                 $option->click();
             }
@@ -79,7 +139,7 @@ class Select extends \pyd\testkit\web\Element
     public function selectByIndex($index) {
         $matched = false;
 
-        foreach ($this->options as $option) {
+        foreach ($this->getOptions() as $option) {
             if ($option->getAttribute('index') === (string)$index) {
                 if (!$option->isSelected()) {
                     $option->click();
@@ -149,7 +209,7 @@ class Select extends \pyd\testkit\web\Element
         // Since the mechanism of getting the text in xpath is not the same as
         // webdriver, use the expensive getText() to check if nothing is matched.
         if (!$matched) {
-            foreach ($this->options as $option) {
+            foreach ($this->getOptions() as $option) {
                 if ($option->getText() === $text) {
                     if (!$option->isSelected()) {
                         $option->click();
@@ -173,7 +233,7 @@ class Select extends \pyd\testkit\web\Element
      */
     public function deselectByIndex($index)
     {
-        foreach ($this->options as $option) {
+        foreach ($this->getOptions() as $option) {
             if ($option->getAttribute('index') === (string)$index && $option->isSelected()) {
                 $option->click();
             }
@@ -253,10 +313,5 @@ class Select extends \pyd\testkit\web\Element
         }
 
         return sprintf('"%s"', $to_escape);
-    }
-
-    protected function initLocators()
-    {
-        $this->locator->add('options', \WebDriverBy::tagName('option'));
     }
 }
