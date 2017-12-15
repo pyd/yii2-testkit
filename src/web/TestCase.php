@@ -41,7 +41,7 @@ class TestCase extends \pyd\testkit\TestCase
      * @var boolean
      */
     public static $clearCookies = true;
-
+    
     /**
      * Web driver configuration.
      *
@@ -53,7 +53,8 @@ class TestCase extends \pyd\testkit\TestCase
      */
     public static function webDriverConfig()
     {
-        $caps = \DesiredCapabilities::firefox();
+        $caps = \DesiredCapabilities::chrome();
+        
         return [
             'url' => 'http://localhost:4444/wd/hub',
             'desiredCapabilities' => $caps,
