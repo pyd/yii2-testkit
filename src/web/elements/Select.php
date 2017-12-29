@@ -282,6 +282,65 @@ class Select extends \pyd\testkit\web\Element
     }
 
     /**
+     * Check if there's an <option> element with the given value.
+     * 
+     * @param string|int $value
+     * @return boolean
+     */
+    public function hasOptionValue($value)
+    {
+        if ($this->hasElement(\WebDriverBy::cssSelector("option[value=\"$value\"]"))) {
+            AssertionMessage::set("Select element has option with value '$value'.");
+            return true;
+        } else {
+            AssertionMessage::set("Select element does not have option with value '$value'.");
+            return false;
+        }
+    }
+    
+    /**
+     * Check if the <option> elements have the expected values.
+     * 
+     * Note that the 'prompt' <option>, defined by the $promptValue parameter
+     * is excluded from comparison.
+     * 
+     * @param array $values <option> values to look for in the actual <option> values
+     * @param boolean $strict in 'strict' mode, true is returned if given values
+     * exactly match actual ones. In 'non strict' mode, true is returned if
+     * given values are present in actual ones.
+     * @param string $promptValue value of the prompt <option>
+     * @return boolean
+     */
+    public function hasOptionValues(array $values, $strict = true, $promptValue = '')
+    {
+        // get <option> values, except the value of the prompt
+        $actualValues = [];
+        foreach ($this->getOptions() as $option) {
+            $value = $option->getAttribute('value');
+            if ($value !== $promptValue) {
+                $actualValues[] = $value;
+            }
+        }
+        // search for unexpected and missing values
+        $unexpectedActual = array_diff($actualValues, $values);
+        $missingActual = array_diff($values, $actualValues);
+        
+        AssertionMessage::clear();
+        if ([] !== $unexpectedActual) {
+            AssertionMessage::add("Unexpected option value(s) [" .implode(', ', $unexpectedActual). "] in dropdownlist.", true);
+        }
+        if ([] !== $missingActual) {
+            AssertionMessage::add("Missing option value(s) [ " .implode(', ', $missingActual). "] in dropdownlist.", true);
+        }
+       
+        if ($strict) {
+            return [] === $unexpectedActual && [] === $missingActual;
+        } else {
+            return [] === $missingActual;
+        }
+    }
+    
+    /**
      * Convert strings with both quotes and ticks into:
      *   foo'"bar -> concat("foo'", '"', "bar")
      *
