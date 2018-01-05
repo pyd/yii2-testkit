@@ -1,6 +1,8 @@
 <?php
 namespace pyd\testkit\web;
 
+use WebDriverExpectedCondition;
+
 /**
  * WebDriver.
  * 
@@ -178,5 +180,16 @@ class Driver extends \RemoteWebDriver
     public function findActiveElement()
     {
         return $this->getElementFinder()->findActiveElement();
+    }
+    
+    /**
+     * Waiting until a JS alert is displayed.
+     * 
+     * @param int $timeoutInSec
+     * @param int $intervalInMillisec
+     */
+    public function waitAlertDisplayed($timeoutInSec = 3, $intervalInMillisec = 600)
+    {
+        $this->wait($timeoutInSec, $intervalInMillisec)->until(WebDriverExpectedCondition::alertIsPresent(), "No alert present after waiting $timeoutInSec seconds.");
     }
 }
