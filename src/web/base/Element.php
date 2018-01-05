@@ -172,6 +172,20 @@ class Element extends \yii\base\Object
     }
 
     /**
+     * @return bool this element is enabled
+     */
+    public function isEnabled()
+    {
+        if ($this->execute(\DriverCommand::IS_ELEMENT_ENABLED)) {
+            AssertionMessage::set("Element is enabled.");
+            return true;
+        } else {
+            AssertionMessage::set("Element is not enabled.");
+            return false;
+        }
+    }
+  
+    /**
      * Determine if this element is equal to an other.
      * 
      * Two elements are equals if:
