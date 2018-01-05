@@ -2,6 +2,7 @@
 namespace pyd\testkit\web\elements;
 
 use pyd\testkit\AssertionMessage;
+use NoSuchElementException;
 
 /**
  * A <select> element.
@@ -330,7 +331,7 @@ class Select extends \pyd\testkit\web\Element
             AssertionMessage::add("Unexpected option value(s) [" .implode(', ', $unexpectedActual). "] in dropdownlist.", true);
         }
         if ([] !== $missingActual) {
-            AssertionMessage::add("Missing option value(s) [ " .implode(', ', $missingActual). "] in dropdownlist.", true);
+            AssertionMessage::add("Missing option value(s) [" .implode(', ', $missingActual). "] in dropdownlist.", true);
         }
        
         if ($strict) {
@@ -338,6 +339,23 @@ class Select extends \pyd\testkit\web\Element
         } else {
             return [] === $missingActual;
         }
+    }
+    
+    /**
+     * Get an <option> element by it's value attribute.
+     * 
+     * @param string $value value of the 'value' attribute
+     * @return \pyd\testkit\web\base\Element
+     * @throws \NoSuchElementException no <option> matching 'value' attribute
+     */
+    public function getOptionByValue($value)
+    {
+        foreach ($this->getOptions() as $option) {
+            if ($value == $option->getAttribute('value')) {
+                return $option;
+            }
+        }
+        throw new \NoSuchElementException("There's no option element with value '$value'.");
     }
     
     /**
