@@ -124,6 +124,23 @@ class GridView extends \pyd\testkit\web\Element
     }
 
     /**
+     * Check if the grid has a column with the expected label.
+     * 
+     * @param string $label
+     * @return boolean
+     */
+    public function hasColumn($label)
+    {
+        if ($this->hasElement(\WebDriverBy::cssSelector('th[text="'.$label.'"]'))) {
+            AssertionMessage::set("Grid does have a column with label '$label'.");
+            return true;
+        } else {
+            AssertionMessage::set("Grid does not have a column with label '$label'.");
+            return false;
+        }
+    }
+    
+    /**
      * Get number of rows.
      *
      * @return integer
