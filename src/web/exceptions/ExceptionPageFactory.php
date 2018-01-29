@@ -12,10 +12,12 @@ use yii\base\InvalidParamException;
 class ExceptionPageFactory
 {
     /**
+     * List of exception page classes indexed by aliases.
+     * 
      * @var array each key is an alias and each value is an exception page class
      * name 
      */
-    protected static $pageMap = [
+    protected static $exceptionTypes = [
         'default' => '\pyd\testkit\web\exceptions\Page',
         'missingParameters' => '\pyd\testkit\web\exceptions\MissingParametersPage',
         'methodNotAllowed' => '\pyd\testkit\web\exceptions\MethodNotAllowedPage',
@@ -25,16 +27,18 @@ class ExceptionPageFactory
     public static $parserClass = '\pyd\testkit\web\exceptions\ExceptionPageDefaultParser';
     
     /**
+     * Create an instance of an exception page.
      * 
-     * @param string $pageAlias {@see $pageMap}
+     * @param string $exceptionType the type of the exception {@see $types}. The
+     * 'default' type will create a \pyd\testkit\web\exceptions\Page instance.
      * @return \pyd\testkit\web\exceptions\Page or subclass
      */
-    public static function create($pageAlias = 'default')
+    public static function create($exceptionType = 'default')
     {
-        if (!is_string($pageAlias) || !array_key_exists($pageAlias, self::$pageMap)) {
-            throw new InvalidParamException("No exception page alias named '$pageAlias' exists.");
+        if (!is_string($exceptionType) || !array_key_exists($exceptionType, self::$exceptionTypes)) {
+            throw new InvalidParamException("No exception page alias named '$exceptionType' exists.");
         }
-        $pageClass = self::$pageMap[$pageAlias];
+        $pageClass = self::$exceptionTypes[$exceptionType];
         $page = \Yii::createObject($pageClass, [Tests::$manager->getWebDriverManager()->getDriver()]);
         
         $parser = \Yii::createObject(self::$parserClass, [$page]);
