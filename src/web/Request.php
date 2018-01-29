@@ -16,7 +16,7 @@ class Request extends \yii\base\Object
     /**
      * @var \pyd\testkit\web\Driver
      */
-    protected $driver;
+    protected $webDriver;
 
     /**
      * @param \pyd\testkit\web\Driver $webDriver
@@ -24,7 +24,7 @@ class Request extends \yii\base\Object
      */
     public function __construct(Driver $webDriver, $config = array())
     {
-        $this->driver = $webDriver;
+        $this->webDriver = $webDriver;
         parent::__construct($config);
     }
 
@@ -66,7 +66,7 @@ class Request extends \yii\base\Object
      */
     public function send(array $urlParams = [])
     {
-        $this->driver->get($this->createUrl($urlParams));
+        $this->webDriver->get($this->createUrl($urlParams));
     }
 
     /**
@@ -79,9 +79,9 @@ class Request extends \yii\base\Object
      */
     public function sendAndWait(array $urlParams = [])
     {
-        $this->driver->addPageFlag();
+        $this->webDriver->addPageFlag();
         $this->send($urlParams);
-        $this->driver->waitNewPageStateComplete();
+        $this->webDriver->waitNewPageStateComplete();
     }
 
     /**
@@ -126,9 +126,9 @@ class Request extends \yii\base\Object
             $this->loadInitialPage($initialPageUrl);
         }
 
-        $this->driver->addPageFlag();
+        $this->webDriver->addPageFlag();
         $this->createFormAndSubmit($postData, $urlParams, $csrfToken);
-        $this->driver->waitNewPageStateComplete();
+        $this->webDriver->waitNewPageStateComplete();
     }
 
     /**
@@ -189,7 +189,7 @@ class Request extends \yii\base\Object
             // search for the csrf token value in the DOM
             if ('auto' === $csrfToken) {
 
-                $csrf = new Csrf($this->driver);
+                $csrf = new Csrf($this->webDriver);
                 $csrfToken = $csrf->getToken();
 
                 if (null === $csrfToken) {
@@ -213,7 +213,7 @@ class Request extends \yii\base\Object
 
         $script = "(function(){" . $script . "})();";
 
-        $this->driver->executeScript($script);
+        $this->webDriver->executeScript($script);
     }
 
     /**
@@ -223,8 +223,8 @@ class Request extends \yii\base\Object
      */
     protected function loadInitialPage($url)
     {
-        $this->driver->addPageFlag();
-        $this->driver->get($url);
-        $this->driver->waitNewPageStateComplete();
+        $this->webDriver->addPageFlag();
+        $this->webDriver->get($url);
+        $this->webDriver->waitNewPageStateComplete();
     }
 }
