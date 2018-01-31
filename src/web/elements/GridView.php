@@ -66,53 +66,27 @@ class GridView extends \pyd\testkit\web\Element
     }
 
     /**
-     * Get rows that contain some text.
-     *
-     * @todo allow $text param as array to pass several words
-     *
-     * @param string $text
-     * @return array \pyd\testkit\web\elements\GridViewRow
+     * Find the first row with a cell containing the searched text.
+     * 
+     * @param string text
+     * @return array of \pyd\testkit\web\elements\GridViewRow elements
      */
-    public function findRowsByText($text)
+    public function findRowsByCellText($text)
     {
-        $rows = [];
-        foreach ($this->findRows() as $row) {
-            if (false !== strstr($row->getText(), $text)) {
-                $rows[] = $row;
-            }
-        }
-        return  $rows;
+        $location = \WebDriverBy::xpath("//tr[.//td[text()='$text']]");
+        return $this->findElements($location, GridViewRow::className());
     }
-
+    
     /**
-     * Search for a row that contains the text passed as param.
-     *
-     * This method will search for the text in all the rows of the grid.
-     * If no row contains the text, a \NoSuchElementException exception will be
-     * thrown.
-     * If one row contains the text, it will be returned.
-     * If more than one row contains the text:
-     * - an InvalidCallException is thrown by default;
-     * - the first occurrence is returned if param $allowMulti is set to true;
-     *
-     * @param string $text the text to search for
-     * @param boolean $allowMulti if more than one row contains the text, the
-     * first occurrence will be returned
+     * Find the first row with a cell containing the searched text.
+     * 
+     * @param string text
      * @return \pyd\testkit\web\elements\GridViewRow
-     * @throws \NoSuchElementException
-     * @throws \yii\base\InvalidCallException
      */
-    public function findRowByText($text, $allowMulti = false)
+    public function findRowByCellText($text)
     {
-        $rows = $this->findRowsByText($text);
-        $count = count($rows);
-        if (0 === $count) {
-            throw new \NoSuchElementException("There's no row in the grid that contains th text '$text'.");
-        } else if (1 === $count || $allowMulti) {
-            return $rows[0];
-        } else {
-            throw new \yii\base\InvalidCallException("More than one row in the grid contains the text '$text'.");
-        }
+        $location = \WebDriverBy::xpath("//tr[.//td[text()='$text']]");
+        return $this->findElement($location, GridViewRow::className());
     }
 
     /**
