@@ -32,6 +32,26 @@ class Select extends \pyd\testkit\web\Element
     }
     
     /**
+     * Get values - tag attribute - of all options.
+     * 
+     * @param string $promptValue value of the prompt option
+     * @param boolean $excludePromptValue do not return the prompt value
+     * @return array note that excluding the prompt may return an array with 1 as
+     * first key instead of 0
+     */
+    public function getOptionValues($promptValue = '', $excludePromptValue = true)
+    {
+        $values = [];
+        foreach ($this->getOptions() as $option) {
+            $values[] = $option->getAttribute('value');
+        }
+        if ($excludePromptValue) {
+            unset($values[array_search($promptValue, $values)]);
+        }
+        return $values;
+    }
+    
+    /**
      * @return array All selected options belonging to this select tag.
      */
     public function getAllSelectedOptions() {
