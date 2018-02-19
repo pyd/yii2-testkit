@@ -90,7 +90,7 @@ class GridView extends \pyd\testkit\web\Element
     }
 
     /**
-     * @return GridViewSummary
+     * @return \pyd\testkit\web\elements\GridViewSummary
      */
     public function findSummary()
     {
