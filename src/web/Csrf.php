@@ -21,6 +21,11 @@ class Csrf extends \yii\base\Object
         $this->driver = $webDriver;
     }
 
+    /**
+     * Get CSRF token value.
+     * 
+     * @return string|null the csrf token value, null if value was not retrieved
+     */
     public function getToken()
     {
         $meta = $this->findMeta();
@@ -34,6 +39,11 @@ class Csrf extends \yii\base\Object
         return null;
     }
 
+    /**
+     * Find <meta> element that contains the CSRF token value.
+     * 
+     * @return \pyd\testkit\base\Element|null if meta element was not found
+     */
     public function findMeta()
     {
         try {
@@ -43,6 +53,11 @@ class Csrf extends \yii\base\Object
         }
     }
 
+    /**
+     * Find hidden <input> element that contains the CSRF token value.
+     * 
+     * @return \pyd\testkit\base\Element|null if meta element was not found
+     */
     public function findInput()
     {
         $csrfParam = \Yii::$app->getRequest()->csrfParam;
