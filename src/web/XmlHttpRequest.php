@@ -1,7 +1,7 @@
 <?php
 namespace pyd\testkit\web;
 
-use pyd\testkit\web\Driver;
+use pyd\testkit\web\RemoteDriver;
 use yii\helpers\Url;
 use yii\base\InvalidParamException;
 use yii\base\InvalidCallException;
@@ -50,15 +50,15 @@ class XmlHttpRequest extends \yii\base\Object
      */
     public $sendCsrfToken = true;
     /**
-     * @var \pyd\testkit\web\Driver 
+     * @var \pyd\testkit\web\RemoteDriver 
      */
     protected $webDriver;
     
     /**
-     * @param Driver $webDriver
+     * @param RemoteDriver $webDriver
      * @param array $config
      */
-    public function __construct(Driver $webDriver, array $config = [])
+    public function __construct(RemoteDriver $webDriver, array $config = [])
     {
         $this->webDriver = $webDriver;
     }

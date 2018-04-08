@@ -23,7 +23,7 @@ use yii\base\InvalidParamException;
  * of the ElementLocator. When declaring a locator property in a class as an array,
  * it is not possible to use $this->webDriver->findElement($this->locator)
  * because this method param must be a WebDriverBy instance.
- * We can modify the Driver::findElement - findElements, findElementAs ... -
+ * We can modify the RemoteDriver::findElement - findElements, findElementAs ... -
  * methods to accept locator as an array.
  * We can also make the ElementLocator::fromArray method reachable from
  * anywhere - may be a static method - to convert array to WebDriverBy.

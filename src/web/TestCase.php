@@ -17,7 +17,7 @@ use pyd\testkit\Tests;
 class TestCase extends \pyd\testkit\TestCase
 {
     /**
-     * @var \pyd\testkit\web\Driver
+     * @var \pyd\testkit\web\RemoteDriver
      */
     public $webDriver;
     /**

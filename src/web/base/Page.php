@@ -9,7 +9,7 @@ namespace pyd\testkit\web\base;
 class Page extends \yii\base\Object
 {
     /**
-     * @var \pyd\testkit\web\Driver $driver
+     * @var \pyd\testkit\web\RemoteDriver $driver
      */
     protected $driver;
     /**
@@ -18,10 +18,10 @@ class Page extends \yii\base\Object
     protected $locator;
 
     /**
-     * @param \pyd\testkit\web\Driver $webDriver
+     * @param \pyd\testkit\web\RemoteDriver $webDriver
      * @param array $config
      */
-    public function __construct(\pyd\testkit\web\Driver $webDriver, $config = array())
+    public function __construct(\pyd\testkit\web\RemoteDriver $webDriver, $config = array())
     {
         $this->driver = $webDriver;
         parent::__construct($config);

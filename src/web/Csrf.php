@@ -9,14 +9,14 @@ namespace pyd\testkit\web;
 class Csrf extends \yii\base\Object
 {
     /**
-     * @var \pyd\testkit\web\Driver
+     * @var \pyd\testkit\web\RemoteDriver
      */
     protected $driver;
 
     /**
-     * @param \pyd\testkit\web\Driver $webDriver
+     * @param \pyd\testkit\web\RemoteDriver $webDriver
      */
-    public function __construct(Driver $webDriver)
+    public function __construct(RemoteDriver $webDriver)
     {
         $this->driver = $webDriver;
     }

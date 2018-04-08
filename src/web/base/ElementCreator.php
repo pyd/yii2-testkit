@@ -9,7 +9,7 @@ namespace pyd\testkit\web\base;
 class ElementCreator
 {
     /**
-     * @var \pyd\testkit\web\Driver
+     * @var \pyd\testkit\web\RemoteDriver
      */
     protected $driver;
 
@@ -22,9 +22,9 @@ class ElementCreator
     protected $defaultType = ['class' => '\pyd\testkit\web\base\Element'];
 
     /**
-     * @param \pyd\testkit\web\Driver $webDriver
+     * @param \pyd\testkit\web\RemoteDriver $webDriver
      */
-    public function __construct(\pyd\testkit\web\Driver $webDriver)
+    public function __construct(\pyd\testkit\web\RemoteDriver $webDriver)
     {
         $this->driver = $webDriver;
     }

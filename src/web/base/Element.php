@@ -17,16 +17,16 @@ class Element extends \yii\base\Object
      */
     private $ID;
     /**
-     * @var \pyd\testkit\web\Driver
+     * @var \pyd\testkit\web\RemoteDriver
      */
     protected $driver;
 
     /**
      * @param string $elementID @see $ID
-     * @param \pyd\testkit\web\Driver $webDriver
+     * @param \pyd\testkit\web\RemoteDriver $webDriver
      * @param array $config
      */
-    public function __construct($elementID, \pyd\testkit\web\Driver $webDriver, array $config = [])
+    public function __construct($elementID, \pyd\testkit\web\RemoteDriver $webDriver, array $config = [])
     {
         $this->ID = $elementID;
         $this->driver = $webDriver;

@@ -4,11 +4,11 @@ namespace pyd\testkit\web;
 use WebDriverExpectedCondition;
 
 /**
- * Web Driver.
+ * Remote Web Driver.
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Driver extends \RemoteWebDriver
+class RemoteDriver extends \RemoteWebDriver
 {
     /**
      * CSS id of a flag element.

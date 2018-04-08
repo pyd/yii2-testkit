@@ -18,7 +18,7 @@ use pyd\testkit\web\TestCase;
 class ObserverDriverManager extends \yii\base\Object
 {
     /**
-     * @var \pyd\testkit\web\Driver the web driver instance
+     * @var \pyd\testkit\web\RemoteDriver the web driver instance
      */
     protected $driver;
     /**
@@ -58,7 +58,7 @@ class ObserverDriverManager extends \yii\base\Object
     }
     
     /**
-     * @return \pyd\testkit\web\Driver
+     * @return \pyd\testkit\web\RemoteDriver
      */
     public function getDriver()
     {

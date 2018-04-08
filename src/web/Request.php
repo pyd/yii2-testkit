@@ -14,15 +14,15 @@ class Request extends \yii\base\Object
     protected $route;
 
     /**
-     * @var \pyd\testkit\web\Driver
+     * @var \pyd\testkit\web\RemoteDriver
      */
     protected $webDriver;
 
     /**
-     * @param \pyd\testkit\web\Driver $webDriver
+     * @param \pyd\testkit\web\RemoteDriver $webDriver
      * @param array $config
      */
-    public function __construct(Driver $webDriver, $config = array())
+    public function __construct(RemoteDriver $webDriver, $config = array())
     {
         $this->webDriver = $webDriver;
         parent::__construct($config);
@@ -73,7 +73,7 @@ class Request extends \yii\base\Object
      * Send an http GET request and wait until the document.readyState property
      * of the new page is 'complete'.
      *
-     * @see \pyd\testkit\web\Driver::waitNewPageStateComplete
+     * @see \pyd\testkit\web\RemoteDriver::waitNewPageStateComplete
      *
      * @param array $urlParams the url params ['paramName' => $paramValue, ...]
      */
