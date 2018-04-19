@@ -17,11 +17,6 @@ use pyd\testkit\EventNotifier;
  */
 class TestCase extends \PHPUnit_Framework_TestCase
 {
-    const SETUP_BEFORE_CLASS = 'setUpBeforeClass';
-    const SETUP = 'setUp';
-    const TEAR_DOWN = 'tearDown';
-    const TEARDOWN_AFTER_CLASS = 'tearDownAfterClass';
-    
     /**
      * Share the same Yii app instance between all test methods in this test
      * case.
@@ -66,26 +61,6 @@ class TestCase extends \PHPUnit_Framework_TestCase
     public static function dbTablesToLoad()
     {
         return [];
-    }
-
-    public static function setUpBeforeClass()
-    {
-        Tests::$manager->onSetUpBeforeClass(get_called_class());
-    }
-
-    public function setUp()
-    {
-        Tests::$manager->onSetUp($this);
-    }
-
-    public function tearDown()
-    {
-        Tests::$manager->onTearDown($this);
-    }
-
-    public static function tearDownAfterClass()
-    {
-        Tests::$manager->onTearDownAfterClass(get_called_class());
     }
 
     /**
