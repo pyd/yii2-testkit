@@ -21,7 +21,8 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
     /**
      * @see startTestSuite
      * @see \PHPUnit_Framework_TestSuite::getName()
-     * @var string test suite name 
+     * @var string test suite name i.e. a test case class name or a path/to/dir
+     * depending on the target passed to the phpunit command
      */
     protected $testSuiteName;
     
@@ -34,15 +35,14 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
-        // it is a path
         $suiteName = $suite->getName();
         
         if (null === $this->testSuiteName) {
-            $this->informTestEventsDispatcher(self::EVENT_TEST_SUITE_START, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_SUITE_START, $suite);
             $this->testSuiteName = $suiteName;
         }
         if (class_exists($suiteName)) {
-            $this->informTestEventsDispatcher(self::EVENT_TEST_CASE_START, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_CASE_START, $suite);
         }
     }
     
@@ -54,7 +54,7 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function startTest(\PHPUnit_Framework_Test $test)
     {
-        $this->informTestEventsDispatcher(self::EVENT_TEST_METHOD_START, $test);
+        $this->informTestEventMediator(self::EVENT_TEST_METHOD_START, $test);
     }
 
     /**
@@ -66,7 +66,7 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function endTest(\PHPUnit_Framework_Test $test, $time)
     {
-        $this->informTestEventsDispatcher(self::EVENT_TEST_METHOD_END, $test);
+        $this->informTestEventMediator(self::EVENT_TEST_METHOD_END, $test);
     }
 
     /**
@@ -81,21 +81,21 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
         $suiteName = $suite->getName();
         
         if (class_exists($suiteName)) {
-            $this->informTestEventsDispatcher(self::EVENT_TEST_CASE_END, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_CASE_END, $suite);
         }
         if ($suiteName = $this->testSuiteName) {
-            $this->informTestEventsDispatcher(self::EVENT_TEST_SUITE_END, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_SUITE_END, $suite);
         }
     }
     
     /**
-     * Inform the test events dispatcher of a test event.
+     * Inform the test event mediator of a test event.
      * 
      * @param string $eventName 
      * @param mixed $data
      */
-    protected function informTestEventsDispatcher($eventName, $data = null)
+    protected function informTestEventMediator($eventName, $data = null)
     {
-        Testkit::$app->testMediator->trigger($eventName, $data);
+        Testkit::$app->testEventMediator->trigger($eventName, $data);
     }
 }
