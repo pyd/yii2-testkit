@@ -8,7 +8,7 @@ namespace pyd\testkit\interfaces;
  */
 interface InterfaceYiiAppManager
 {
-    public function createYiiApp();
+    public function create();
     
-    public function destroyYiiApp();
+    public function destroy();
 }

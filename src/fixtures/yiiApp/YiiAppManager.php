@@ -1,95 +1,93 @@
 <?php
 namespace pyd\testkit\fixtures\yiiApp;
 
-use yii\base\InvalidParamException;
+use pyd\testkit\interfaces\InterfaceYiiAppConfigProvider;
 use yii\base\InvalidConfigException;
 
 /**
- * Manage Yii application - as a fixture.
+ * Manage a Yii application to be used as a tests fixture.
  * 
- * In order to access some components like 'db' 'urlManager'... a Yii application
- * instance have to be created. Additionally, it may be necessary to set some
- * $_SERVER variables and load some bootstrap files.
+ * Some Yii app components are required when testing like 'db', 'urlManager'...
+ * In addition to the creation of the Yii app instance, this class alows you to
+ * load bootstrap files and initialize $_SERVER variables.
+ * Config for the Yii app, bootstrap files and $_SERVER variables is provided by
+ * the {@see $configProvider}.
  * 
- * @see $configProvider provides configuration for the Yii application, bootstrap
- * files and $_SERVER variables.
+ * ```php
+ * $appManager = new YiiAppManager();
+ * $appManager->setConfigProvider($configProvider);
+ * $appManager->create();
+ * ...
+ * $appManager->destroy();
  * 
- * When a Yii app is destroyed, the $_SERVER is restored to its initial state.
- * @warning Unloading bootstrap files is not possible in a generic way. If you
- * have to load different bootstrap files you need to implement a method to
- * 'undo' the bootstrap files job.
+ * @see \pyd\testkit\fixtures\yiiApp\YiiAppConfigProvider
+ * ```
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class AppManager extends \yii\base\Object
+class YiiAppManager extends \yii\base\Object implements \pyd\testkit\interfaces\InterfaceYiiAppManager
 {
     /**
-     * @var string class of the Yii app instance to be created
+     * Class name of the Yii app to be created.
+     * @var string
      */
-    protected $appClassName = '\yii\web\Application';
+    protected $appClass = '\yii\web\Application';
     /**
+     * Backup of the $_SERVER initial state.
+     * @see setServerVars()
+     * @see restoreInitialServerVars()
+     * @var array
+     */
+    protected $initialServerVars = [];
+    /**
+     * Provides config to create Yii app - including bootstrap files to load and
+     * $_SERVER variables to initialize.
      * @var \pyd\testkit\fixtures\yiiApp\ObserverConfigProvider
      */
     protected $configProvider;
+    
     /**
-     * @var array store $_SERVER variables before modifications
+     * Set the {@see $configProvider} property.
+     * @param string|array|\pyd\testkit\interfaces\InterfaceYiiAppConfigProvider $configProvider
      */
-    protected $initialServerVars = [];
-
-    /**
-     * Eager instantiation for the @see $configProvider.
-     */
-    public function init()
+    public function setConfigProvider($configProvider)
     {
-        if (null === $this->configProvider) {
-            throw new InvalidConfigException('Property $configProvider should be initialized.');
-        }
-    }
-
-    /**
-     * @return \pyd\testkit\fixtures\yiiApp\ObserverConfigProvider
-     */
-    public function getConfigProvider()
-    {
-        return $this->configProvider;
+        $this->configProvider = \yii\di\Instance::ensure($configProvider, '\pyd\testkit\interfaces\InterfaceYiiAppConfigProvider');
     }
     
     /**
-     * @param string|array|callable @see \Yii::createObject()
-     */
-    protected function setConfigProvider($type)
-    {
-        $this->configProvider = \Yii::createObject($type);
-    }
-
-    /**
-     * Create the Yii app instance, eventually after setting some $_SERVER
-     * variables and loading some bootstrap files.
-     * 
+     * Create the Yii application instance.
+     * This method will also load bootstrap files and initialize $_SERVER
+     * variables according to the config provider.
      * @see setServerVars()
      * @see loadBootstrapFiles()
      * @see createYiiApp()
+     * @throws InvalidConfigException property {@see $configProvider} has not
+     * been initialized 
      */
     public function create()
     {
+        if (null === $this->configProvider) {
+            throw new InvalidConfigException("Property " . get_class() . "::\$configProvider should have been initialized.");
+        }
         $this->setServerVars($this->configProvider->getServerVars());
         $this->loadBootstrapFiles($this->configProvider->getBootstrapFiles());
         $this->createYiiApp($this->configProvider->getAppConfig());
     }
-
+    
     /**
      * Destroy the Yii application instance and restore the $_SERVER to its
      * initial state.
+     * @see restoreInitialServerVars()
      */
     public function destroy()
     {
         \Yii::$app = null;
         $this->restoreInitialServerVars();
     }
-
+    
     /**
      * Set $_SERVER variables.
-     * 
      * If the $serverVars param is an empty array, nothing is set.
      * 
      * @param array $serverVars ['name' => $value', 'othername' => $otherValue,...]
@@ -138,10 +136,9 @@ class AppManager extends \yii\base\Object
             $this->initialServerVars = [];
         }
     }
-
+    
     /**
      * Load bootstrap files.
-     * 
      * If the $bootstrapFiles array is empty, nothing happens.
      *
      * @param array $bootstrapFiles ['/path/to/bootstrapFileOne.php', '/path/to/bootstrapFileTwo.php', ...]
@@ -152,13 +149,9 @@ class AppManager extends \yii\base\Object
             require_once $bootstrapFile;
         }
     }
-
+    
     /**
-     * Create the Yii application only i.e. without setting the $_SERVER
-     * variables neither loading bootstrap files.
-     * 
-     * @see create() if you want to set the $_SERVER variables and load the
-     * bootstrap files returned by the config provider. 
+     * Create the Yii application instance.
      *
      * @param array $appConfig
      */
@@ -167,6 +160,4 @@ class AppManager extends \yii\base\Object
         if (empty($appConfig['class'])) $appConfig['class'] = $this->appClassName;
         \Yii::createObject($appConfig);
     }
-
-    
 }
