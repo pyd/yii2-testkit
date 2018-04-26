@@ -29,7 +29,7 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
     /**
      * Listen to the {@see EVENT_TEST_SUITE_START} and {@see EVENT_TEST_CASE_START}
      * events and inform the test events dispatcher with the
-     * {@see \PHPUnit_Framework_TestSuite} instance as data.
+     * {@see \PHPUnit_Framework_TestSuite::$name} property as data.
      * 
      * @param \PHPUnit_Framework_TestSuite $suite
      */
@@ -38,11 +38,11 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
         $suiteName = $suite->getName();
         
         if (null === $this->testSuiteName) {
-            $this->informTestEventMediator(self::EVENT_TEST_SUITE_START, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_SUITE_START, $suiteName);
             $this->testSuiteName = $suiteName;
         }
         if (class_exists($suiteName)) {
-            $this->informTestEventMediator(self::EVENT_TEST_CASE_START, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_CASE_START, $suiteName);
         }
     }
     
@@ -71,8 +71,8 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
 
     /**
      * Listen to the {@see EVENT_TEST_SUITE_END} and {@see EVENT_TEST_CASE_END}
-     * events and inform the test events dispatcher with the TestSuite instance
-     * as data.
+     * events and inform the test events dispatcher with the
+     * {@see \PHPUnit_Framework_TestSuite::$name} property as data.
      * 
      * @param \PHPUnit_Framework_TestSuite $suite
      */
@@ -81,10 +81,10 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
         $suiteName = $suite->getName();
         
         if (class_exists($suiteName)) {
-            $this->informTestEventMediator(self::EVENT_TEST_CASE_END, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_CASE_END, $suiteName);
         }
         if ($suiteName = $this->testSuiteName) {
-            $this->informTestEventMediator(self::EVENT_TEST_SUITE_END, $suite);
+            $this->informTestEventMediator(self::EVENT_TEST_SUITE_END, $suiteName);
         }
     }
     
