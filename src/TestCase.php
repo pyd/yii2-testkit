@@ -27,7 +27,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
      * If set to true, it is still possible to destroy a Yii app in a test method
      * to ensure that a new instance is created for the next test method(s).
      */
-    public $shareYiiApp = false;
+    public static $shareYiiApp = false;
     /**
      * Load the db fixture once at the beginning of the test case vs load it before
      * each test method.
@@ -61,6 +61,22 @@ class TestCase extends \PHPUnit_Framework_TestCase
     public static function dbTablesToLoad()
     {
         return [];
+    }
+    
+    /**
+     * Trigger the 'setUpBeforeClass' event.
+     */
+    public static function setUpBeforeClass()
+    {
+        Testkit::$app->eventMediator->informObservers(new events\SetUpBeforeClass(get_called_class()));
+    }
+    
+    /**
+     * Trigger the 'tearDownAfterClass' event.
+     */
+    public static function tearDownAfterClass()
+    {
+        Testkit::$app->eventMediator->informObservers(new events\TearDownAfterClass(get_called_class()));
     }
 
     /**
