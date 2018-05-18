@@ -5,6 +5,8 @@ use pyd\testkit\Testkit;
 
 /**
  * Testkit application.
+ * 
+ * @property-read \pyd\testkit\events\Mediator $eventMediator
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
