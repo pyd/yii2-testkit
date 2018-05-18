@@ -22,7 +22,7 @@ abstract class Event
         $this->init();
     }
     
-    protected function init();
+    protected function init() {}
     
     /**
      * @return string name of this event
