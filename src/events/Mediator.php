@@ -1,6 +1,7 @@
 <?php
 namespace pyd\testkit\events;
 
+use pyd\testkit\Testkit;
 use pyd\testkit\events\Event;
 use pyd\testkit\events\Observer;
 use yii\base\InvalidParamException;
@@ -119,7 +120,7 @@ class Mediator extends \yii\base\BaseObject
                 
                 if (is_string($observer)) {
                     if ($app->has($observer)) {
-                        $observer = $testkitApp->get($observer);
+                        $observer = $app->get($observer);
                     } else {
                         throw new InvalidParamException("Unknown component ID "
                                 . "'$observer'.");
