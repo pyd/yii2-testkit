@@ -9,22 +9,6 @@ namespace pyd\testkit\events;
 abstract class Event
 {
     /**
-     * @var mixed data related to this event 
-     */
-    protected $data;
-    
-    /**
-     * @param mixed $data {@see $data}
-     */
-    public function __construct($data = null)
-    {
-        $this->data = $data;
-        $this->init();
-    }
-    
-    protected function init() {}
-    
-    /**
      * @return string name of this event
      */
     abstract public static function name();
