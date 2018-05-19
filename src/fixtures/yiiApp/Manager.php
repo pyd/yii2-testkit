@@ -151,9 +151,9 @@ class Manager extends \yii\base\Object
      */
     public function reset()
     {
-        $this->manager->resetServerVars();
-        $this->manager->destroyYiiApp();
-        $this->manager->setServerVars();
-        $this->manager->createYiiApp();
+        $this->resetServerVars();
+        $this->destroyYiiApp();
+        $this->setServerVars();
+        $this->createYiiApp();
     }
 }
