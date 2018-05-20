@@ -23,12 +23,12 @@ class Helper
      */
     public static function isTestCaseClassName($className, $exceptionOnError = false)
     {
-        if (class_exists($className) && is_subclass_of('\pyd\testkit\TestCase', $className)) {
+        if (class_exists($className) && is_subclass_of($className, '\pyd\testkit\TestCase')) {
             return true;
         } else if (!$exceptionOnError) {
             return false;
         } else {
-            throw new \Exception("Class '$className' does not exist or is not a subclass of '\pyd\testkit\TestCase'.");
+            throw new \Exception("Class '$className' does not exist or is not a subclass of '\pyd\\testkit\TestCase'.");
         }
     }
 }
