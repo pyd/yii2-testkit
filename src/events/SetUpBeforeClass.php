@@ -1,6 +1,8 @@
 <?php
 namespace pyd\testkit\events;
 
+use pyd\testkit\events\Helper;
+
 /**
  * Event triggered by {@see pyd\testkit\TestCase::setUpBeforeClass()}.
  *
@@ -8,6 +10,11 @@ namespace pyd\testkit\events;
  */
 class SetUpBeforeClass extends Event
 {
+    /**
+     * @var class name of the currently processed test case 
+     */
+    protected $testCaseClass;
+    
     /**
      * @todo php7 set type 'string' for $testCaseClass params
      * 
@@ -18,10 +25,10 @@ class SetUpBeforeClass extends Event
      */
     public function __construct($testCaseClass)
     {
-        if (!class_exists($testCaseClass) && !is_subclass_of('\pyd\testkit\TestCase', $testCaseClass)) {
-            throw new \yii\base\InvalidParamException("'$testCaseClass' is not an existent class name or not a subclass of '\pyd\testkit\TestCase'");
+        // if false an exception will be thrown
+        if (Helper::isTestCaseClassName($testCaseClass, true)) {
+            $this->testCaseClass = $testCaseClass;
         }
-        parent::__construct($testCaseClass);
     }
     
     public static function name()
@@ -34,6 +41,6 @@ class SetUpBeforeClass extends Event
      */
     public function getTestCaseClass()
     {
-        return $this->data;
+        return $this->testCaseClass;
     }
 }
