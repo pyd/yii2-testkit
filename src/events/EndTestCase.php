@@ -7,7 +7,7 @@ namespace pyd\testkit\events;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class TestCaseEnd extends Event
+class EndTestCase extends Event
 {
     /**
      * @var \PHPUnit_Framework_TestSuite
@@ -21,6 +21,6 @@ class TestCaseEnd extends Event
     
     public static function name()
     {
-        return 'testCaseEnd';
+        return 'endTestCase';
     }
 }
