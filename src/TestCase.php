@@ -72,6 +72,22 @@ class TestCase extends \PHPUnit_Framework_TestCase
     }
     
     /**
+     * Trigger the 'setUp' event.
+     */
+    public function setUp()
+    {
+        Testkit::$app->eventMediator->informObservers(new events\SetUp($this));
+    }
+    
+    /**
+     * Trigger the 'tearDown' event.
+     */
+    public function tearDown()
+    {
+        Testkit::$app->eventMediator->informObservers(new events\TearDown($this));
+    }
+    
+    /**
      * Trigger the 'tearDownAfterClass' event.
      */
     public static function tearDownAfterClass()
