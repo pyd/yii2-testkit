@@ -36,6 +36,15 @@ class TearDown extends Event
     }
     
     /**
+     * @see $testCase
+     * @return \pyd\testkit\TestCase
+     */
+    public function getTestCase()
+    {
+        return $this->testCase;
+    }
+    
+    /**
      * @return boolean test method was executed in a separate process
      */
     public function getTestIsInIsolation()
