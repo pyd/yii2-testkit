@@ -3,35 +3,34 @@ namespace pyd\testkit\fixtures\yiiApp;
 
 use pyd\testkit\fixtures\yiiApp\Manager;
 use pyd\testkit\events\Observer;
-use pyd\testkit\events\SetUpBeforeClass;
-use pyd\testkit\events\TearDownAfterClass;
 
 /**
  * Manage Yii application - as a fixture - by observing test case events.
  * 
- * Goals:
+ * # Goals:
  * - a Yii app instance can not be shared between test cases because the config
  * used to generate the app depends on the test case location in the tests tree;
- * - a Yii app instance must be available from the start of the test case till
- * its end so it can be used in test methods but also before and after them by
- * other testkit components like db fixture manager which requires its 'db'
- * component;
+ * - a Yii app instance must be available from the 'setUpbeforeClass' event to
+ * the 'tearDownAfterClass' event in order to be available in test methods and
+ * also for testkit components like 'fixtureDb';
  * 
- * Yii app lifecycle:
- * - 'setUpBeforeClass' event: creation;
- * - 'setUp' event: creation if app does not exist i.e. was destroyed by tester;
- * - 'tearDown' event:
- *      - creation if app does not exist i.e. was destroyed by tester;
- *      - auto renewall if {@see \pyd\testkit\TestCase::$shareYiiApp} property
- *        is set to true;
- * - 'tearDownAfterClass' event: destruction;
+ * # Observer lifecycle.
+ * Event 'setUpBeforeClass':
+ *  - load bootstrap files;
+ *  - set $_SERVER variables;
+ *  - create Yii app;
  * 
- * If the {@see \pyd\testkit\TestCase::$shareYiiApp} property is set to
- * false, the tester can destroy the instance at the end of a test method to
- * force the creation of a new instance at 'tearDown' event.
+ * Event 'tearDown' (if yii app is null OR must not be shared {@see $shareYiiApp}):
+ *  - reset $_SERVER;
+ *  - renew Yii app;
  * 
- * The Yii app instance can be reseted by the tester in a test method with the
- * {@see \pyd\testkit\fixtures\yiiApp\Manager::reset()} method.
+ * Event 'endTestCase':
+ *  - reset $_SERVER;
+ *  - destroy Yii app;
+ * 
+ * Note: if the {@see \pyd\testkit\TestCase::$shareYiiApp} property is set to
+ * false, the tester can use {@see reset()} to force the Yii app instance and
+ * $_SERVER renewall.
  * 
  * If a test method is executed in isolation, a new yii app instance is created
  * whatever the value of the {@see \pyd\testkit\TestCase::$shareYiiApp} property.
@@ -43,7 +42,8 @@ class ManagerEventObserver extends Manager implements Observer
     use \pyd\testkit\events\ObserverEventHandler;
     
     /**
-     * Share Yii app instance between test methods of a test case.
+     * If set to false, the Yii app instance is renewed between each test
+     * method execution.
      * 
      * @var boolean 
      */
@@ -59,9 +59,9 @@ class ManagerEventObserver extends Manager implements Observer
      * Set $_SERVER variables.
      * Create Yii app instance.
      * 
-     * @param pyd\testkit\events\SetUpBeforeClass $event
+     * @param \pyd\testkit\events\SetUpBeforeClass $event
      */
-    protected function onSetUpBeforeClass(SetUpBeforeClass $event)
+    protected function onSetUpBeforeClass(\pyd\testkit\events\SetUpBeforeClass $event)
     {
         $testCaseClass = $event->getTestCaseClass();
         $testCaseFile = (new \ReflectionClass($testCaseClass))->getFileName();
@@ -75,44 +75,33 @@ class ManagerEventObserver extends Manager implements Observer
     }
     
     /**
-     * Handle the 'tearDownAfterClass' event.
+     * Handle the 'tearDown' event from test case.
      * 
-     * Reset $_SERVER variables.
-     * Destroy app instance.
+     * Yii app instance must be renewed if it was destroyed in the test method or
+     * can not be be shared.
      * 
-     * @param pyd\testkit\events\TearDownAfterClass $event
+     * @param \pyd\testkit\events\TearDown $event
      */
-    protected function onTearDownAfterClass(TearDownAfterClass $event)
+    protected function onTearDown(\pyd\testkit\events\TearDown $event)
     {
-        $this->resetServerVars();
-        $this->destroyYiiApp();
+        if (null === \Yii::$app || !$this->shareYiiApp) {
+            $this->reset();
+        }
     }
     
     /**
-     * Handle the 'testCaseEnd' event.
+     * Handle the 'endTestCase' event.
      * 
-     * Destroy the Yii app instance {@see destroy()}.
+     * Reset $_SERVER variables.
+     * Destroy app instance.
+     * Reset {@see $shareYiiApp}.
      * 
-     * @param string $testCaseClass name of the test case that was executed
+     * @param \pyd\testkit\events\EndTestCase $event
      */
-//    protected function onEventTestCaseEnd($testCaseClass)
-//    {
-//        $this->resetServerVars();
-//        $this->destroyYiiApp();
-//        $this->shareYiiApp = null;
-//    }
-    
-    /**
-     * Handle the 'testMethodEnd' event.
-     * 
-     * @param \pyd\testkit\TestCase $testCase
-     */
-//    protected function onEventTestMethodEnd($testCase)
-//    {
-//        if (!$testCase->isInIsolation()) {
-//            if (null === \Yii::$app || !$this->shareYiiApp) {
-//                $this->reset();
-//            }
-//        }
-//    }
+    protected function onEndTestCase(\pyd\testkit\events\EndTestCase $event)
+    {
+        $this->resetServerVars();
+        $this->destroyYiiApp();
+        $this->shareYiiApp = null;
+    }
 }

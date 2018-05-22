@@ -51,7 +51,7 @@ class Manager extends \yii\base\Object
      * Set the {@see $configProvider} property.
      * @param string|array|\pyd\testkit\interfaces\InterfaceYiiAppConfigProvider $configProvider
      */
-    public function setConfigProvider($configProvider)
+    protected function setConfigProvider($configProvider)
     {
         $this->_configProvider = \yii\di\Instance::ensure($configProvider, '\pyd\testkit\interfaces\InterfaceYiiAppConfigProvider');
     }
@@ -62,7 +62,7 @@ class Manager extends \yii\base\Object
      * @return \pyd\testkit\interfaces\InterfaceYiiAppConfigProvider
      * @throws InvalidConfigException property has not been initialized
      */
-    public function getConfigProvider()
+    protected function getConfigProvider()
     {
         if (null !== $this->_configProvider) {
             return $this->_configProvider;
@@ -74,7 +74,7 @@ class Manager extends \yii\base\Object
     /**
      * Set $_SERVER variables.
      */
-    public function setServerVars()
+    protected function setServerVars()
     {
         foreach ($this->getConfigProvider()->getServerVars() as $key => $value) {
             /**
@@ -96,7 +96,7 @@ class Manager extends \yii\base\Object
     /**
      * Restore $_SERVER to its initial state.
      */
-    public function resetServerVars()
+    protected function resetServerVars()
     {
         if ([] !== $this->initialServerVars) {
             
@@ -121,7 +121,7 @@ class Manager extends \yii\base\Object
      * 
      * If there's no bootstrap file(s) to load, nothing happens.
      */
-    public function loadBootstrapFiles()
+    protected function loadBootstrapFiles()
     {
         foreach ($this->getConfigProvider()->getBootstrapFiles() as $bootstrapFile) {
             require_once $bootstrapFile;
@@ -131,7 +131,7 @@ class Manager extends \yii\base\Object
     /**
      * Create the Yii application instance.
      */
-    public function createYiiApp()
+    protected function createYiiApp()
     {
         $config = $this->getConfigProvider()->getYiiAppConfig();
         if (empty($config['class'])) $config['class'] = $this->appClass;
@@ -141,7 +141,7 @@ class Manager extends \yii\base\Object
     /**
      * Destroy the Yii app instance by setting {@see \Yii::$app} to null.
      */
-    public function destroyYiiApp()
+    protected function destroyYiiApp()
     {
         \Yii::$app = null;
     }
