@@ -7,13 +7,13 @@ use yii\base\InvalidConfigException;
 /**
  * Manage the Yii app instance to be used as a tests fixture.
  * 
- * @see $configProvider for Yii app config and $_SERVER variables to initialize
- * before creating the app.
+ * @see $configProvider provides a list of $_SERVER variables to initialize and
+ * a config to create Yii app
  * 
  * ```php
  * $appManager = new Manager();
  * $appManager->setConfigProvider($configProvider);
- * $appManager->setServerVars();
+ * $appManager->initializeServerVars();
  * $appManager->createYiiApp();
  * ...
  * $appManager->reset();
@@ -25,30 +25,33 @@ class Manager extends \yii\base\Object
 {
     /**
      * Class name of the Yii app to be created.
+     * 
      * @var string
      */
     protected $appClass = '\yii\web\Application';
     /**
      * Backup of the $_SERVER initial state so it can be restored.
-     * @see setServerVars()
-     * @see resetServerVars()
+     * 
+     * @see initializeServerVars()
+     * @see restoreServerVars()
      * @var array
      */
     protected $initialServerVars = [];
     /**
-     * Provides config to create Yii app - including bootstrap files to load and
-     * $_SERVER variables to initialize.
+     * Provides config to create Yii app and initialize $_SERVER variables.
+     * 
      * @var \pyd\testkit\fixtures\yiiApp\ConfigProvider
      */
     private $_configProvider;
     
     /**
      * Set the {@see $configProvider} property.
-     * @param string|array|\pyd\testkit\interfaces\InterfaceYiiAppConfigProvider $configProvider
+     * 
+     * @param string|array|\pyd\testkit\fixtures\yiiApp\ConfigProvider $configProvider
      */
     protected function setConfigProvider($configProvider)
     {
-        $this->_configProvider = \yii\di\Instance::ensure($configProvider, '\pyd\testkit\interfaces\InterfaceYiiAppConfigProvider');
+        $this->_configProvider = \yii\di\Instance::ensure($configProvider, '\pyd\testkit\fixtures\yiiApp\ConfigProvider');
     }
     
     /**
@@ -67,15 +70,15 @@ class Manager extends \yii\base\Object
     }
     
     /**
-     * Set $_SERVER variables.
+     * Intialize $_SERVER variables.
      */
-    protected function setServerVars()
+    protected function initializeServerVars()
     {
         foreach ($this->getConfigProvider()->getServerVars() as $key => $value) {
             /**
              * When setting a variable that does not exist in the $_SERVER
              * (e.g. 'SERVER_NAME' in CLI), its initial value is set to
-             * 'remove'. The @see resetServerVars() method will then
+             * 'remove'. The @see restoreServerVars() method will then
              * know that the variable cannot be restored but must be removed.
              */
             if (!array_key_exists($key, $_SERVER)) {
@@ -91,7 +94,7 @@ class Manager extends \yii\base\Object
     /**
      * Restore $_SERVER to its initial state.
      */
-    protected function resetServerVars()
+    protected function restoreServerVars()
     {
         if ([] !== $this->initialServerVars) {
             
@@ -99,7 +102,7 @@ class Manager extends \yii\base\Object
                 /**
                  * If a $_SERVER variable has the 'remove' value, it must be
                  * removed.
-                 * @see setServerVars()
+                 * @see initializeServerVars()
                  */
                 if ('remove' === $value) {
                    unset($_SERVER[$key]);  
@@ -134,9 +137,10 @@ class Manager extends \yii\base\Object
      */
     public function reset()
     {
-        $this->resetServerVars();
         $this->destroyYiiApp();
-        $this->setServerVars();
+        $this->restoreServerVars();
+        
+        $this->initializeServerVars();
         $this->createYiiApp();
     }
 }

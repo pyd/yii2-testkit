@@ -14,26 +14,16 @@ use pyd\testkit\events\Observer;
  * the 'tearDownAfterClass' event in order to be available in test methods and
  * also for testkit components like 'fixtureDb';
  * 
- * # Observer lifecycle.
- * Event 'setUpBeforeClass':
- *  - load bootstrap files;
- *  - set $_SERVER variables;
- *  - create Yii app;
+ * Yii app lifecycle:
+ * - creation when 'setUpBeforeClass' event occurs;
+ * - renewall when 'tearDown' event occurs if app was destroyed by tester in test
+ *   method or must not be shared {@see $shareyiiApp};
+ * - destruction when 'endTestCase' event occurs;
  * 
- * Event 'tearDown' (if yii app is null OR must not be shared {@see $shareYiiApp}):
- *  - reset $_SERVER;
- *  - renew Yii app;
+ * @see reset() to reset $_SERVER variables and Yii app instance in a test method
  * 
- * Event 'endTestCase':
- *  - reset $_SERVER;
- *  - destroy Yii app;
- * 
- * Note: if the {@see \pyd\testkit\TestCase::$shareYiiApp} property is set to
- * false, the tester can use {@see reset()} to force the Yii app instance and
- * $_SERVER renewall.
- * 
- * If a test method is executed in isolation, a new yii app instance is created
- * whatever the value of the {@see \pyd\testkit\TestCase::$shareYiiApp} property.
+ * The Yii app is not shared between php processes. Each test method executed in
+ * isolation will have its own Yii app instance.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -43,8 +33,10 @@ class ManagerEventObserver extends Manager implements Observer
     
     /**
      * If set to false, the Yii app instance is renewed between each test
-     * method execution.
+     * method execution. If set to true, the yii app instance is renewed only
+     * when it has been destroyed by tester.
      * 
+     * @see onTearDown()
      * @var boolean 
      */
     protected $shareYiiApp = false;
@@ -52,11 +44,9 @@ class ManagerEventObserver extends Manager implements Observer
     /**
      * Handle the 'setUpBeforeClass' event.
      * 
-     * Inform app config provider of the directory of the current test case so
-     * it can generate config.
-     * Save value of the {@see \pyd\testkit\TestCase::$shareYiiApp} property.
-     * Load bootstrap files.
-     * Set $_SERVER variables.
+     * Set the {@see ConfigProviderByDirectory::$testDirectory} based on the
+     * location of the currently executed test case.
+     * Store the value of {@see \pyd\testkit\TestCase::$shareYiiApp}.
      * Create Yii app instance.
      * 
      * @param \pyd\testkit\events\SetUpBeforeClass $event
@@ -69,8 +59,7 @@ class ManagerEventObserver extends Manager implements Observer
         
         $this->shareYiiApp = $testCaseClass::$shareYiiApp;
         
-        $this->loadBootstrapFiles();
-        $this->setServerVars();
+        $this->initializeServerVars();
         $this->createYiiApp();
     }
     
@@ -93,14 +82,14 @@ class ManagerEventObserver extends Manager implements Observer
      * Handle the 'endTestCase' event.
      * 
      * Reset $_SERVER variables.
-     * Destroy app instance.
+     * Destroy Yii app instance.
      * Reset {@see $shareYiiApp}.
      * 
      * @param \pyd\testkit\events\EndTestCase $event
      */
     protected function onEndTestCase(\pyd\testkit\events\EndTestCase $event)
     {
-        $this->resetServerVars();
+        $this->restoreServerVars();
         $this->destroyYiiApp();
         $this->shareYiiApp = null;
     }
