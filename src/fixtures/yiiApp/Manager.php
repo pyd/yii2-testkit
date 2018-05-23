@@ -7,21 +7,16 @@ use yii\base\InvalidConfigException;
 /**
  * Manage the Yii app instance to be used as a tests fixture.
  * 
- * Some Yii app components are required when testing like 'db', 'urlManager'...
- * In addition to the creation of the Yii app instance, this class allows you to
- * load bootstrap files and initialize $_SERVER variables.
- * Config for the Yii app, bootstrap files and $_SERVER variables is provided by
- * the {@see $configProvider}.
+ * @see $configProvider for Yii app config and $_SERVER variables to initialize
+ * before creating the app.
  * 
  * ```php
  * $appManager = new Manager();
  * $appManager->setConfigProvider($configProvider);
- * $appManager->loadBootstrapFiles();
  * $appManager->setServerVars();
  * $appManager->createYiiApp();
  * ...
- * $appManager->resetServerVars();
- * $appManager->resetServerVars();
+ * $appManager->reset();
  * ```
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
@@ -113,18 +108,6 @@ class Manager extends \yii\base\Object
                 }
             }
             $this->initialServerVars = [];
-        }
-    }
-    
-    /**
-     * Load bootstrap files.
-     * 
-     * If there's no bootstrap file(s) to load, nothing happens.
-     */
-    protected function loadBootstrapFiles()
-    {
-        foreach ($this->getConfigProvider()->getBootstrapFiles() as $bootstrapFile) {
-            require_once $bootstrapFile;
         }
     }
     
