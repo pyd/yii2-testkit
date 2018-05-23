@@ -5,10 +5,13 @@ use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 
 /**
- * Provides config - based on a directory in the tests tree - to create a Yii
- * application.
- * Note that this clas can also provides $_SERVER variables to initialize and
- * bootstrap files to load before creating the Yii app instance.
+ * Provide a config to create a Yii app instance.
+ * 
+ * This class can also handle $_SERVER variables to be initialize before the
+ * creation of the app.
+ * 
+ * The generated config depends on the testing three i.e. the config will be the
+ * same for all test cases in a directory.
  * 
  * First, you need to initialize the {@see $_globalConfig} property with an
  * array - or a file returning an array. Example:
@@ -18,21 +21,12 @@ use yii\base\InvalidParamException;
  *
  *      // config for all test cases of the /var/www/myApp/tests directory
  *      '/var/www/myApp/tests' => [
- *
- *          ConfigProvider::BOOTSTRAP_FILES_KEY => [
- *              '/var/www/myApp/config/bootstrap-main.php'
- *          ],
  *          ConfigProvider::APP_KEY => [
  *              '/var/www/myApp/config/main.php',
  *          ]
  *      ],
- *
  *      // config for all test cases of the /var/www/myApp/tests/unctional directory
  *      '/var/www/myApp/tests/functional' => [
- *
- *          ConfigProvider::BOOTSTRAP_FILES_KEY => [
- *              '/var/www/myApp/config/bootstrap-web.php'
- *          ],
  *          ConfigProvider::SERVER_VARS_KEY => [
  *              'SERVER_NAME' => 'http://domain.com',
  *              'SCRIPT_NAME' => 'http://domain.com/index-test.php',
@@ -43,68 +37,44 @@ use yii\base\InvalidParamException;
  *          ]
  *      ]
  * ];
- * ```
  * 
- * Then after setting the the {@see $testDirectory} property, with the path to 
- * the currently executed test case, you will be able to get a config to create
- * a Yii app for this test case.
- * 
- * ```php
  * $configProvider = new ConfigProvider(['globalConfig' => $globalConfig]);
  * $configProvider->setTestDirectory('/var/www/myApp/tests/functional/users');
- * // return ['/.../bootstrap-main.php', '/.../bootstrap-web.php']
- * $bootstrapFiles = $configProvider->getBootstrapFiles();
+ * 
  * // return server variables defined for the '/var/www/myApp/tests/functional' directory
  * $serverVars = $configProvider->getServerVars();
  * // return an array of the config/main file merged with the config/web file
  * $yiiAppConfig = $configProvider->getYiiAppConfig();
+ * ```
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class ConfigProvider extends \yii\base\Object implements \pyd\testkit\interfaces\InterfaceYiiAppConfigProvider
+class ConfigProvider extends \yii\base\Object
 {
     /**
-     * Key of an item containing 'bootstrap files' in the global config.
-     */
-    const BOOTSTRAP_FILES_KEY = 'bootstrap-files';
-    /**
-     * Key of an item containing $_SERVER variables in the global config.
+     * Key for $_SERVER config in {@see $_globalConfig}
      */
     const SERVER_VARS_KEY = 'server-vars';
     /**
-     * Key of an item containing a Yii app config in the global config.
+     * Key for Yii app config in {@see $_globalConfig}
      */
     const APP_KEY = 'app';
     /**
-     * The path to a directory of the tests tree where the test case is located.
-     * @see setTestDirectory()
+     * Path to the directory of the currently executed test case
      * @var string 
      */
     protected $testDirectory;
     /**
-     * The config to create a Yii app based on the {@see $testDirectory}
-     * @see getTestDirectoryConfig()
+     * The config generated based on the {@see $testDirectory}. All test cases
+     * located in that directory will use this config to create the Yii app.
      * @var array
      */
     private $_testDirectoryConfig;
     /**
-     * Configs for bootstrap files, $_SERVER variables and Yii app indexed by
-     * tests tree directories;
+     * List of config based on test three directories
      * @var array 
      */
     private $_globalConfig;
-    
-    /**
-     * Get a list of bootstrap files to load before the Yii app creation
-     * according to the {@see $testDirectory}.
-     * 
-     * @return array an empty array if no bootstrap files were defined in
-     * {@see $_globalConfig} for the {@see testDirectory}
-     */
-    public function getBootstrapFiles()
-    {
-        return isset($this->getTestDirectoryConfig()[self::BOOTSTRAP_FILES_KEY]) ? $this->getTestDirectoryConfig()[self::BOOTSTRAP_FILES_KEY] : [] ;
-    }
     
     /**
      * Get a list of $_SERVER variable $name => $value pairs to be initialized
@@ -144,17 +114,13 @@ class ConfigProvider extends \yii\base\Object implements \pyd\testkit\interfaces
      * - each key is a path to a directory in the tests tree;
      * - each value is a config array for this directory and sub (if the value is
      * a string, it must be a path to a file returning an array). This array can
-     * contain 3 items - bootstrap files, server variables and Yii app config.
-     * - the value of the 'bootstrap files' item must be an array containing the
-     * path to one or more bootstrap files;
+     * contain 2 items - $_SERVER variables and Yii app config.
      * - the value of the 'server variables' item must be an array;
      * - the value of the 'yii app' item must be an array (any file path is
      * resolved to its content if it returns an array);
      * @throws InvalidParamException:
      * - $config param can not be empty;
      * - a $config param keys is not a path to an existing directory;
-     * - a 'bootstrap files' item is not an array;
-     * - a 'bootstrap files' item has an invalid file path;
      * - a 'server variables' item is not an array;
      * @see resolveConfig() for other InvalidParamException
      */
@@ -171,22 +137,6 @@ class ConfigProvider extends \yii\base\Object implements \pyd\testkit\interfaces
             if (!is_dir($path)) {
                 throw new InvalidConfigException("Each key of the configuration"
                         . " array must be a path to a directory of the tests tree. The path '$path' is invalid.", 04);
-            }
-
-            // a 'bootstrap files' key must point to an array valid filename(s)
-            if (isset($data[self::BOOTSTRAP_FILES_KEY])) {
-
-                if (is_array($data[self::BOOTSTRAP_FILES_KEY])) {
-                    foreach ($data[self::BOOTSTRAP_FILES_KEY] as $bootstrapFile) {
-                        // bootstrap file path must be valid
-                        if (!is_file($bootstrapFile)) {
-                            throw new InvalidConfigException("Invalid bootstrap file '$bootstrapFile'.", 05);
-                        }
-                    }
-                } else {
-                    throw new InvalidConfigException("Bootstrap files must be listed in an array.", 06);
-                }
-
             }
 
             // a 'server variables' key must point to an array (server variable names or values are not checked)
