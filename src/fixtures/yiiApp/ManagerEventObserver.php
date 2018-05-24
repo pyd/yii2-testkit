@@ -64,6 +64,18 @@ class ManagerEventObserver extends Manager implements Observer
     }
     
     /**
+     * Handle the 'setUp' event.
+     * 
+     * Initialize {@see \pyd\testkit\TestCase::$yiiApp} with this manager instance.
+     * 
+     * @param \pyd\testkit\events\SetUp $event
+     */
+    protected function onSetUp(\pyd\testkit\events\SetUp $event)
+    {
+        $event->getTestCase()->yiiApp = $this;
+    }
+    
+    /**
      * Handle the 'tearDown' event from test case.
      * 
      * Yii app instance must be renewed if it was destroyed in the test method or
