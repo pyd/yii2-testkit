@@ -36,6 +36,26 @@ class SetUp extends Event
     }
     
     /**
+     * Get name of this event.
+     * 
+     * @return string
+     */
+    public static function name()
+    {
+        return 'setUp';
+    }
+    
+    /**
+     * Get instance of the currently executed test case.
+     * 
+     * @return \pyd\testkit\TestCase
+     */
+    public function getTestCase()
+    {
+        return $this->testCase;
+    }
+    
+    /**
      * @return boolean test method will be executed in a separate process
      */
     public function getTestIsInIsolation()
@@ -43,8 +63,4 @@ class SetUp extends Event
         return $this->testIsInIsolation;
     }
     
-    public static function name()
-    {
-        return 'setUp';
-    }
 }
