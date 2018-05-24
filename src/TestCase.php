@@ -47,9 +47,9 @@ class TestCase extends \PHPUnit_Framework_TestCase
      */
     public $dbFixture;
     /**
-     * Manager for yii app instance fixture.
+     * Manager for Yii app instance fixture.
      * 
-     * @var \pyd\testkit\fixtures\yiiApp\AppManager
+     * @var \pyd\testkit\fixtures\yiiApp\Manager
      */
     public $yiiApp;
     /**
