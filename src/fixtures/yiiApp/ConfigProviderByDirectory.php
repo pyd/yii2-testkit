@@ -224,7 +224,8 @@ class ConfigProviderByDirectory extends \yii\base\Object implements ConfigProvid
         sort($globalConfigMatchingPaths);
         $testCaseConfig = [];
         foreach ($globalConfigMatchingPaths as $globalConfigPath) {
-            $testCaseConfig = \yii\helpers\ArrayHelper::merge($testCaseConfig, $this->globalConfig[$globalConfigPath]);
+            $testCaseConfig = \yii\helpers\ArrayHelper::merge($testCaseConfig, $this->getGlobalConfig()
+                    [$globalConfigPath]);
         }
         return $testCaseConfig;
     }
@@ -243,7 +244,7 @@ class ConfigProviderByDirectory extends \yii\base\Object implements ConfigProvid
             throw new InvalidConfigException("Property \$testDirectory should have been initialized.", 30);
         }
         $matchingPaths = [];
-        foreach ($this->globalConfig as $path => $value) {
+        foreach ($this->getGlobalConfig() as $path => $value) {
             if (false !== strpos($this->testDirectory, rtrim($path, '/'))) {
                 $matchingPaths[] = $path;
             }
