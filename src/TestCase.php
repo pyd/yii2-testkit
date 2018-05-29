@@ -5,58 +5,73 @@ use pyd\testkit\Tests;
 use pyd\testkit\EventNotifier;
 
 /**
- * Base class for test case.
+ * Base class for test cases.
  * 
- * The default setting is 'isolation' oriented. The required db tables will be
- * loaded with fresh data and a new Yii app instance created for each test
- * method.
- * Check the @see $shareYiiApp and mostly the @see $shareDbFixture properties to
- * increase the testing speed.
+ * @see $shareYiiApp for Yii app - as a fixture - management policy
+ * @see $shareDbFixture for db fixture management policy
+ * By default the properties above are set to false i.e. for each test method,
+ * a Yii app instance is created and required db tables are refreshed
+ * 
+ * @see dbTablesToLoad to define db tables that must be loaded with fixture data
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class TestCase extends \PHPUnit_Framework_TestCase
 {
     /**
-     * Share the same Yii app instance between all test methods in this test
-     * case.
+     * One Yii app instance will be shared by all tests in this test case vs
+     * an instance is created for each test.
      * 
-     * If a test method is executed in isolation, a new app instance is available
-     * whatever the value of this property.
+     * Note: a fresh Yii app instance is always created for a test in isolation.
+     * Note: destroying a Yii app in a test will force creation of a new instance
+     * in the next test whatever the value of this property.
      * 
-     * If set to true, it is still possible to destroy a Yii app in a test method
-     * to ensure that a new instance is created for the next test method(s).
+     * @see \pyd\testkit\fixtures\yiiApp\ManagerEventObserver
      */
     public static $shareYiiApp = false;
+    
     /**
-     * Load the db fixture once at the beginning of the test case vs load it before
-     * each test method.
+     * Db will be loaded with fixture data once at the beginning of the test
+     * case vs it will be loaded before each test.
      * 
-     * If a test method is executed in isolation, required tables will be reloaded
-     * whatever the value of this property.
+     * Note: required tables are always reloaded for a test in isolation.
+     * Note: unloading a table in a test will force its reload for the next
+     * test whatever the value of this property.
      * 
-     * If set to true, it is still possible to unload one|some|all tables in a
-     * test method to ensure that one|some|all tables are populated with fresh
-     * data before the next test case.
+     * @see \pyd\testkit\fixtures\db\ManagerEventObserver
      */
     public static $shareDbFixture = false;
+    
     /**
      * Manager for db fixture.
      * 
-     * @var \pyd\testkit\fixtures\db\TablesManager
+     * @var \pyd\testkit\fixtures\db\Manager
      */
     public $dbFixture;
+    
     /**
      * Manager for Yii app instance fixture.
      * 
      * @var \pyd\testkit\fixtures\yiiApp\Manager
      */
     public $yiiApp;
+    
     /**
-     * Required db fixture.
+     * List of db tables that must be loaded for this test case.
      * 
-     * @return array config to create @see \pyd\testkit\fixtures\DbTable
-     * instances and populate their db tables with test data
+     * A table is defined as a {@see \pyd\testkit\fixtures\db\Table} class.
+     * ```php
+     * return [
+     *      'users' => tests\fixtures\db\UsersFixture::className(),
+     *      'orders' => [
+     *          'class' => tests\fixtures\db\OrdersFixture::className(),
+     *          'depends' => [...]
+     * ];
+     * ```
+     * @see pyd\testkit\fixtures\db\TablesCollection for more infos about format,
+     * dependencies...
+     * 
+     * @return array
      */
     public static function dbTablesToLoad()
     {
@@ -98,7 +113,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Suspend test execution until tester press the ENTER key.
      *
-     * @warning the terminal window must have focus for the key press to be
+     * Note: the terminal window must have focus for the key press to be
      * detected
      */
     public function pause()
