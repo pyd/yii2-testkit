@@ -6,7 +6,10 @@ use pyd\testkit\Testkit;
 /**
  * Testkit application.
  * 
- * @property-read \pyd\testkit\events\Mediator $eventMediator
+ * @property \pyd\testkit\fixtures\yiiApp\Manager $fixtureApp
+ * @property \pyd\testkit\fixtures\db\Manager $fixtureDb
+ * @property \pyd\testkit\events\Mediator $eventMediator
+ * @property \pyd\testkit\SharedData $sharedData
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
