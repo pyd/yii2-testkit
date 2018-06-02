@@ -2,13 +2,15 @@
 namespace pyd\testkit;
 
 /**
- * Share data between the main php process - created when the phpunit command
- * is launched - and each php process created to execute a test method in
- * isolation.
+ * Interface for classes which instances can share data from differenr php
+ * processes.
+ * 
+ * The goal is to store data when in the main php process (phpunit command) and
+ * read them when in an isolated test and reciprocally.
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-interface SharedDataInterface
+interface SharedData
 {
     /**
      * Set a variable value.
@@ -28,7 +30,14 @@ interface SharedDataInterface
     public function get($name, $default = null);
     
     /**
-     * Unset all variables.
+     * Remove a variable.
+     * 
+     * @param string $name variable name
      */
-    public function unsetAll();
+    public function remove($name);
+    
+    /**
+     * Destroy shared data storage.
+     */
+    public function destroy();
 }

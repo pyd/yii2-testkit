@@ -2,16 +2,13 @@
 namespace pyd\testkit;
 
 /**
- * Share data between the main php process - created when the phpunit command
- * is launched - and each php process created to execute a test method in
- * isolation.
+ * Share data between php processes using the php-shared-memory lib.
  * 
- * This is an adampter for the  {@see \Fuz\Component\SharedMemory\SharedMemory}
- * class.
+ * https://github.com/Ninsuo/php-shared-memory
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class SharedDataSharedMemoryAdapter implements SharedDataInterface
+class SharedMemoryAdapter implements SharedData
 {
     /**
      * @var \Fuz\Component\SharedMemory\SharedMemory
@@ -47,9 +44,19 @@ class SharedDataSharedMemoryAdapter implements SharedDataInterface
     }
     
     /**
-     * Unset all variables.
+     * Remove a variable.
+     * 
+     * @param string $name variable name
      */
-    public function unsetAll()
+    public function remove($name)
+    {
+        $this->sharedMemory->remove($name);
+    }
+    
+    /**
+     * Destroy all variables.
+     */
+    public function destroy()
     {
         $this->sharedMemory->lock();
         $this->sharedMemory->setData(new \stdClass());
