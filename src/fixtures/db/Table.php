@@ -6,14 +6,18 @@ use yii\base\InvalidParamException;
 use yii\base\InvalidCallException;
 
 /**
- * Manage the content of a db table.
+ * Manage fixture for a table in db.
  * 
- * This class provides methods to:
- * - load|unload a db table with fixture data;
- * - get the fixture data used to populate the db table;
- * - get the initial content of the table - with PK - after loading;
- * - get a Model instance representing the fixture of a db table row;
- *
+ * @see load() load db table with fixture data
+ * @see unload() unload db table
+ * @see getData() get fixture data for this table
+ * @see getLoadedData() get the content of the table just after loading fixture data
+ * @see getIsLoaded() get the loading state (loaded|unloaded) of the table. Note
+ * that this state relies on usage of {@see load()} and {@see unload()} methods.
+ * If you execute an SQL "DELETE FROM table_name;" request via DAO or ActiveRecord
+ * the table will be empty but its state will remain 'loaded'.
+ * @see forceLoadedState() to force table state (see below)
+ * 
  * This class extends @see \yii\test\Fixture in order to be compatible with
  * {@see yii\console\controllers\FixtureController}.
  *
@@ -22,66 +26,90 @@ use yii\base\InvalidCallException;
 class Table extends \yii\test\Fixture
 {
     /**
-     * @var boolean table was populated with fixture data
+     * The table 'loading' status. True after {@see load()} and false after
+     * {@see unload()}.
+     * 
+     * Be aware that modifying a table via DAO or activeRecord won't affect this
+     * property.
+     * 
+     * This property has no usefulness when this instance is used by
+     * {@see \yii\console\controllers\FixtureController} to load db via the console.
+     * 
+     * @var boolean
      */
     protected $isLoaded;
+    
     /**
-     * Tables that must be loaded before this one (referential integrity).
+     * List of tables needed by this one (referential integrity).
      * 
-     * A table can be a class name or a config array used to create a
-     * @see \pyd\testkit\fixtures\db\Table instance
+     * These tables will be loaded before and unloaded after this one.
      * 
-     * A table can be indexed by an alias which can be used later to access its
-     * instancein a collection. If no alias is provided, the class name is used
-     * to identify the Table instance.
+     * A table can be a class name or a config array used to create another
+     * {@see \pyd\testkit\fixtures\db\Table} instance.
      * 
-     * <code>
+     * A table can be indexed by an alias to access its instance in
+     * {@see \pyd\testkit\fixtures\db\TablesCollection}.
+     * If none is provided, the FQ class name will be used as an alias.
+     * ```php
      * $depends = [
-     *      app\models\User::className(),
-     *      'country' => [
-     *          'class' => app\models\Country::className(),
-     *          'dataFile' => 'path_to_data_file'
+     *      'users' => UsersFixture::className(),
+     *      'countries' => [
+     *          'class' => CountriesFixture::className(),
+     *          'dataFile' => 'path/to/data/file'
      * ]
-     * </code>
+     * ```
      * 
      * @var array
      */
     public $depends = [];
+    
     /**
-     * The name of the table.
+     * The name of the db table managed by this instance.
      * 
-     * @see init if not set, the @see $modelClass::tableName() is used
+     * If this property is not set, the {@see init()} method will try to
+     * retrieve the table name from the {@see \yii\db\ActiveRecord::tableName()}
+     * method if the {@see $modelClass} property is set.
      * 
      * @var string.
      */
     public $name;
+    
     /**
      * The class name of a model for this table.
      * 
-     * This will be used to get the table name if @see $name is not set.
-     * This is the default class of the model returned by @see getModel().
+     * This will be used to get the table name if {@see $name} is not set.
+     * This is the default class of the model returned by {@see getModel()}.
      * 
      * @var string
      */
     public $modelClass;
+    
     /**
      * Path to the file returning fixture data for this table.
      * 
-     * If none, the @see $data property should be set.
+     * This property is used if the {@see $data} property is not set. It must be
+     * the path to a php file returning an array.
      * 
-     * @see init() needed if the @see $data property is not set
-     * 
+     * If this property is not set, the {@see init()} method will try the default
+     * '/path_to_this_fixture_class_file_dir/data/tableName.php' path:
+     *      /.../fixtures
+     *      /.../fixtures/data/users_table_name.php
+     *      /.../fixtures/UsersFixtures.php
+     *       
      * @var string
      */
     public $dataFile;
+    
     /**
      * Raw fixture data.
      * 
-     * @see init() if not set, data will be retrieved from a file
+     * If this property is not set, the {@see init()} method will try to retrieve
+     * these data from a file {@see $dataFile}.
      * 
      * @var array
      */
     protected $data;
+    
     /**
      * Schema of the table.
      * 
@@ -90,38 +118,37 @@ class Table extends \yii\test\Fixture
      * @var yii\db\Schema
      */
     protected $tableSchema;
+    
     /**
-     * Content of the table after loading.
+     * Backup of the table content done in the {@see load()} method.
+     * 
+     * This can be compared to the actual content of a table to know if it has
+     * been updated.
      * 
      * @see load() where this property is set
      * 
      * @var array
      */
     protected $loadedData;
+    
     /**
      * @var string|\yii\db\Connection if a string it must be an alias for the
-     * connection component @see init()
+     * connection component {@see init()}
      */
     protected $db = 'db';
 
     /**
      * Initialization.
      * 
-     * The @see $db property is required.
+     * Check that the {@see $db} has been set.
+     * Resolve the {@see $name} property {@see $modelClass}.
+     * Initialization of the {@see $tableSchema} property.
+     * Initialization of the {@see $data} property {@see $dataFile}.
      * 
-     * If the @see $name property is not defined it will be initialized
-     * using @see $modelClass:tableName(). The table must exist.
-     * 
-     * The @see $tableSchema property is initialized.
-     * 
-     * If the @see $data property is not initialized, its content will be retrieved
-     * from a file. If the @see $dataFile property is not defined, a generic
-     * path is used: path_to_this_file_parent_directory/data/table_name.php
-     *
      * @throws InvalidConfigException:
      * - both @see $name and @see $modelClass are not defined;
-     * - table does not exist;
-     * - data file does not exist;
+     * - table {@see name} does not exist;
+     * - {@see $dataFile} does not exist;
      */
     public function init()
     {
@@ -153,93 +180,83 @@ class Table extends \yii\test\Fixture
             $this->data = require($this->dataFile);
         }
     }
-
+    
     /**
-     * @return boolean
-     */
-    public function getIsLoaded()
-    {
-        return $this->isLoaded;
-    }
-
-    /**
-     * Force the table load state.
+     * Load the db table with fixture data if it's not already loaded.
      * 
-     * @param boolean $isLoaded
-     */
-    public function forceLoadState($isLoaded)
-    {
-        $this->isLoaded = $isLoaded;
-    }
-
-    /**
-     * Get data to populate the table.
-     *
-     * This method can be used to process raw data before insertion.
-     * @see $data is returned by default
-     *
-     * @return array
-     */
-    protected function getDataToLoad()
-    {
-        return $this->data;
-    }
-
-    /**
-     * Load data into the table.
+     * If db table is already loaded nothing happens.
      * 
-     * Data to load are provided by the @see getDataToLoad() method.
+     * @todo Is it necessary to reset the {@see $loadedData} property each time
+     * this method is called? This makes sense only if {@see $data} changes
+     * during the instance lifetime. Here we could check if {@see $loadedData} is
+     * null and {@see setData()} could clear {@see $loadedData} when called.
      * 
-     * All inserted row are stored in the @see $loadedData property.
+     * 
+     * @see $isLoaded
      */
     public function load()
     {
-        if ($this->isLoaded) {
-            throw new InvalidCallException("Table '" . $this->name . "' is already loaded.");
+        if (true !== $this->isLoaded) {  
+            
+            foreach ($this->getDataToLoad() as $alias => $row) {
+                $primaryKeys = $this->db->schema->insert($this->name, $row);
+                $this->loadedData[$alias] = array_merge($row, $primaryKeys);
+            }
+            $this->isLoaded = true;
         }
-        foreach ($this->getDataToLoad() as $alias => $row) {
-            $primaryKeys = $this->db->schema->insert($this->name, $row);
-            $this->loadedData[$alias] = array_merge($row, $primaryKeys);
-        }
-        $this->isLoaded = true;
     }
 
     /**
-     * Delete all rows from table and reset it's sequence if any.
+     * Unload db table - and reset it's sequence if any - if it's not already
+     * unloaded.
      * 
-     * @param boolean $force delete table content even if {@see $isLoaded}
-     * property is FALSE
-     * @throws InvalidCallException tried to unload the table although the
-     * {@see $isLoaded} property is FALSE
+     * If db table is already unloaded nothing happens.
+     * 
+     * @see $isLoaded
      */
-    public function unload($force = false)
+    public function unload()
     {
-        
-        // if the isLoaded property is null, it means that this intance
-        // was created by  the yii\console\controllers\FixtureController::load
-        // method which by default unload table before to load it. In this case,
-        // unload an 'unloaded' table must not throw an exception.
-        if (false === $this->isLoaded && false === $force ) {
-            throw new InvalidCallException("Table '" . $this->name . "' is already unloaded.");
+        if (false !== $this->isLoaded) {  
+            
+            $this->db->createCommand()->delete($this->name)->execute();
+            if (null !== $this->tableSchema->sequenceName) {
+                $this->db->createCommand()->resetSequence($this->name, 1)->execute();
+            }
+            $this->isLoaded = false;
         }
-        
-        $this->loadedData = [];
-        $this->db->createCommand()->delete($this->name)->execute();
-        if (null !== $this->tableSchema->sequenceName) {
-            $this->db->createCommand()->resetSequence($this->name, 1)->execute();
+    }
+    
+    /**
+     * Force the value of the {@see $isLoaded} property.
+     * 
+     * This method can be used when the db table content does not matches the
+     * {@see $isLoaded} property i.e. the table has been loaded|unloaded in
+     * another process or via DAO or AvtiveRecord methods (not by using load or
+     * unload methods).
+     * 
+     * @todo php7 set param type and remove exception
+     * 
+     * @param boolean $isLoaded
+     */
+    public function forceLoadedState ($isLoaded)
+    {
+        if (is_bool($isLoaded)) {
+            $this->isLoaded = $isLoaded;
+        } else {
+            throw new InvalidParamException("Boolean param required.");
         }
-        $this->isLoaded = false;
     }
 
     /**
-     * Get a model instance of a row identified by its data alias.
+     * Get a model instance of a db table row identified by its data alias.
      *
      * @param string $name the data row alias
-     * @param string $modelClass the model class name if null the @see $modelClass
-     * is used
-     * @return \yii\db\ActiveRecord the model
-     * @throws InvalidParamException 
-     * @throws InvalidConfigException
+     * @param string $modelClass the class of the model instance to be returned,
+     * if null the {@see $modelClass} is used
+     * @return \yii\db\ActiveRecord the model instance
+     * @throws InvalidParamException fixture data does not have such an alias
+     * @throws InvalidConfigException the {@see $modelClass} property is not set
+     * and no model class param is provided
      */
     public function getModel($dataRowAlias, $modelClass = null)
     {
@@ -263,9 +280,9 @@ class Table extends \yii\test\Fixture
     }
 
     /**
-     * Get all|one row of the table data as it was just after insertion.
+     * Get all | one row(s) of the loaded data {@see $loadedData}.
      * 
-     * @see getData() to get raw data
+     * @see getData() if you want raw fixture data
      * 
      * @return array
      */
@@ -294,19 +311,42 @@ class Table extends \yii\test\Fixture
     }
     
     /**
-     * Get all|one row of the fixture raw data.
+     * Get all | one row of the fixture raw data.
      * 
-     * @see getLoadedData() to get the data as it was in the table just after
-     * insertion.
+     * @see getLoadedData() to get the the db table content after fixture data load
      * 
-     * @param string $dataRowAlias key of the data row
+     * @param string $rowAlias alias of the fixture data row
      * @return array data
      */
-    public function getData($dataRowAlias = null)
+    public function getData($rowAlias = null)
     {
-        if (null === $dataRowAlias) {
+        if (null === $rowAlias) {
             return $this->data;
         }
-        return $this->data[$dataRowAlias];
+        return $this->data[$rowAlias];
     }
+    
+    /**
+     * @return boolean {@see $isLoaded}
+     */
+    public function getIsLoaded()
+    {
+        return $this->isLoaded;
+    }
+    
+    /**
+     * Get data to populate the table.
+     *
+     * This method can be used to process raw data before insertion, e.g. generate
+     * a password hash from a clear password from fixture data...
+     * 
+     * @see $data is returned by default
+     *
+     * @return array
+     */
+    protected function getDataToLoad()
+    {
+        return $this->data;
+    }
+    
 }
