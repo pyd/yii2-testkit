@@ -7,38 +7,41 @@ use yii\base\InvalidParamException;
 use yii\base\InvalidConfigException;
 
 /**
- * A collection of Table {@see pyd\testkit\fixtures\db\Table} instances used to
- * load|unload db table's fixture.
+ * Manage a collection of {@see pyd\testkit\fixtures\db\Table} instances.
  * 
- * The collection won't contain more than one instance of a Table class.
- * ```php
- * $collection->add(CountriesFixture::className());
- * $collection->add(UsersFixture::className());     // UsersFixture depends on CountriesFixture
- * // collection contains only one instance of CountriesFixture
- * ```
- * Dependencies {@see pyd\testkit\fixtures\db\Table::$depends} instances are added
- * to the collection before their parent.
- * ```php
- * $collection->add(UsersFixture::className());     // UsersFixture depends on CountriesFixture
- * \\ collection first item is an instance of CountriesFixture and the second
- * \\ an instance of UsersFixture
- * ```
+ * The main usage of a Table instance is to load and unload a db table with
+ * fixture data. The role of this collection is to provide an ordered list of
+ * these instances to safely load and unload the db tables required during tests.
  * 
- * Instance's keys.
- * ```php
- * // no alias defined => key is Table class name
- * $collection->add(CountriesFixture::className());
- * $countries = $collection->get(CountriesFixture::className());
- * // alias defined in dependencies can overwrite class named key but not previous alias
- * $collection->add(['class' = UsersFixture::className(), 'depends' => ['countriesAlias1' => CountriesFixture::className()]);
- * $countries = $collection->get('countriesAlias1');
- * // alias not defined in dependencies will always overwrite a previous alias
- * $collection->add(CountriesFixture::className(), 'countriesAlias2');
- * $countries = $collection->get('countriesAlias2');
- * ```
+ * Rules are:
+ * - there can be only one instance of a Table in the collection (don't want to
+ *   load a table twice);
+ * - if a TableA has dependencies {@see pyd\testkit\fixtures\db\Table::$depends}
+ *   their instances will be added before TableA in the collection so their db
+ *   table will be loaded before and unloaded after TableA table;
  * 
- * This class handles 'circular dependency' detection when adding a Table e.i.
- * adding TableA that depends on TableB that depends on TableA.
+ * Instance alias.
+ * An instance is identified by an alias in the collection. This alias can be
+ * set when a Table is added, e.g. with {@see add} or when it appears as a
+ * dependency.
+ * ```php
+ * class UsersFixture extends Table {
+ *      public $depends = ['countries' => CountriesFixture::className()]
+ * }
+ * $collection->add(UsersFixture::className(), 'users');
+ * $tables = $collection->getAll();
+ * // returns ['countries' => $coutriesFixtureInstance, 'users' => $usersFixtureInstance]
+ * ```
+ * Aliases rules:
+ * - if no alias is provided for a Table, its FQ class name is used ;
+ * - an alias defined via {@see add} always takes precedence on an alias defined
+ *   in {@see pyd\testkit\fixtures\db\Table::$depends};
+ * - if aliases for a Table have the same 'origin', i.e. add() or $depends, the
+ *   last defined is used;
+ * 
+ * @see \pyd\testkit\fixtures\db\TablesCollectionCircularDependencyException thrown
+ * when a TableA is added that depends on TableB that depends on TableC that depends
+ * on TableA to avoid an infinite loop of dependencies processing
  * 
  * @author Pierre-Yves DELETTRE 
  */
@@ -46,17 +49,19 @@ class TablesCollection extends \yii\base\Object
 {
     /**
      * @see pyd\testkit\fixtures\db\Table
-     * @var array instances of Table indexed by their class name or an alias
+     * @var array Table instances indexed by class name or alias
      */
     protected $tables = [];
+    
     /**
      * @var array class names of the instances in the collection
      */
     protected $tableClassNames = [];
     
     /**
-     * @return array all instances of {@see \pyd\testkit\fixtures\db\Table} from
-     * the collection
+     * Get all {@see $tables} instances.
+     * 
+     * @return array
      */
     public function getAll()
     {
@@ -67,10 +72,13 @@ class TablesCollection extends \yii\base\Object
      * Create a {@see pyd\testkit\fixtures\db\Table} instance and add it to the
      * collection.
      * 
+     * If the Table has dependencies, they will be added before it in the
+     * collection.
+     * 
      * @param string|array $type class name or config array to create the Table
      * instance
      * @param string $alias used as a key to identify|access the instance in the
-     * collection. If null, the instance class name is used as key.
+     * collection. If null, the FQ class name of the Table is used as key.
      */
     public function add($type, $alias = null)
     {   
@@ -98,7 +106,7 @@ class TablesCollection extends \yii\base\Object
                     // the new one if the latter was defined in a test case (not in
                     // a Table::$depends property.
                     if ($currentAlias === $className || !$isDependency) {
-                        $this->modifyTableKey($currentAlias, $alias);
+                        $this->updateTableKey($currentAlias, $alias);
                     }
                     
                 }
@@ -136,7 +144,7 @@ class TablesCollection extends \yii\base\Object
      * @param string $currentKey the key to be modified
      * @param string $newKey
      */
-    public function modifyTableKey($currentKey, $newKey)
+    public function updateTableKey($currentKey, $newKey)
     {
         $keys = array_keys($this->tables);
         $currentKeyIndex = array_search($currentKey, $keys);
@@ -156,7 +164,7 @@ class TablesCollection extends \yii\base\Object
     /**
      * Check if there is an instance with such a key in the collection.
      * 
-     * @param string $key alias or class name
+     * @param string $key alias or FQ class name of a Table
      * @return boolean
      */
     public function hasKey($key)
@@ -165,7 +173,7 @@ class TablesCollection extends \yii\base\Object
     }
     
     /**
-     * Get a table instance from the collection.
+     * Get a Table instance from the collection by its key/alias.
      * 
      * @param string $key key of the instance
      * @return \pyd\testkit\fixtures\db\Table
@@ -197,8 +205,8 @@ class TablesCollection extends \yii\base\Object
     }
     
     /**
-     * Create some instances of {\pyd\testkit\fixtures\db\Table} and add them to
-     * the collection.
+     * Create several instances of {@see \pyd\testkit\fixtures\db\Table} and add
+     * them to the collection.
      * 
      * Unlike the {@see setTables} method, the collection is not cleared before
      * adding the new instances.
@@ -305,37 +313,5 @@ class TablesCollection extends \yii\base\Object
             $this->tables[$classKey[$className]] = $instance;
             $this->tableClassNames[] = $className;
         }
-    }
-}
-
-/**
- * This exception is thrown when an infinite loop is detected when adding Table
- * instances to the collection.
- */
-class CircularDependencyException extends \Exception{
-    
-    /**
-     * @param array $dependencyStack list of Table class names involved in the
-     * circular dependency
-     */
-    public function __construct(array $dependencyStack) {
-        parent::__construct($this->formatMessage($dependencyStack));
-    }
-
-    /**
-     * Format exception message.
-     * 
-     * @param array $dependencyStack class names involved in the circular
-     * dependency
-     * @return string
-     */
-    protected function formatMessage(array $dependencyStack) {
-        $loopOrigin = array_shift($dependencyStack);
-        $msg = "\nCircular dependency detected for " . $loopOrigin . "class:";
-        foreach ($dependencyStack as $classname) {
-            $msg .= "\n\twhich depends on $classname";
-        }
-        $msg .= "\n\twhich depends on $loopOrigin <- back to origin";
-        return $msg;
     }
 }
