@@ -10,7 +10,7 @@ use pyd\testkit\AssertionMessage;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Element extends \yii\base\Object
+class Element extends \yii\base\BaseObject
 {
     /**
      * @var string the ID used by selenium to identify this web element

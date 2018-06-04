@@ -12,7 +12,7 @@ use yii\base\InvalidParamException;
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Manager extends \yii\base\Object
+class Manager extends \yii\base\BaseObject
 {
     /**
      * @var \pyd\testkit\fixtures\db\TablesCollection 

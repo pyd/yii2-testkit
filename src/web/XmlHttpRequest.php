@@ -21,7 +21,7 @@ use pyd\testkit\web\Csrf;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class XmlHttpRequest extends \yii\base\Object
+class XmlHttpRequest extends \yii\base\BaseObject
 {
     /**
      * Name of the browser storage variable that contains reqeust response data.

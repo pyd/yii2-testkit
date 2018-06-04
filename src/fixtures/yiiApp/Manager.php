@@ -21,7 +21,7 @@ use yii\base\InvalidConfigException;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Manager extends \yii\base\Object
+class Manager extends \yii\base\BaseObject
 {
     /**
      * Class name of the Yii app to be created.

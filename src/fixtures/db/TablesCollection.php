@@ -45,7 +45,7 @@ use yii\base\InvalidConfigException;
  * 
  * @author Pierre-Yves DELETTRE 
  */
-class TablesCollection extends \yii\base\Object
+class TablesCollection extends \yii\base\BaseObject
 {
     /**
      * @see pyd\testkit\fixtures\db\Table

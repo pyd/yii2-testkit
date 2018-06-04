@@ -49,7 +49,7 @@ use yii\base\InvalidParamException;
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class ConfigProviderByDirectory extends \yii\base\Object implements ConfigProvider
+class ConfigProviderByDirectory extends \yii\base\BaseObject implements ConfigProvider
 {
     /**
      * Key for $_SERVER config in {@see $_globalConfig}

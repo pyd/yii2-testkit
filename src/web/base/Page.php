@@ -6,7 +6,7 @@ namespace pyd\testkit\web\base;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Page extends \yii\base\Object
+class Page extends \yii\base\BaseObject
 {
     /**
      * @var \pyd\testkit\web\RemoteDriver $driver

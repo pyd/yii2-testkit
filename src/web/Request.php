@@ -6,7 +6,7 @@ namespace pyd\testkit\web;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Request extends \yii\base\Object
+class Request extends \yii\base\BaseObject
 {
     /**
      * @var string route part of the request url

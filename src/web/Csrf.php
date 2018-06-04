@@ -6,7 +6,7 @@ namespace pyd\testkit\web;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Csrf extends \yii\base\Object
+class Csrf extends \yii\base\BaseObject
 {
     /**
      * @var \pyd\testkit\web\RemoteDriver

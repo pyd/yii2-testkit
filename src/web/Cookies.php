@@ -14,7 +14,7 @@ namespace pyd\testkit\web;
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class Cookies extends \yii\base\Object
+class Cookies extends \yii\base\BaseObject
 {
     /**
      * @var \ExecuteMethod

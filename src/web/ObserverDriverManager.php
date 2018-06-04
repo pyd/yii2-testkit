@@ -15,7 +15,7 @@ use pyd\testkit\web\TestCase;
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class ObserverDriverManager extends \yii\base\Object
+class ObserverDriverManager extends \yii\base\BaseObject
 {
     /**
      * @var \pyd\testkit\web\RemoteDriver the web driver instance
