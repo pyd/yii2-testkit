@@ -5,14 +5,14 @@ use yii\base\InvalidCallException;
 use yii\base\InvalidParamException;
 
 /**
- * Manage a {@see $collection} of {@see \pyd\testkit\fixtures\db\Table} instances.
+ * Manage db fixture.
  * 
- * This class provides methods to load|unload all db tables of the collection
- * and to access to the {@see \pyd\testkit\fixtures\db\Table} instances.
- *
+ * Basically this class handle load and unload of a collection tables.
+ * @see \pyd\testkit\fixtures\db\TablesCollection
+ * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class TablesManager extends \yii\base\Object
+class Manager extends \yii\base\Object
 {
     /**
      * @var \pyd\testkit\fixtures\db\TablesCollection 
@@ -20,17 +20,13 @@ class TablesManager extends \yii\base\Object
     protected $collection;
     
     /**
-     * Shortcut to get fixture data of a db table which has an instance in the
-     * collection.
+     * Shortcut to get data used a as fixture for a db table.
      * 
-     * Table instance must be indexed by an alias in the collection.
-     *
-     * <code>
-     * // 'user' is the Table instance alias in the collection
-     * $userData = $tablesManager->user;
-     * // is a shortcut for
+     * ```php
      * $userData = $tablesManager->getTable('user')->getData();
-     * <code>
+     * // can be done with
+     * $userData = $tablesManager->user;
+     * ```
      *
      * @param string $name alias of a Table instance in the collection
      */
@@ -44,19 +40,21 @@ class TablesManager extends \yii\base\Object
     }
     
     /**
-     * Get the ActiveRecord instance of a table row.
+     * Shortcut to get the ActiveRecord instance of a table row.
      *
-     * <code>
-     * $adminModel = $tablesManager->user('admin', '\app\models\user\Admin');
-     * // is a shortcut for
+     * ```php
      * $adminModel = $tablesManager->getTable('user')->getModel('admin', '\app\models\user\Admin');
-     * <code>
+     * // can be done with
+     * $adminModel = $tablesManager->user('admin', '\app\models\user\Admin');
+     * ```
      *
-     * @param string $name a key (alias or class name) of an item in the collection
+     * @param string $name alias of an item in the collection
      * @param array $params the first value must be the alias of a data row. A
-     * second value (optional) can be the class name of the returned model.
+     * second value (optional) can be the class name of the model to be
+     * returned. If none is provided, the {@see \pyd\testkit\fixtures\db\Table::$modelClass}
+     * will be used.
      * @return yii\db\ActiveRecord
-     * @throws \yii\base\InvalidParamException $params[0] is not an existing data alias
+     * @throws \yii\base\InvalidParamException unknown data row alias
      */
     public function __call($name, $params)
     {
@@ -88,30 +86,30 @@ class TablesManager extends \yii\base\Object
      */
     public function setCollection($type)
     {
-        /**
-         * @todo check created instance class
-         */
         $this->collection = \Yii::createObject($type);
+        if (!$this->collection instanceof TablesCollection) {
+            throw new InvalidParamException(__CLASS__ . '::$collection must be an instance of ' . TablesCollection::className());
+        }
     }
     
     /**
-     * Get a Table instance from the collection by its key.
+     * Get a Table instance from the collection.
      *
-     * @param string $key Table class name or alias
+     * @param string $alias alias of a Table instance in the collection
      * @return \pyd\testkit\fixtures\db\Table
      * @throws \yii\base\InvalidParamException
      */
-    public function getTable($key)
+    public function getTable($alias)
     {
-        if ($this->collection->hasKey($key)) {
-            return $this->collection->get($key);
+        if ($this->collection->hasKey($alias)) {
+            return $this->collection->get($alias);
         } else {
-            throw new InvalidParamException("No Table instance indexed with '$key' was found in the collection.");
+            throw new InvalidParamException("No Table instance found with alias '$alias'.");
         }
     }
 
     /**
-     * Get all Table instances.
+     * Get all Table instances from the collection.
      *
      * @return array \pyd\testkit\fixtures\db\Table
      */
@@ -121,37 +119,26 @@ class TablesManager extends \yii\base\Object
     }
 
     /**
-     * Load all unloaded tables of the collection.
+     * Load all 'unloaded' tables of the collection.
      * 
-     * Call the {@see \pyd\testkit\fixtures\db\Table::load} method of all the
-     * instances of the {@see $collection} which are not already loaded
-     * {@see \pyd\testkit\fixtures\db\Table::$isLoaded}.
+     * @see \pyd\testkit\fixtures\db\Table::load()
      */
     public function load()
     {
         foreach ($this->collection->getAll() as $table) {
-            if (!$table->getIsLoaded()) {
-                $table->load();
-            }
+            $table->load();
         }
     }
 
     /**
-     * Unload all tables of the collection.
+     * Unload all 'loaded' tables of the collection.
      * 
-     * Call the {@see \pyd\testkit\fixtures\db\Table::unload} method of all the
-     * instances of the {@see $collection} which are already loaded - or not if
-     * the $force param is set to true - {@see \pyd\testkit\fixtures\db\Table::$isLoaded}.
-     *
-     * @param boolean $force tables will be unloaded even if their status is
-     * 'not loaded'.
+     * @see \pyd\testkit\fixtures\db\Table::unload()
      */
-    public function unload($force = false)
+    public function unload()
     {
         foreach (array_reverse($this->collection->getAll()) as $table) {
-            if ($force || $table->getIsLoaded()) {
-                $table->unload($force);
-            }
+            $table->unload();
         }
     }
 }
