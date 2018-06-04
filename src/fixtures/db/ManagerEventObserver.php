@@ -1,145 +1,148 @@
 <?php
 namespace pyd\testkit\fixtures\db;
 
-use pyd\testkit\Manager as Testkit;
 use pyd\testkit\TestCase;
 use yii\base\InvalidCallException;
-use pyd\testkit\Tests;
 
 /**
- * Manage db tables content according to the test case events.
+ * Manage db fixture according to test case events.
  * 
- * @see TablesManager
+ * @see Manager
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
-class ObserverTablesManager extends TablesManager
+class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observer
 {
+    use \pyd\testkit\events\ObserverEventHandler;
+    
     /**
-     * Db fixture can be shared in the current test case.
+     * Does the current test case require db table(s) to be loaded with fixture?
+     * 
+     * @see \pyd\testkit\TestCase::dbTablesToLoad
+     * @var boolean
+     */
+    protected $dbRequired;
+    
+    /**
+     * Should the db fixture been shared between tests in the current test case.
      * 
      * @see \pyd\testkit\TestCase::$shareDbFixture
-     * 
      * @var boolean
      */
-    protected $testCaseShareDbFixture;
-    /**
-     * Current test case require some db tables to be loaded with fixture.
-     * 
-     * @see \pyd\testkit\TestCase::dbTablesToLoad()
-     * 
-     * @var boolean
-     */
-    protected $testCaseRequireDb;
+    protected $shareFixture;
 
     /**
-     * Handle 'setUpBeforeClass' event.
+     * Handle the 'setUpBeforeClass' event.
      * 
-     * Create Table instances required by the test case {@see \pyd\testkit\TestCase::dbTablesToLoad()}.
+     * Create Table instances required by the test case.
+     * @see \pyd\testkit\TestCase::dbTablesToLoad
      *
-     * @param string $testCaseClass class of the currently executed test case
-     * @param boolean $testCaseStart event 'setUpBeforeClass' occurs when a new
-     * test case is processed VS before test method in isolation
+     * @param \pyd\testkit\events\SetUpBeforeClass $event
      */
-    public function onSetUpBeforeClass($testCaseClass, $testCaseStart)
+    protected function onSetUpBeforeClass(\pyd\testkit\events\SetUpBeforeClass $event)
     {
-        $this->testCaseShareDbFixture = $testCaseClass::$shareDbFixture;
+        $testCaseClass = $event->getTestCaseClass();
+        $this->shareFixture = $testCaseClass::$shareDbFixture;
+        $this->dbRequired = !empty($testCaseClass::dbTablesToLoad());
         
-        if (!empty($testCaseClass::dbTablesToLoad())) {
-            $this->testCaseRequireDb = true;
+        if ($this->dbRequired) {
             $this->collection->setTables($testCaseClass::dbTablesToLoad());
-            
-            // force unloading when a test case starts in case db was not properly
-            // unloaded in a previous phpunit execution
-            if ($testCaseStart) {
-                $this->unload(true);
-            }
-        } else {
-            $this->testCaseRequireDb = false;
         }
     }
 
     /**
-     * Handle 'setUp' event.
+     * Handle the 'setUp' event.
      * 
-     * Ensure required db tables are loaded with fixture data.
-     * 
-     * If the previous test method was executed in isolation, the db tables
-     * state i.e. loaded|unloaded may be different of their corresponding
-     * {@see Table::$isloaded} property in the current php process. To make sure
-     * that tables state match {@see Table::$isloaded} instances property we have
-     * to force unload i.e. all tables are unloaded - even empty ones - and their
-     * {@see Table::$isloaded} properties are set to false.
-     * 
-     * If the {@see $testCaseShareDbFixture} property is true or the current test
-     * method is executed in isolation, db tables need fresh/untouched content.
-     * So db tables must be unloaded then reloaded.
-     * 
-     * In other cases, only unloaded tables will be loaded with fixture data. 
+     * Ensure that required tables are loaded for the test.
+     * Ensure that required tables are loaded with fresh data if fixture is not
+     * meant to be shared {@see $shareFixture} by tests or if current test is
+     * executed in isolation.
      *
      * @param \pyd\testkit\TestCase $testCase
      */
-    public function onSetUp(TestCase $testCase)
+    protected function onSetUp(\pyd\testkit\events\SetUp $event)
     {
-        if ($this->testCaseRequireDb) {
+        $event->getTestCase()->dbFixture = $this;
+        
+        if ($this->dbRequired) {
             
-            if ($testCase->isInIsolation()) {
-                $this->unload(true);
-                Tests::$manager->getSharedData()->set('afterIsolatedTest', true);
-            } else if (Tests::$manager->getSharedData()->get('afterIsolatedTest', false)) {
-                $this->unload(true);
-                Tests::$manager->getSharedData()->set('afterIsolatedTest', false);
-            } else if (!$this->testCaseShareDbFixture) {
-                $this->unload();
+            // goals:
+            // - required db tables musty be loaded;
+            // - required db tables must be refreshed if current test is in isolation;
+            // - refresh Tables::$isLoaded state if last test was in isolation;
+            
+            
+            // if fixture is not shared:
+            // - required tables were unloaded in onTearDown;
+            // - no shared data variable was set;
+            if (!$this->shareFixture) {
+                $this->load();
+            // if fixture is shared:
+            // - if test was executed in isolation (see shared data variable), just
+            //   remove this variable and update Table::$isLoaded state;
+            // - if test was not executed in isolation, db needs to be refreshed
+            //   if current test is in isolation
+            } else {
+               
+                if (\pyd\testkit\Testkit::$app->sharedData->get('previousTestInIsolation', false)) {
+                    
+                    foreach ($this->getTables() as $table) {
+                        $table->forceLoadedState(false);
+                    }
+                    \pyd\testkit\Testkit::$app->sharedData->remove('previousTestInIsolation');
+                    
+                } else if ($event->getTestIsInIsolation()) {
+                    $this->unload();
+                }
+                $this->load();
             }
-            
-            // this will load only 'unloaded' tables
-            $this->load();
         }
     }
-
+    
     /**
-     * Handle 'tearDownAfterClass' event.
-     *
-     * Db tables must be unloaded at the end of a test case or after a test
-     * method executed in isolation.
+     * Handle the 'tearDown' event.
      * 
-     * @param string $testCaseClass class of the currently executed test case
-     * @param boolean $testCaseEnd event 'tearDownAfterClass' occurs when a
-     * test case ends VS after a test method in isolation
+     * Unload required db tables if fixture is not meant to be shared
+     * {@see $shareFixture} or if test is executed in isolation. This ensures
+     * that they will be loaded with fresh data before the next test {@see onSetUp}.
+     * 
+     * @param \pyd\testkit\events\TearDown $event
      */
-    public function onTearDownAfterClass($testCaseClass, $testCaseEnd)
+    protected function onTearDown(\pyd\testkit\events\TearDown $event)
     {
-        if ($this->testCaseRequireDb) {
-            if ($testCaseEnd) {
+        if ($this->dbRequired) {
+            if (!$this->shareFixture) {
                 $this->unload();
-                $this->collection->clear();
+            } else if ($event->getTestIsInIsolation()) {
+                $this->unload();
+                \pyd\testkit\Testkit::$app->sharedData->set('previousTestInIsolation', true);
             }
         }
     }
 
     /**
-     * Store Table class names, which tables are loaded, in shared memory.
+     * Handle the 'testCaseEnd' event.
+     * 
+     * Make sure that required tables are unloaded.
+     * 
+     * @param \pyd\testkit\events\EndTestCase $event
      */
-    protected function saveInstancesLoadState()
+    protected function onEndTestCase(\pyd\testkit\events\EndTestCase $event)
     {
-        $loadedTables = [];
-        foreach ($this->collection->getAll() as $key => $table) {
-            if ($table->getIsLoaded()) {
-                $loadedTables[] = $key;
+        if ($this->dbRequired) {
+            // unload is done in {@see onTearDown} is db fixture is not shared
+            // or last test was in isolation
+            if ($this->shareFixture) {
+                if (false === \pyd\testkit\Testkit::$app->sharedData->get('previousTestInIsolation', false)) {
+                    $this->unload();
+                } else {
+                    \pyd\testkit\Testkit::$app->sharedData->remove('previousTestInIsolation');
+                }
             }
+            $this->collection->clear();
         }
-        Tests::$manager->getSharedData()->setLoadedDbTables($loadedTables);
-    }
 
-    /**
-     * Refresh db tables status - loaded|unloaded - from shared memory.
-     */
-    protected function refreshInstancesLoadState()
-    {
-        $loadedTables = Tests::$manager->getSharedData()->getLoadedDbTables();
-        foreach ($this->collection->getAll() as $key => $table) {
-            $table->forceLoadState(in_array($key, $loadedTables));
-        }
+        $this->shareFixture = null;
+        $this->dbRequired = null;
     }
 }
