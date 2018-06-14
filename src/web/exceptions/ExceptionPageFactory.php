@@ -1,7 +1,7 @@
 <?php
 namespace pyd\testkit\web\exceptions;
 
-use pyd\testkit\Tests;
+use pyd\testkit\Testkit;
 use yii\base\InvalidParamException;
 
 /**
@@ -39,7 +39,7 @@ class ExceptionPageFactory
             throw new InvalidParamException("No exception page alias named '$exceptionType' exists.");
         }
         $pageClass = self::$exceptionTypes[$exceptionType];
-        $page = \Yii::createObject($pageClass, [Tests::$manager->getWebDriverManager()->getDriver()]);
+        $page = \Yii::createObject($pageClass, [Testkit::$app->webDriverManager->getDriver()]);
         
         $parser = \Yii::createObject(self::$parserClass, [$page]);
          
