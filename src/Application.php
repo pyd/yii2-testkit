@@ -10,6 +10,7 @@ use pyd\testkit\Testkit;
  * @property \pyd\testkit\fixtures\db\Manager $fixtureDb
  * @property \pyd\testkit\events\Mediator $eventMediator
  * @property \pyd\testkit\SharedData $sharedData
+ * @property \pyd\testkit\web\driver\Manager $webDriverManager
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
