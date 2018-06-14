@@ -10,7 +10,7 @@ class GridViewCell extends pyd\testkit\web\Element
 {
     protected function initLocators()
     {
-        parent::initLocations();
+        parent::initLocators();
         $this->locator->add('link', \WebDriverBy::tagName('a'));
     }
 
