@@ -3,26 +3,27 @@ namespace pyd\testkit\web\elements;
 
 /**
  * An html table.
+ * 
+ * @property \pyd\testkit\base\Element $caption table caption
+ * @property array $headers table header cells
+ * @property array $rows table rows (without header one)
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Table extends \pyd\testkit\web\Element
 {
-    public function __construct($id, array $config = array())
-    {
-        parent::__construct($id, $config);
-        $tagName = $this->getTagName();
-        if ('table' !== $tagName) {
-            throw new UnexpectedTagNameException('table', $tagName);
-        }
-    }
-
+    /**
+     * Add locators:
+     * - caption;
+     * - header cells;
+     * - body rows;
+     */
     protected function initLocators()
     {
-        parent::initLocations();
+        parent::initLocators();
         $this->locator->add('caption', \WebDriverBy::tagName('caption'));
-        $this->locator->add('headers', \WebDriverBy::tagName('th'));
-        $this->locator->add('row', $location);
+        $this->locator->add('headers', \WebDriverBy::cssSelector('tr th'));
+        $this->locator->add('rows', \WebDriverBy::cssSelector('tbody tr'));
     }
 
     /**
