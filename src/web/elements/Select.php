@@ -32,6 +32,24 @@ class Select extends \pyd\testkit\web\Element
     }
     
     /**
+     * Get a map - value => text pairs - of all options.
+     * 
+     * @param boolean $withPrompt include prompt option
+     * @return array
+     */
+    public function getMap($withPrompt = false)
+    {
+        $map = [];
+        foreach ($this->getOptions() as $option) {
+            $map[$option->getAttribute('value')] = $option->getText();
+        }
+        if (!$withPrompt) {
+            unset($map['']);
+        }
+        return $map;
+    }
+    
+    /**
      * Get values - tag attribute - of all options.
      * 
      * @param string $promptValue value of the prompt option
