@@ -16,11 +16,9 @@
         "psr-4": { "pyd\\testkit\\tests\\": "tests/" }
     },
     "require": {
-        "php": ">=5.4.0",
+        "php": "<=5.5.9",
         "facebook/webdriver": "dev-master",
-        "ninsuo/php-shared-memory": "dev-master",
-        "floriansemm/official-library-php-email-parser": "dev-master",
-        "chartjes/php-browsermob-proxy": "dev-master"
+        "ninsuo/php-shared-memory": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2": "dev-master"
