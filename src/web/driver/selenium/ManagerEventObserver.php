@@ -2,7 +2,8 @@
 namespace pyd\testkit\web\driver\selenium;
 
 /**
- * Manage webdriver client creation and destruction depending on tests events.
+ * Manage - create/destroy - the 'webdriver client' instance used to talk with
+ * the selenium server according to the tests events.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -11,8 +12,8 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
     use \pyd\testkit\events\ObserverEventHandler;
 
     /**
-     * Use the same web driver session for all tests of the test case vs use
-     * one session per test.
+     * Use the same web driver session/browser VS renew session/browser for each
+     * test in the current test case.
      * 
      * @var boolean 
      */
@@ -27,7 +28,7 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
     protected $clearCookies;
 
     /**
-     * The current test case is a web test case - which requires a browser.
+     * The current test case is a WEB test case - which requires a browser.
      * 
      * @var boolean 
      */
@@ -36,8 +37,6 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
     /**
      * Handle 'setUpBeforeClass' event.
      * 
-     * Some initialization.
-     *
      * @param \pyd\testkit\events\SetUpBeforeClass $event
      */
     public function onSetUpBeforeClass(\pyd\testkit\events\SetUpBeforeClass $event)

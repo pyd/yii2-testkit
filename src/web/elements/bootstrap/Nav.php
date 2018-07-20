@@ -2,9 +2,9 @@
 namespace pyd\testkit\web\elements\bootstrap;
 
 /**
- * Bootstrap 3 nav element.
+ * Bootstrap 3 'nav' element.
  * 
- * @property array $items menu items
+ * @property-read array $items menu items
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */

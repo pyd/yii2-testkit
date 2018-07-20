@@ -4,20 +4,19 @@ namespace pyd\testkit\events;
 use pyd\testkit\events\Event;
 
 /**
- * Event triggered by {@see pyd\testkit\TestCase::tearDownAfterClass()}.
+ * Event triggered when the {@see pyd\testkit\TestCase::tearDownAfterClass()}
+ * method is executed.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class TearDownAfterClass extends Event
 {
     /**
-     * @var class name of the currently processed test case 
+     * @var class name of the currently executed test case 
      */
     protected $testCaseClass;
     
     /**
-     * @todo php7 set type 'string' for $testCaseClass params
-     * 
      * @param string $testCaseClass class name of the test case for which this
      * event is triggered
      * @throws \yii\base\InvalidParamException if $testCaseClass is not an
@@ -25,22 +24,19 @@ class TearDownAfterClass extends Event
      */
     public function __construct($testCaseClass)
     {
-        // if false an exception will be thrown
+        // an exception will be thrown if $stestCaseClass is not a test case class name
         if (Helper::isTestCaseClassName($testCaseClass, true)) {
             $this->testCaseClass = $testCaseClass;
         }
     }
     
-    /**
-     * @return string this event name
-     */
     public static function name()
     {
         return 'tearDownAfterClass';
     }
     
     /**
-     * @return string the class name of the test case that triggered this event
+     * @return string class name of the currently executed test case 
      */
     public function getTestCaseClass()
     {

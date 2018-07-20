@@ -2,7 +2,7 @@
 namespace pyd\testkit\fixtures\db;
 
 /**
- * This exception is thrown when an infinite loop is detected when adding Table
+ * This exception is thrown when an infinite loop is detected while adding Table
  * instances to the collection.
  */
 class CircularDependencyException extends \Exception{

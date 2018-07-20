@@ -4,10 +4,9 @@ namespace pyd\testkit\web;
 use pyd\testkit\AssertionMessage;
 
 /**
- * A specific page.
+ * Base class for page objects with defined route.
  *
- * Usage:
- * <code>
+ * ```php
  * class LoginPage extends \pyd\testkit\web\Page
  * {
  *      protected $route = 'users/auth/login';
@@ -28,7 +27,7 @@ use pyd\testkit\AssertionMessage;
  *      }
  * }
  * $loginPage = new LoginPage($webDriver);
- * </code>
+ * ```php
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -38,30 +37,18 @@ class Page extends base\Page
      * @var string url route
      */
     protected $route;
+    
     /**
      * @var string|array|\WebDriverBy location of the reference element used
-     * to verify if the expected page is displayed
+     * to identify this page
      * @see isDisplayed()
      */
     protected $referenceLocation;
+    
     /**
      * @var \pyd\testkit\web\Request
      */
     private $_request;
-
-    /**
-     * If $name is a location alias, a web element object will be returned.
-     *
-     * @param string $name a location alias
-     * @return \pyd\testkit\web\base\Element
-     */
-    public function __get($name)
-    {
-        if ($this->locator->aliasExists($name)) {
-            return $this->findElement($this->locator->get($name));
-        }
-        throw new \yii\base\UnknownPropertyException("Getting unknown property " .get_class(). "::$name.");
-    }
 
     /**
      * @return \pyd\testkit\web\Request
@@ -69,7 +56,7 @@ class Page extends base\Page
     public function getRequest()
     {
         if (null === $this->_request) {
-            $this->setRequest(new Request($this->driver, ['route' => $this->route]));
+            $this->setRequest(new Request($this->webDriver, ['route' => $this->route]));
         }
         return $this->_request;
     }
@@ -109,7 +96,10 @@ class Page extends base\Page
     }
 
     /**
-     * Verify that this page is displayed i.e. reference element is present.
+     * Verify that this very page is displayed in the browser.
+     * 
+     * This is done by checking if the reference element {@see $referenceLocation}
+     * is present.
      *
      * @return boolean
      * @throws InvalidCallException

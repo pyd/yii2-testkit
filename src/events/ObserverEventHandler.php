@@ -2,7 +2,7 @@
 namespace pyd\testkit\events;
 
 /**
- * Default implementation of the handleEvent() method required by the 'Observer'
+ * Default implementation of the handleEvent() method required by the Observer
  * interface.
  * 
  * @see \pyd\testkit\fixtures\yiiApp\Observer::handleEvent()

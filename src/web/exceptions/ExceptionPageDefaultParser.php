@@ -4,7 +4,8 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * Parser for an exception page generated with the yii default view: views/site/error.
+ * Parser for an exception page which content was generated with the yii default
+ * view: views/site/error.
  * 
  * @see \pyd\testkit\web\exceptions\Page
  *

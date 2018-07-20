@@ -5,7 +5,9 @@ use pyd\testkit\Log;
 use pyd\testkit\Testkit;
 
 /**
- * Listen to test events and inform the test events dispatcher.
+ * Listen to test events and inform events mediator.
+ * 
+ * @see \pyd\testkit\events\Mediator
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -48,7 +50,7 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
         $suiteName = $suite->getName();
         
         if (class_exists($suiteName)) {
-            $this->informObservers(new events\EndTestCase($suite));
+            $this->notifyMediator(new events\EndTestCase($suite));
         }
         
         if ($suiteName = $this->suiteName) {
@@ -61,7 +63,7 @@ class TestListener extends \PHPUnit_Framework_BaseTestListener
      * 
      * @param \pyd\testkit\events\Event $event 
      */
-    protected function informObservers(events\Event $event)
+    protected function notifyMediator(events\Event $event)
     {
         Testkit::$app->eventMediator->informObservers($event);
     }

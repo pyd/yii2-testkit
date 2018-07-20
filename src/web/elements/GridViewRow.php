@@ -2,7 +2,7 @@
 namespace pyd\testkit\web\elements;
 
 /**
- * This element represent a row in a grid view table.
+ * This element represent a row in a grid view.
  *
  * @property \pyd\testkit\web\base\Element $deleteLink
  * @property \pyd\testkit\web\base\Element $viewLink

@@ -2,7 +2,7 @@
 namespace pyd\testkit\web\elements;
 
 /**
- * An html table.
+ * A <table> web element.
  * 
  * @property \pyd\testkit\base\Element $caption table caption
  * @property array $headers table header cells

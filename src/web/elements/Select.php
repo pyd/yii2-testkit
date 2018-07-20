@@ -37,7 +37,7 @@ class Select extends \pyd\testkit\web\Element
      * @param boolean $withPrompt include prompt option
      * @return array
      */
-    public function getMap($withPrompt = false)
+    public function getOptionsMap($withPrompt = false)
     {
         $map = [];
         foreach ($this->getOptions() as $option) {
@@ -144,7 +144,6 @@ class Select extends \pyd\testkit\web\Element
     }
 
     /**
-     *
      * @return string value of the first selected option.
      */
     public function getFirstSelectedOptionValue()

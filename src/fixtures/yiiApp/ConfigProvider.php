@@ -2,7 +2,7 @@
 namespace pyd\testkit\fixtures\yiiApp;
 
 /**
- * interface for Yii app config provider classes.
+ * Interface for a class providing config to create a Yii app.
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */

@@ -14,11 +14,17 @@ class GridViewCell extends pyd\testkit\web\Element
         $this->locator->add('link', \WebDriverBy::tagName('a'));
     }
 
+    /**
+     * @return boolean this cell contains a link
+     */
     public function haslink()
     {
         return $this->hasElement('link');
     }
 
+    /**
+     * @return string the url of the link in this cell
+     */
     public function getLinkUrl()
     {
         $link = $this->findElement('link');

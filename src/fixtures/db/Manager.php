@@ -3,12 +3,16 @@ namespace pyd\testkit\fixtures\db;
 
 use yii\base\InvalidCallException;
 use yii\base\InvalidParamException;
+use pyd\testkit\fixtures\db\TablesCollection;
 
 /**
  * Manage db fixture.
  * 
- * Basically this class handle load and unload of a collection tables.
+ * Basically this class provides methods to load and unload some tables in db.
+ * It also give access to objects representing those db tables.
+ * 
  * @see \pyd\testkit\fixtures\db\TablesCollection
+ * @see \pyd\testkit\fixtures\db\Table
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -20,15 +24,17 @@ class Manager extends \yii\base\BaseObject
     protected $collection;
     
     /**
-     * Shortcut to get data used a as fixture for a db table.
+     * Shortcut to get raw fixture data for a db table of the {@see $collection}.
      * 
      * ```php
-     * $userData = $tablesManager->getTable('user')->getData();
-     * // can be done with
-     * $userData = $tablesManager->user;
+     * // 'users' is the alias of an item in the collection
+     * $usersTableFixture = $dbFixtureManager->users;
+     * // is a shortcut for
+     * $usersTableFixture = $dbFixtureManager->getTable('users')->getData();
      * ```
      *
-     * @param string $name alias of a Table instance in the collection
+     * @param string $name alias of a \pyd\testkit\fixtures\db\Table instance
+     * in the {@see $collection}
      */
     public function __get($name)
     {
@@ -40,21 +46,26 @@ class Manager extends \yii\base\BaseObject
     }
     
     /**
-     * Shortcut to get the ActiveRecord instance of a table row.
+     * Shortcut to get the ActiveRecord instance of a db table row.
      *
      * ```php
-     * $adminModel = $tablesManager->getTable('user')->getModel('admin', '\app\models\user\Admin');
-     * // can be done with
-     * $adminModel = $tablesManager->user('admin', '\app\models\user\Admin');
+     * // 'users' is the alias of an item in the collection
+     * // 'admin' is the alias of a fixture data row for the 'users' table
+     * $adminModel = $dbFixtureManager->users('admin', '\app\models\users\Admin');
+     * // is a shortcut for
+     * $adminModel = $dbFixtureManager->getTable('users')->getModel('admin', '\app\models\user\Admin');
      * ```
-     *
+     * 
      * @param string $name alias of an item in the collection
      * @param array $params the first value must be the alias of a data row. A
      * second value (optional) can be the class name of the model to be
-     * returned. If none is provided, the {@see \pyd\testkit\fixtures\db\Table::$modelClass}
-     * will be used.
+     * returned. If none is provided, the default
+     * {@see \pyd\testkit\fixtures\db\Table::$modelClass} will be used.
      * @return yii\db\ActiveRecord
-     * @throws \yii\base\InvalidParamException unknown data row alias
+     * @throws InvalidCallException $params can not be empty. It must at least
+     * contain a data row alias to populate the model to be returned
+     * @throws InvalidParamException the data row alias - first value of $params -
+     * does not exist 
      */
     public function __call($name, $params)
     {
@@ -83,6 +94,9 @@ class Manager extends \yii\base\BaseObject
     
     /**
      * @param strin|array|callback $type
+     * @throws InvalidParamException $type is neither an instance of
+     * {@see \pyd\testkit\fixtures\db\TablesCollection} nor a configuration to
+     * create an object of this class
      */
     public function setCollection($type)
     {
@@ -122,6 +136,7 @@ class Manager extends \yii\base\BaseObject
      * Load all 'unloaded' tables of the collection.
      * 
      * @see \pyd\testkit\fixtures\db\Table::load()
+     * @see \pyd\testkit\fixtures\db\Table::$isLoaded
      */
     public function load()
     {
@@ -134,6 +149,7 @@ class Manager extends \yii\base\BaseObject
      * Unload all 'loaded' tables of the collection.
      * 
      * @see \pyd\testkit\fixtures\db\Table::unload()
+     * @see \pyd\testkit\fixtures\db\Table::$isLoaded
      */
     public function unload()
     {

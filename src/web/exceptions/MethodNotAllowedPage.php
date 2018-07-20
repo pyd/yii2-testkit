@@ -4,7 +4,7 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * This page is displayed when a request is send with an unauthorized method
+ * Exception page displayed when a request is send with an unauthorized method
  * e.g. a request is sent with the GET method but only POST is allowed.
  *
  * @see yii\filters\VerbFilter::beforeAction()

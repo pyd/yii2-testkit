@@ -9,7 +9,7 @@ namespace pyd\testkit\events;
 class Helper
 {
     /**
-     * Is a class name a test case class name.
+     * Check if a class name is a test case class name.
      * 
      * Check if class exists and is a subclass of {@see \pyd\testkit\TestCase}.
      * 

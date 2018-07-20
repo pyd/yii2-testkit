@@ -4,7 +4,7 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * This page is displayed when a request is sent without all the required
+ * Exception page displayed when a request is sent without all required
  * parameters.
  *
  * @see yii\web\Controller::bindActionParams()

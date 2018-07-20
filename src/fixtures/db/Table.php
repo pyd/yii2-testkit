@@ -14,7 +14,7 @@ use yii\base\InvalidCallException;
  * @see getLoadedData() get the content of the table just after loading fixture data
  * @see getIsLoaded() get the loading state (loaded|unloaded) of the table. Note
  * that this state relies on usage of {@see load()} and {@see unload()} methods.
- * If you execute an SQL "DELETE FROM table_name;" request via DAO or ActiveRecord
+ * If you execute an SQL "DELETE FROM table_name" request via DAO or ActiveRecord
  * the table will be empty but its state will remain 'loaded'.
  * @see forceLoadedState() to force table state (see below)
  * 
@@ -26,14 +26,15 @@ use yii\base\InvalidCallException;
 class Table extends \yii\test\Fixture
 {
     /**
-     * The table 'loading' status. True after {@see load()} and false after
+     * The table 'loading' state. True after {@see load()} and false after
      * {@see unload()}.
      * 
      * Be aware that modifying a table via DAO or activeRecord won't affect this
      * property.
      * 
      * This property has no usefulness when this instance is used by
-     * {@see \yii\console\controllers\FixtureController} to load db via the console.
+     * {@see \yii\console\controllers\FixtureController} to load db fixture via
+     * the console.
      * 
      * @var boolean
      */
@@ -348,5 +349,4 @@ class Table extends \yii\test\Fixture
     {
         return $this->data;
     }
-    
 }

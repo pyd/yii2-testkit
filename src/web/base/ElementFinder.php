@@ -5,21 +5,26 @@ use pyd\testkit\web\elements\Helper;
 use pyd\testkit\AssertionMessage;
 
 /**
- * Utility to find web elements and get them as objects.
+ * Find web element(s) in the DOM or within a web element.
+ * 
+ * Finding web element(s) is a 2 steps process:
+ * - request webDriver to get ID(s) of web element(s);
+ * - create and return web element instance(s) with this ID(s);
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ElementFinder
 {
     /**
-     * @var \RemoteExecuteMethod
+     * @var \RemoteExecuteMethod to send command to webDriver
      */
     protected $executor;
+    
     /**
-     * @var \pyd\testkit\web\base\ElementCreator
+     * @var \pyd\testkit\web\base\ElementCreator to create web element objects
      */
     protected $creator;
-
+    
     /**
      * @param \RemoteExecuteMethod $executor
      */
@@ -30,13 +35,13 @@ class ElementFinder
     }
 
     /**
-     * Return the selenium ID of the first element in the DOM that matches the
-     * provided location.
+     * Get the ID of the first web element in the DOM that matches the selector.
+     * 
+     * This ID is used by webDriver to identify a web element.
+     * A \NoSuchElementException is thrown if no element matches the selector.
      *
-     * A \NoSuchElementException is raised if there's no matching element.
-     *
-     * @param \WebDriverBy $by target element location
-     * @return string element ID
+     * @param \WebDriverBy $by element selector
+     * @return string web element ID
      */
     public function getID(\WebDriverBy $by)
     {
@@ -46,14 +51,15 @@ class ElementFinder
     }
 
     /**
-     * Return the selenium ID of the first element within a web element that
-     * matches the provided location.
+     * Get the ID of the first web element that is a child of the target web
+     * element and matches the selector.
+     * 
+     * This ID is used by webDriver to identify a web element.
+     * A \NoSuchElementException is thrown if no element matches the selector.
      *
-     * A \NoSuchElementException is raised if there's no matching element.
-     *
-     * @param \WebDriverBy $by target element location
+     * @param \WebDriverBy $by element selector
      * @param string $parentElementID ID of the parent element
-     * @return string child element ID
+     * @return string web element ID
      */
     public function getChildID(\WebDriverBy $by, $parentElementID)
     {
@@ -63,10 +69,12 @@ class ElementFinder
     }
 
     /**
-     * Return the selenium IDs of all elements in the DOM that match the
-     * provided location.
-     *
-     * @param \WebDriverBy $by target elements location
+     * Get the IDs of all web elements in the DOM that match the selector.
+     * 
+     * An ID is used by webDriver to identify a web element.
+     * An empty array is returned if no element matches the selector.
+     * 
+     * @param \WebDriverBy $by element selector
      * @return array IDs of elements. An empty array if no match was found.
      */
     public function getIDs(\WebDriverBy $by)
@@ -81,10 +89,13 @@ class ElementFinder
     }
 
     /**
-     * Return the selenium IDs of all elements within a web element that
-     * matches the provided location.
+     * Get the IDs of all web elements that match the selector and are children
+     * of the target web element.
      *
-     * @param \WebDriverBy $by target elements location
+     * An ID is used by webDriver to identify a web element.
+     * An empty array is returned if no element matches the selector.
+     * 
+     * @param \WebDriverBy $by element selector
      * @param string $parentElementID ID of the parent element
      * @return array IDs of elements. An empty array if no match was found.
      */
@@ -100,8 +111,10 @@ class ElementFinder
     }
 
     /**
-     * Return the selenium ID of the element that has focus.
+     * Get the ID of the web element that has focus.
      *
+     * An ID is used by webDriver to identify a web element.
+     * 
      * @return string element ID
      */
     public function getActiveElementId()
@@ -111,12 +124,11 @@ class ElementFinder
     }
 
     /**
-     * Return an object representing the first element in the DOM that matches
-     * the provided location.
+     * Get the first web element in the DOM that matches the selector.
      *
-     * A \NoSuchElementException is raised if there's no matching element.
+     * A \NoSuchElementException is thrown if there's no matching element.
      *
-     * @param \WebDriverBy $by target element location
+     * @param \WebDriverBy $by element selector
      * @param string|array|callable $type a definition of the object to be
      * created @see \Yii::createObject
      * @return \pyd\testkit\web\base\Element or subclass
@@ -128,10 +140,9 @@ class ElementFinder
     }
 
     /**
-     * Return an array of objects representing all elements in the DOM that
-     * match the provided location.
+     * Get all web elements in the DOM that match the selector.
      *
-     * @param \WebDriverBy $by target elements location
+     * @param \WebDriverBy $by element selector
      * @param string|array|callable $type a definition of the objects to be
      * created @see \Yii::createObject
      * @return array of \pyd\testkit\web\base\Element or subclass. An empty
@@ -147,12 +158,12 @@ class ElementFinder
     }
 
     /**
-     * Return an object representing the first element within a web element that
-     * matches the provided location.
+     * Get the first web element that matches the selector and is a child of the
+     * target web element.
      *
-     * A \NoSuchElementException is raised if there's no matching element.
+     * A \NoSuchElementException is thrown if there's no matching element.
      *
-     * @param \WebDriverBy $by target element location
+     * @param \WebDriverBy $by element selector
      * @param string $parentElementID ID of the parent element
      * @param string|array|callable $type a definition of the object to be
      * created @see \Yii::createObject
@@ -165,10 +176,10 @@ class ElementFinder
     }
 
     /**
-     * Return an array of objects representing all elements within a web element
-     * that matches the provided location.
+     * Get all web elements that matches the selector and are children of the
+     * target web element.
      *
-     * @param \WebDriverBy $by target element location
+     * @param \WebDriverBy $by element selector
      * @param string $parentElementID ID of the parent element
      * @param string|array|callable $type a definition of the object to be
      * created @see \Yii::createObject
@@ -185,10 +196,9 @@ class ElementFinder
     }
 
     /**
-     * Verify if an element is present in the DOM (visible or not) that matches
-     * the provided location.
+     * Check if a web element that matches the selector is present in the DOM.
      *
-     * @param \WebDriverBy $by target element location
+     * @param \WebDriverBy $by element selector
      * @return boolean
      */
     public function hasElement(\WebDriverBy $by)
@@ -205,10 +215,10 @@ class ElementFinder
     }
 
     /**
-     * Verify if an element is present within another element (visible or not)
-     * that matches the provided location.
+     * Check if a web element that matches the selector is present as a child of
+     * the target web element.
      *
-     * @param \WebDriverBy $by target element location
+     * @param \WebDriverBy $by element selector
      * @param string $parentElementID ID of the parent element
      * @return boolean
      */
@@ -226,7 +236,7 @@ class ElementFinder
     }
 
     /**
-     * Return an object representing the element that has focus.
+     * Get the web element that has focus.
      *
      * @return \pyd\testkit\web\base\Element
      */

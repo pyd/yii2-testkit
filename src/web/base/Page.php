@@ -3,15 +3,21 @@ namespace pyd\testkit\web\base;
 
 /**
  * Base class for page objects.
+ * 
+ * This class is meant to represent a page that is already loaded in the browser
+ * like an exception page. There are no $route property or load() method.
+ * 
+ * @see \pyd\testkit\web\Page to create classes that represent specific pages.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Page extends \yii\base\BaseObject
 {
     /**
-     * @var \pyd\testkit\web\RemoteDriver $driver
+     * @var \pyd\testkit\web\RemoteDriver web driver instance
      */
-    protected $driver;
+    protected $webDriver;
+    
     /**
      * @var \pyd\testkit\web\base\ElementLocator
      */
@@ -23,24 +29,24 @@ class Page extends \yii\base\BaseObject
      */
     public function __construct(\pyd\testkit\web\RemoteDriver $webDriver, $config = array())
     {
-        $this->driver = $webDriver;
+        $this->webDriver = $webDriver;
         parent::__construct($config);
     }
 
     /**
-     * Initialization.
-     *
-     * Create a @see $locator object if it does not exit yet.
+     * Initialize {@see $locator} if its not.
      */
     public function init()
     {
         if (null === $this->locator) {
             $this->setLocator(new ElementLocator());
         }
+        $this->initLocators();
     }
 
     /**
-     * If $name is a locator alias, it will return this element.
+     * If $name is a locator alias, an instance of the web element found with
+     * this locator will be returned.
      *
      * @param string $name
      * @return \pyd\testkit\web\base\Element
@@ -52,20 +58,17 @@ class Page extends \yii\base\BaseObject
         }
         return parent::__get($name);
     }
-
+    
     /**
-     * This method set @see $locator and call @see initLocators().
-     *
-     * @param \pyd\testkit\web\base\ElementLocator $locator @see $locator
+     * @param \pyd\testkit\web\base\ElementLocator $locator
      */
     public function setLocator(\pyd\testkit\web\base\ElementLocator $locator)
     {
         $this->locator = $locator;
-        $this->initLocators();
     }
 
     /**
-     * @return \pyd\testkit\web\base\ElementLocator or subclass
+     * @return \pyd\testkit\web\base\ElementLocator
      */
     public function getLocator()
     {
@@ -73,10 +76,9 @@ class Page extends \yii\base\BaseObject
     }
 
     /**
-     * Return an object representing the first element in the DOM that matches
-     * the $location.
+     * Return the first element in the DOM that matches the $location.
      *
-     * If there's no matching, a @see \NoSuchElementException is raised.
+     * If there's no matching, a {@see \NoSuchElementException} is raised.
      *
      * @param \WebDriverBy|string|array $location target element location
      * @see \pyd\testkit\web\base\ElementLocator::resolve()
@@ -88,12 +90,11 @@ class Page extends \yii\base\BaseObject
     public function findElement($location, $type = null)
     {
         $by = $this->locator->resolve($location);
-        return $this->driver->findElementAs($by, $type);
+        return $this->webDriver->findElementAs($by, $type);
     }
 
     /**
-     * Return an an array of object representing all elements in the DOM that
-     * match the location.
+     * Return all elements in the DOM that match the location.
      *
      * If there's no matching, an empty array is returned.
      *
@@ -107,7 +108,7 @@ class Page extends \yii\base\BaseObject
     public function findElements($location, $type = null)
     {
         $by = $this->locator->resolve($location);
-        return $this->driver->findElementsAs($by, $type);
+        return $this->webDriver->findElementsAs($by, $type);
     }
 
     /**
@@ -120,23 +121,23 @@ class Page extends \yii\base\BaseObject
     public function hasElement($location)
     {
         $by = $this->locator->resolve($location);
-        return $this->driver->hasElement($by);
+        return $this->webDriver->hasElement($by);
     }
 
     /**
-     * @return string the current page source
+     * @return string source of the current page
      */
     public function getSource()
     {
-        return $this->driver->getPageSource();
+        return $this->webDriver->getPageSource();
     }
 
     /**
-     * @return string the current page title
+     * @return string title of the current page
      */
     public function getTitle()
     {
-        return $this->driver->getTitle();
+        return $this->webDriver->getTitle();
     }
 
     /**
@@ -148,6 +149,7 @@ class Page extends \yii\base\BaseObject
      * // or
      * $this->locator->add('loginForm', ['id', 'login-form']);
      * ```
+     * @see init where this method is called
      * @see \pyd\testkit\web\base\ElementLocator
      */
     protected function initLocators() {}

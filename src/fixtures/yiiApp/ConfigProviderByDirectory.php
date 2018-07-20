@@ -5,10 +5,11 @@ use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 
 /**
- * Provide a config to create a Yii app instance.
+ * Provide a config to create a Yii app instance based on the directory
+ * containing the currently executed test case.
  * 
  * This class can also handle $_SERVER variables to be initialize before the
- * creation of the app.
+ * creation of the Yii app.
  * 
  * The generated config depends on the testing three i.e. the config will be the
  * same for all test cases in a directory.

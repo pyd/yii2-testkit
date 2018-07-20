@@ -9,7 +9,7 @@ use yii\base\UnknownPropertyException;
 use pyd\testkit\AssertionMessage;
 
 /**
- * Base class for model classes unit testing.
+ * Base class to 'unit test' Models.
  * 
  * Usage: create a test case class extending ModelTestCase.
  * @see modelReference() to define model to test at the test case level

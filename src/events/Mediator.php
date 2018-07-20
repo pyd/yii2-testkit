@@ -18,8 +18,6 @@ class Mediator extends \yii\base\BaseObject
     /**
      * Register an observer that wants to be informed of an event.
      * 
-     * @todo php7 set type 'string' for $eventName param
-     * 
      * @param string $eventName
      * @param pyd\testkit\events\Observer $observer
      * @throws \LogicException the observer is already registered for this event
@@ -37,8 +35,6 @@ class Mediator extends \yii\base\BaseObject
     /**
      * Unregister an observer that don't want to be informed of an event anymore.
      * 
-     * @todo php7 set type 'string' for $eventName param
-     * 
      * @param string $eventName
      * @param pyd\testkit\events\Observer $observer
      * @throws \LogicException the observer is not registered for this event
@@ -54,11 +50,7 @@ class Mediator extends \yii\base\BaseObject
     }
     
     /**
-     * Inform observers of an event that it occurs.
-     * 
-     * Note: nothing will happen if there's no observers for this event.
-     * 
-     * @todo php7 set type 'string' for $eventName param
+     * Inform registered observers that an event occurs.
      * 
      * @param pyd\testkit\events\Event $event
      */
@@ -74,8 +66,6 @@ class Mediator extends \yii\base\BaseObject
     
     /**
      * Check if an observer is registered to be informed of an event.
-     * 
-     * @todo php7 set type 'string' for $eventName param
      * 
      * @param string $eventName
      * @param pyd\testkit\events\Observer $observer
@@ -103,10 +93,10 @@ class Mediator extends \yii\base\BaseObject
      * ```
      * An observer can be an instance of {@see \pyd\testkit\events\Observer} or
      * the ID of a component of this class.
-     * Observer are registered for an event in the same order.
+     * Observers are registered for an event in the same order.
      * 
      * @param array $observers each item must be an array of observers - instance
-     * od component ID - indexed by an event name
+     * or component ID - indexed by an event name
      * @throws InvalidParamException an observer is neither an instance of Observer
      * nor the ID of such a component
      */

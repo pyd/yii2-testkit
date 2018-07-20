@@ -4,7 +4,8 @@ namespace pyd\testkit\web\exceptions;
 use pyd\testkit\AssertionMessage;
 
 /**
- * This page is displayed when the csrf validation fails for a request.
+ * This is the exception page displayed when the csrf validation has failed for
+ * a request.
  *
  * @see yii\web\Controller::beforeAction()
  *

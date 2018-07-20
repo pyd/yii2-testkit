@@ -9,8 +9,8 @@ namespace pyd\testkit\web;
  * You first have to load a page to be able to get/set a cookie for the same
  * domain.
  *
- * WebDriver provides a shortcut to get an instance of this class:
- * @see \pyd\testkit\functional\base\WebDriver::cookies()
+ * @see \pyd\testkit\functional\base\WebDriver::cookies to get an instance of
+ * this class
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */

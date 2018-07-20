@@ -4,20 +4,22 @@ namespace pyd\testkit\events;
 use pyd\testkit\TestCase;
 
 /**
- * SetUp event triggered by {@see pyd\testkit\TestCase::setUp()}.
+ * Event triggered when the {@see pyd\testkit\TestCase::setUp()} method is
+ * executed.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class SetUp extends Event
 {
     /**
-     * Instance of the test case that did trigger this event.
+     * Currently executed test case.
      * 
      * @var \pyd\testkit\TestCase
      */
     protected $testCase;
+    
     /**
-     * @var boolean test method will be executed in a separate process 
+     * @var boolean current test is executed in isolation
      */
     protected $testIsInIsolation;
     
@@ -35,18 +37,13 @@ class SetUp extends Event
         $this->testIsInIsolation = $this->testCase->isInIsolation();
     }
     
-    /**
-     * Get name of this event.
-     * 
-     * @return string
-     */
     public static function name()
     {
         return 'setUp';
     }
     
     /**
-     * Get instance of the currently executed test case.
+     * Get the instance of the currently executed test case.
      * 
      * @return \pyd\testkit\TestCase
      */
@@ -56,7 +53,7 @@ class SetUp extends Event
     }
     
     /**
-     * @return boolean test method will be executed in a separate process
+     * @return boolean current test is executed in isolation
      */
     public function getTestIsInIsolation()
     {

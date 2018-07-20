@@ -16,16 +16,19 @@ class RemoteDriver extends \RemoteWebDriver
      * @see waitNewPageStateComplete()
      */
     const PAGE_FLAG_ID = 'page-flag-id';
+    
     /**
      * @var \pyd\testkit\web\base\ElementFinder
      */
     private $_finder;
+    
     /**
      * @see addPageFlag()
      * @see waitNewPageStateComplete()
      * @var boolean the 'flag' element has been added to a page
      */
     private $pageFlagAdded = false;
+    
     /**
      * @return \pyd\testkit\web\base\ElementFinder
      */
@@ -172,28 +175,6 @@ class RemoteDriver extends \RemoteWebDriver
         }, "document.readyState still not 'complete' after $timeoutInSec seconds.");
 
         $this->pageFlagAdded = false;
-        
-//        if (false === $this->pageFlagAdded) {
-//            throw new \yii\base\InvalidCallException("A 'flag' element should have been added to the page."
-//                    . " Did you execute the " . get_class() . "::addPageFlag() method before sending the request?");
-//        }
-//        $flagId = self::PAGE_FLAG_ID;
-//        // documentElement can be null between unload of the previous page and load of the new one
-//        // in this case, trying to find the 'flag' element will generate an error
-//        $script = <<<EOS
-//if (document.documentElement !== null && document.getElementById("$flagId") === null && "complete" === document.readyState) {
-//    return 1;
-//} else {
-//    return 0;
-//}
-//EOS;
-//        $this->wait($timeoutInSec, $intervalInMillisec)
-//            ->until(
-//                function() use ($script) { return 1 === $this->executeScript($script); },
-//                "document.readyState still not 'complete' after $timeoutInSec seconds."
-//            );
-//echo "\npageFlagAdded set to False";
-//        $this->pageFlagAdded = false;
     }
 
     /**

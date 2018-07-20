@@ -14,7 +14,7 @@ class GridViewSummary extends \pyd\testkit\web\Element
     public $totalCountPattern = "` (?P<total>[0-9]+) `";
 
     /**
-     * Extract the total of items from the gridView summary.
+     * Read the total of items from the gridView summary.
      *
      * @return integer grid view elements total count
      * @throws \LogicException failed to extract total count

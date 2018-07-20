@@ -5,9 +5,7 @@ use pyd\testkit\TestCase;
 use yii\base\InvalidCallException;
 
 /**
- * Manage db fixture according to test case events.
- * 
- * @see Manager
+ * Manage db fixture by observing test case events.
  * 
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
@@ -67,10 +65,9 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
         if ($this->dbRequired) {
             
             // goals:
-            // - required db tables musty be loaded;
+            // - required db tables must contain fixture data;
             // - required db tables must be refreshed if current test is in isolation;
             // - refresh Tables::$isLoaded state if last test was in isolation;
-            
             
             // if fixture is not shared:
             // - required tables were unloaded in onTearDown;
@@ -123,7 +120,7 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
     /**
      * Handle the 'testCaseEnd' event.
      * 
-     * Make sure that required tables are unloaded.
+     * Make sure that required tables are empty.
      * 
      * @param \pyd\testkit\events\EndTestCase $event
      */

@@ -2,7 +2,7 @@
 namespace pyd\testkit\web;
 
 /**
- * Utilities related to csrf token.
+ * Retrieve the CSRF token from a page (hidden input or meta tag).
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */

@@ -2,10 +2,9 @@
 namespace pyd\testkit\web\driver\selenium;
 
 /**
- * Manage webdriver client - to send commands to selenium server.
+ * Manage - create/destroy - the 'webdriver client' instance used to talk with
+ * the selenium server.
  * 
- * Create and destroy webdriver client instance and its session.
- *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Manager extends \yii\base\BaseObject implements \pyd\testkit\web\driver\Manager
@@ -46,10 +45,10 @@ class Manager extends \yii\base\BaseObject implements \pyd\testkit\web\driver\Ma
     /**
      * Driver instance exists and can send commands.
      * 
-     * @warning if the {@see \RemoteWebDriver::close()} method is called in a
-     * test, a browser with only one tab will close. Although this method will
-     * still return true you commands will be sent, selenium will complain with
-     * a \NoSuchWindow exception.
+     * Note that this method does not check if the browser is opened. If it's
+     * not, the command will be sent but selenium will complain with a
+     * \NoSuchWindow exception. This happens when the {@see \RemoteWebDriver::close}
+     * method is called on a browser with only one tab.
      * The {@see \RemoteWebDriver::quit()} method should be used to close
      * browser and session.
      *

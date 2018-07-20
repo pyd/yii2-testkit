@@ -5,7 +5,7 @@ use pyd\testkit\Testkit;
 use yii\base\InvalidParamException;
 
 /**
- * Create exception page instances.
+ * Factory for exception pages.
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */

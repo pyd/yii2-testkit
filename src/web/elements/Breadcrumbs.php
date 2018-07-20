@@ -2,21 +2,19 @@
 namespace pyd\testkit\web\elements;
 
 /**
- * A breadcrumbs web element.
+ * A 'breadcrumbs' web element.
+ * 
+ * @property-read array $items breadcrumbs items
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class Breadcrumbs extends \pyd\testkit\web\Element
 {
     /**
-     * @var array \pyd\testkit\functional\Element
+     * @var array \pyd\testkit\web\base\Element
      */
     private $_items;
 
-    /**
-     * Add locator:
-     * - array: items in the breadcrumbs element;
-     */
     protected function initLocators()
     {
         parent::initLocators();
@@ -26,7 +24,7 @@ class Breadcrumbs extends \pyd\testkit\web\Element
     /**
      * Find all items.
      * 
-     * @return array \pyd\testkit\functional\Element
+     * @return array \pyd\testkit\web\base\Element
      */
     public function findItems()
     {
@@ -37,7 +35,7 @@ class Breadcrumbs extends \pyd\testkit\web\Element
     }
 
     /**
-     * One item has the expected label.
+     * One item has this label.
      * 
      * @param string $label
      * @param boolean $caseSensitive 
@@ -53,8 +51,7 @@ class Breadcrumbs extends \pyd\testkit\web\Element
     }
 
     /**
-     * One item has a label that contains - may be all label or just a part of
-     * it - the expected text.
+     * One item has a label that contains the expected text.
      * 
      * @param string $texte
      * @return boolean

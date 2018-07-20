@@ -4,46 +4,41 @@ namespace pyd\testkit\web\base;
 use yii\base\InvalidParamException;
 
 /**
- * Manage aliases for web element location.
- *
- * <code>
- * // add a 'loginForm' alias with an array location
- * $page->getLocator()->add('loginForm', ['id', 'login-form']);
- * // or with a \WebDriverBy location
- * // $page->getLocator()->add('loginForm', \WebDriverBy::id('login-form'));
+ * Manage a collection of web element locators for a 'parent' web element.
  * 
- * // use the alias to get the web element instance
- * $this->assertTrue($page->loginForm->isDisplayed());
- * </code>
- *
- * @see \WebDriverBy
+ * A locator is an alias that points to a {@see \WebDriverBy} instance.
  * 
- * @todo when locator is an array, its conversion to a \WebDriver object should
- * be handled by the ElementFinder class. This job should not be the responsability
- * of the ElementLocator. When declaring a locator property in a class as an array,
- * it is not possible to use $this->webDriver->findElement($this->locator)
- * because this method param must be a WebDriverBy instance.
- * We can modify the RemoteDriver::findElement - findElements, findElementAs ... -
- * methods to accept locator as an array.
- * We can also make the ElementLocator::fromArray method reachable from
- * anywhere - may be a static method - to convert array to WebDriverBy.
- * locator resolution here should only handle string locators - aliases. Array
- * to WebDriverBy resolution should be done elsewhere...
+ * ```php
+ * // add a 'loginForm' alias pointing to the login form web element
+ * $loginPage->getLocator()->add('loginForm', \WebDriverBy::id('login-form'));
+ * // later, use the alias to get the web element instance
+ * $this->assertTrue($loginPage->loginForm->isDisplayed());
+ * ```
+ * Note that a locator can be added using a {@see \WebDriverBy} instance or an
+ * array {@see fromArray}.
+ * ```php
+ * $loginPage->getLocator()->add('loginForm', ['id' => 'login-form']);
+ * ```
+ * 
+ * @see \WebDriverBy the locator instance
+ * @see \pyd\testkit\web\Element::initLocators to define locators for a web
+ * element class
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */
 class ElementLocator
 {
     /**
-     * @var array of $alias => $webDriverByInstance pairs
+     * @var array of {@see \WebDriverBy} instances indexed by aliases
      */
     private $map = [];
 
     /**
-     * Add a \WebDriverby instance indexed by an alias to the @see $map property.
+     * Add a \WebDriverby instance indexed by an alias to the {@see $map}
+     * property.
      *
      * @param string $alias alias of the location
-     * @param \WebDriverBy|array $location if an array @see fromArray()
+     * @param \WebDriverBy|array $location if an array {@see fromArray}
      * @param boolean $overwrite if set to true and $alias already exists, it's
      * location will be overwriten by the new one.
      * @throws InvalidParamException:
@@ -75,7 +70,7 @@ class ElementLocator
     }
 
     /**
-     * A location alias exists.
+     * Check if an alias exists in the {@see $map} property.
      *
      * @param string $alias
      * @return boolean
@@ -86,7 +81,7 @@ class ElementLocator
     }
 
     /**
-     * Get a \WebDriverBy location instance from its alias.
+     * Get a locator - a {@see \WebDriverBy} instance - by its alias.
      *
      * @param string $alias
      * @return \WebDriverBy
@@ -99,6 +94,8 @@ class ElementLocator
     }
 
     /**
+     * Get all locators.
+     * 
      * @return array all \WebDriver
      */
     public function getAll()
@@ -107,7 +104,7 @@ class ElementLocator
     }
 
     /**
-     * Clear all stored aliases and their @see \WebDriverBy instances.
+     * Clear all locators.
      */
     public function clear()
     {
@@ -115,19 +112,11 @@ class ElementLocator
     }
 
     /**
-     * Create a \WebDriverBy instance from an array.
+     * Create a locator - a {@see \WebDriverBy} instance - from an array.
      *
-     * This array must contain 2 items (NOT a key => value pair).
-     *
-     * The first must be a the name of a WebDriver strategy to locate a web
-     * element, e.g. you can locate an element by its CSS id, tag name...
-     * @link https://www.w3.org/TR/2013/WD-webdriver-20130117/#element-location-strategies
-     * @see \WebDriverBy
-     *
-     * The second must be the value to use with this strategy.
-     *
-     * Exemples of valid arrays to create a \WebDriverBy instance:
-     * ['id', 'login-form'], ['tag name', 'meta'], ['link text', 'logout']
+     * The first item must be the a selector strategy and the second the value
+     * to be used with this strategy e.g. ['id', 'login-form'],
+     * ['tag name', 'meta'], ['link text', 'logout'].
      *
      * WebDriver supports 8 strategies.
      *
@@ -167,18 +156,13 @@ class ElementLocator
     }
 
     /**
-     * Return a \WebDriverBy instance - used to find a web element - based on
-     * the $location param.
+     * Resolve a location to a {@see \WebDriverBy} instance.
      *
-     * A location can be a \WebDriverBy instance which is returned as is.
-     * If a string, it's assumed to be the alias of a \WebDriverBy instance
-     * stored in the @see $map property.
-     * If an array @see fromArray()
-     *
-     *
-     * @param \WebDriverBy|string|array $location
+     * @param \WebDriverBy|string|array $location if a string it must be a
+     * selector alias {@see $map}. If an array it must contain a strategy and
+     * a value {@see fromArray}.
      * @return \WebDriverBy
-     * @throws InvalidParamException
+     * @throws InvalidParamException location param is not valid
      */
     public function resolve($location)
     {
@@ -195,8 +179,8 @@ class ElementLocator
     }
 
     /**
-     * Return a readable version of the location.
-     *
+     * Return a printable version of a location - to be used in exception msg.
+     * 
      * @param \WebDriverBy|string|array $location @see resolve()
      * @return string
      * @throws InvalidParamException $location param is not of the expected type

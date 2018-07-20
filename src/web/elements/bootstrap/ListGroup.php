@@ -2,7 +2,9 @@
 namespace pyd\testkit\web\elements\bootstrap;
 
 /**
- * Bootstrap 3 list group element.
+ * Bootstrap 3 'list group' element.
+ * 
+ * @property-read array $items items of the list group
  *
  * @author Pierre-Yves DELETTRE <pierre.yves.delettre@gmail.com>
  */

@@ -25,18 +25,17 @@ class Form extends \pyd\testkit\web\Element
     protected $buttonInputTypes = ['button', 'submit', 'reset', 'image'];
 
     /**
-     * Add input locators for model attributes.
+     * Add locators {@see \pyd\testkit\web\base\ElementLocator} for all inputs
+     * associated with a model.
      *
-     * This method will create locators to find inputs using their attribute names.
-     *
-     * <code>
+     * ```php
      * // assuming the Users model has safe 'username' and 'country_id' attributes
-     * $model = new \app\model\Users;
+     * $model = new \app\model\Users();
      * $form->addInputLocatorsByModel($model);
-     * ...
+     * // username is the locator for the homonym text field
      * $form->username->setAttribute('value', 'tarzan');     // write 'tarzan' in the 'username' text field
-     * $form->find('country_id', Select::className)->selectByValue('Vanuatu');
-     * </code>
+     * $form->find('country_id', Select::className())->selectByValue('Vanuatu'); // select 'Vanuhatu' in the countries dropdownlist
+     * ```
      *
      * @param \yii\base\Model $model
      * @param array $attributes a locator will be added for each of this
@@ -54,10 +53,10 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Verify if an input has an invalid value.
+     * Verify if an attribute input has a validation error.
      *
-     * Note that input locator must have been added for this attribute with
-     * @see addInputLocatorsByModel
+     * Note that an input locator must have been added for this attribute with
+     * {@see addInputLocatorsByModel}.
      *
      * @param string $attribute
      * @return boolean
@@ -96,7 +95,7 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * The csrf hidden input is present.
+     * Check if the csrf hidden input is present.
      *
      * @return boolean
      */
@@ -114,8 +113,8 @@ class Form extends \pyd\testkit\web\Element
     private $userInputs;
 
     /**
-     * Find all 'user input' elements i.e. <select> <textarea> and <input> (except
-     * buttons @see $buttonInputTypes)
+     * Find all 'user input' elements i.e. <select> <textarea> and <input> that
+     * are not buttons {@see $buttonInputTypes}.
      *
      * @param bool|null $visible return 'displayed' or 'not displayed' elements
      * @see\pyd\testkit\web\Element::isDisplayed. If null all 'user inputs' are
@@ -144,7 +143,7 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Reset user inputs.
+     * Reset list of user inputs found with {@see finduserInputs}.
      */
     public function resetUserInputs()
     {
@@ -241,7 +240,8 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Submit the form using the selenium 'submit' command.
+     * Submit the form using the webdriver 'submit' command (not clicking the
+     * submit button).
      */
     public function submit()
     {
@@ -259,7 +259,7 @@ class Form extends \pyd\testkit\web\Element
     }
 
     /**
-     * Validation error messages are displayed in the form.
+     * Check if validation error messages are displayed in the form.
      *
      * @return boolean
      */
