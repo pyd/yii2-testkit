@@ -47,7 +47,11 @@ class ElementFinder
     {
         $response = $this->executor->execute(\DriverCommand::FIND_ELEMENT,
                  ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
-        return $response['ELEMENT'];
+        # This key replace the previously used 'ELEMENT'
+        # https://w3c.github.io/webdriver/#dfn-web-elements:
+        # "The web element identifier is the string constant "element-6066-11e4-a52e-4f735466cecf"."
+        # It seems that selenium-server follows this WebDriver spec. since around v 3.5
+        return $response['element-6066-11e4-a52e-4f735466cecf'];
     }
 
     /**
@@ -65,7 +69,8 @@ class ElementFinder
     {
         $response = $this->executor->execute(\DriverCommand::FIND_CHILD_ELEMENT,
             [':id' => $parentElementID, 'using' => $by->getMechanism(), 'value' => $by->getValue()]);
-        return $response['ELEMENT'];
+        # see public function getID
+        return $response['element-6066-11e4-a52e-4f735466cecf'];
     }
 
     /**
@@ -82,8 +87,9 @@ class ElementFinder
         $ids = [];
         $response = $this->executor->execute(\DriverCommand::FIND_ELEMENTS,
                 ['using' => $by->getMechanism(), 'value' => $by->getValue()]);
+        # see public function getID
         foreach ($response as $item) {
-            $ids[] = $item['ELEMENT'];
+            $ids[] = $item['element-6066-11e4-a52e-4f735466cecf'];
         }
         return $ids;
     }
@@ -104,8 +110,9 @@ class ElementFinder
         $ids = [];
         $response = $this->executor->execute(\DriverCommand::FIND_CHILD_ELEMENTS,
                 [':id' => $parentElementID, 'using' => $by->getMechanism(), 'value' => $by->getValue()]);
+        # see public function getID
         foreach ($response as $item) {
-            $ids[] = $item['ELEMENT'];
+            $ids[] = $item['element-6066-11e4-a52e-4f735466cecf'];
         }
         return $ids;
     }
