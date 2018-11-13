@@ -63,11 +63,8 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
     {
         if ($this->driverRequired) {
             
-            if (!$this->driverIsReady()) {
-                $this->createDriver();
-            } else if (!$this->shareDriver) {
+            if (!$this->shareDriver) {
                 $this->destroyDriver();
-                $this->createDriver();
             } else if ($this->clearCookies) {
                 $this->getDriver()->cookies()->deleteAll();
             }
@@ -85,11 +82,7 @@ class ManagerEventObserver extends Manager implements \pyd\testkit\events\Observ
     public function onEndTestCase(\pyd\testkit\events\EndTestCase $event)
     {
         if ($this->driverRequired) {
-            
-            if ($this->driverIsReady()) {
-                $this->destroyDriver();
-            }
-            
+            $this->destroyDriver();
             $this->shareDriver = null;
             $this->clearCookies = null;
             $this->driverRequired = null;

@@ -1,6 +1,10 @@
 <?php
 namespace pyd\testkit\web\driver\selenium;
 
+use pyd\testkit\web\Driver;
+use pyd\testkit\web\RemoteDriver;
+
+
 /**
  * Manage - create/destroy - the 'webdriver client' instance used to talk with
  * the selenium server.
@@ -17,7 +21,7 @@ class Manager extends \yii\base\BaseObject implements \pyd\testkit\web\driver\Ma
     public $url = 'http://localhost:4444/wd/hub';
     
     protected $desiredCapabilities;
-    
+
     public $connectionTimeout;
     
     public $requestTimeout;
@@ -39,6 +43,9 @@ class Manager extends \yii\base\BaseObject implements \pyd\testkit\web\driver\Ma
      */
     public function getDriver()
     {
+        if (!$this->driverIsReady()) {
+            $this->createDriver();
+        }
         return $this->driver;
     }
     
@@ -65,18 +72,13 @@ class Manager extends \yii\base\BaseObject implements \pyd\testkit\web\driver\Ma
      * 
      * @throws \yii\base\InvalidCallException
      */
-    protected function createDriver()
+    private function createDriver()
     {
-        try {
-            $driverClass = $this->driverClass;
-            $this->driver = $driverClass::create(
-                    $this->url,
-                    $this->desiredCapabilities,
-                    $this->connectionTimeout,
-                    $this->requestTimeout);
-        } catch (\WebDriverCurlException $e) {
-            throw new \yii\base\InvalidCallException("Cannot create web driver: " . $e->getMessage());
+        if (null === $this->desiredCapabilities) {
+            $this->desiredCapabilities = \DesiredCapabilities::firefox();
         }
+        
+        $this->driver = RemoteDriver::create($this->url, $this->desiredCapabilities, $this->connectionTimeout, $this->requestTimeout);
     }
     
     /**
@@ -84,7 +86,9 @@ class Manager extends \yii\base\BaseObject implements \pyd\testkit\web\driver\Ma
      */
     protected function destroyDriver()
     {
-        $this->driver->quit();
+        if ($this->driverIsReady()) {
+            $this->driver->quit();
+        }
         $this->driver = null;
     }
 }
